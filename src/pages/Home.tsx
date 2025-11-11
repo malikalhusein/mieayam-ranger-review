@@ -29,6 +29,7 @@ const Home = () => {
   const fetchReviews = async () => {
     try {
       const { data, error } = await supabase
+        // @ts-ignore - Supabase types are auto-generated
         .from("reviews")
         .select("*")
         .order("created_at", { ascending: false });

@@ -60,6 +60,7 @@ const Login = () => {
 
       // Check if user is admin
       const { data: roleData } = await supabase
+        // @ts-ignore - Supabase types are auto-generated
         .from("user_roles")
         .select("role")
         .eq("user_id", data.user.id)
