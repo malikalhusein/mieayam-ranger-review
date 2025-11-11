@@ -26,18 +26,18 @@ const PerceptualMap = ({ data }: PerceptualMapProps) => {
             type="number" 
             dataKey="complexity" 
             name="Complexity" 
-            domain={[-5, 5]}
-            ticks={[-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]}
-            label={{ value: 'Complexity', position: 'insideBottom', offset: -10, fill: "hsl(var(--foreground))", fontSize: 12 }}
+            domain={[0, 8]}
+            ticks={[0, 1, 2, 3, 4, 5, 6, 7, 8]}
+            label={{ value: 'Simple ← Subtle → Complex', position: 'insideBottom', offset: -10, fill: "hsl(var(--foreground))", fontSize: 12 }}
             tick={{ fill: "hsl(var(--foreground))", fontSize: 11 }}
           />
           <YAxis 
             type="number" 
             dataKey="sweetness" 
             name="Sweetness" 
-            domain={[-5, 5]}
-            ticks={[-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]}
-            label={{ value: 'Sweetness', angle: -90, position: 'insideLeft', offset: -5, fill: "hsl(var(--foreground))", fontSize: 12 }}
+            domain={[0, 8]}
+            ticks={[0, 1, 2, 3, 4, 5, 6, 7, 8]}
+            label={{ value: 'Salty ← Savory → Sweet', angle: -90, position: 'insideLeft', offset: -5, fill: "hsl(var(--foreground))", fontSize: 12 }}
             tick={{ fill: "hsl(var(--foreground))", fontSize: 11 }}
           />
           <Tooltip 

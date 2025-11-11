@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import RadarChart from "@/components/RadarChart";
+import PerceptualMap from "@/components/PerceptualMap";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -418,6 +419,46 @@ const ReviewDetail = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Perceptual Mapping */}
+            {review.complexity !== null && review.complexity !== undefined && 
+             review.sweetness !== null && review.sweetness !== undefined && (
+              <Card className="shadow-md">
+                <CardContent className="p-5 md:p-6">
+                  <h2 className="text-lg md:text-xl font-bold mb-4 text-center">
+                    Posisi Rasa
+                  </h2>
+                  <div className="bg-muted/30 rounded-lg p-4">
+                    <PerceptualMap 
+                      data={[{
+                        name: review.outlet_name,
+                        complexity: review.complexity,
+                        sweetness: review.sweetness,
+                        type: review.product_type as "kuah" | "goreng"
+                      }]}
+                    />
+                  </div>
+                  
+                  {/* Position Info */}
+                  <div className="mt-4 pt-4 border-t grid grid-cols-2 gap-3">
+                    <div className="text-center">
+                      <div className="text-xs text-muted-foreground mb-1">Complexity</div>
+                      <div className="text-sm font-bold text-primary">{review.complexity + 1} / 9</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {review.complexity <= 2 ? "Simple" : review.complexity >= 6 ? "Complex" : "Subtle"}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xs text-muted-foreground mb-1">Sweetness</div>
+                      <div className="text-sm font-bold text-primary">{review.sweetness + 1} / 9</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {review.sweetness <= 2 ? "Salty" : review.sweetness >= 6 ? "Sweet" : "Savory"}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Generate Scorecard */}
             <Card className="shadow-md">
