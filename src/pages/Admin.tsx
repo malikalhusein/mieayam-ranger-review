@@ -11,8 +11,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, Upload, X, Home } from "lucide-react";
+import { LogOut, Upload, X, Home, TrendingUp, BarChart3, Award } from "lucide-react";
 import { SemanticDifferential } from "@/components/ui/semantic-differential";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const reviewSchema = z.object({
   outlet_name: z.string().min(1, "Nama outlet wajib diisi"),
@@ -51,6 +52,7 @@ const Admin = () => {
   const [reviews, setReviews] = useState<any[]>([]);
   const [editingReview, setEditingReview] = useState<any>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [previewScore, setPreviewScore] = useState<number | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -70,6 +72,31 @@ const Admin = () => {
       fetchReviews();
     }
   }, [user]);
+
+  // Calculate preview score in real-time
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      const kuahScore = value.product_type === "kuah" 
+        ? ((Number(value.kuah_kekentalan) || 0) + (Number(value.kuah_kaldu) || 0) + 
+           (Number(value.kuah_keseimbangan) || 0) + (Number(value.kuah_aroma) || 0)) / 4
+        : 0;
+      const mieScore = Number(value.mie_tekstur) || 0;
+      const ayamScore = ((Number(value.ayam_bumbu) || 0) + (Number(value.ayam_potongan) || 0)) / 2;
+      const fasilitasScore = ((Number(value.fasilitas_kebersihan) || 0) + 
+                             (Number(value.fasilitas_alat_makan) || 0) + 
+                             (Number(value.fasilitas_tempat) || 0)) / 3;
+      
+      let score: number;
+      if (value.product_type === "kuah") {
+        score = (kuahScore * 0.3) + (mieScore * 0.3) + (ayamScore * 0.25) + (fasilitasScore * 0.15);
+      } else {
+        score = (mieScore * 0.4) + (ayamScore * 0.4) + (fasilitasScore * 0.2);
+      }
+      
+      setPreviewScore(score);
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   const fetchReviews = async () => {
     const { data, error } = await supabase
@@ -357,6 +384,37 @@ const Admin = () => {
 
   const productType = form.watch("product_type");
 
+  // Calculate statistics
+  const avgOverallScore = reviews.length > 0 
+    ? reviews.reduce((sum, r) => sum + (r.overall_score || 0), 0) / reviews.length 
+    : 0;
+  
+  const typeDistribution = reviews.reduce((acc, r) => {
+    acc[r.product_type] = (acc[r.product_type] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const outletPerformance = reviews.reduce((acc, r) => {
+    if (!acc[r.outlet_name]) {
+      acc[r.outlet_name] = { count: 0, totalScore: 0 };
+    }
+    acc[r.outlet_name].count += 1;
+    acc[r.outlet_name].totalScore += r.overall_score || 0;
+    return acc;
+  }, {} as Record<string, { count: number; totalScore: number }>);
+
+  const topOutlets = Object.entries(outletPerformance)
+    .map(([name, data]) => {
+      const performanceData = data as { count: number; totalScore: number };
+      return {
+        name,
+        avgScore: performanceData.totalScore / performanceData.count,
+        reviewCount: performanceData.count
+      };
+    })
+    .sort((a, b) => b.avgScore - a.avgScore)
+    .slice(0, 5);
+
   return (
     <div className="min-h-screen bg-gradient-subtle p-8">
       <div className="container max-w-6xl">
@@ -373,6 +431,87 @@ const Admin = () => {
             </Button>
           </div>
         </div>
+
+        {/* Statistics Dashboard */}
+        {!showCreateForm && !editingReview && (
+          <>
+            <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Rata-rata Overall Score</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{avgOverallScore.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">Dari {reviews.length} review</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Distribusi Tipe</CardTitle>
+                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span>Kuah:</span>
+                      <span className="font-bold">{typeDistribution.kuah || 0}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Goreng:</span>
+                      <span className="font-bold">{typeDistribution.goreng || 0}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Top Outlet</CardTitle>
+                  <Award className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  {topOutlets.length > 0 ? (
+                    <div className="space-y-1">
+                      <div className="font-bold text-sm">{topOutlets[0].name}</div>
+                      <div className="text-2xl font-bold">{topOutlets[0].avgScore.toFixed(2)}</div>
+                      <p className="text-xs text-muted-foreground">{topOutlets[0].reviewCount} review</p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Belum ada data</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {topOutlets.length > 1 && (
+              <Card className="mb-8">
+                <CardHeader>
+                  <CardTitle>Top 5 Outlet Terbaik</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {topOutlets.map((outlet, index) => (
+                      <div key={outlet.name} className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
+                            {index + 1}
+                          </div>
+                          <div>
+                            <div className="font-medium">{outlet.name}</div>
+                            <div className="text-sm text-muted-foreground">{outlet.reviewCount} review</div>
+                          </div>
+                        </div>
+                        <div className="text-xl font-bold">{outlet.avgScore.toFixed(2)}</div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </>
+        )}
 
         {!showCreateForm && !editingReview && (
           <div className="space-y-4">
@@ -655,6 +794,22 @@ const Admin = () => {
                     />
                   </div>
                 </div>
+
+                {/* Real-time Score Preview */}
+                {previewScore !== null && (
+                  <Alert className="bg-primary/10 border-primary">
+                    <TrendingUp className="h-4 w-4" />
+                    <AlertDescription>
+                      <span className="font-semibold">Preview Overall Score: </span>
+                      <span className="text-2xl font-bold text-primary">{previewScore.toFixed(2)}</span>
+                      <span className="text-sm text-muted-foreground ml-2">
+                        ({productType === "kuah" 
+                          ? "Kuah 30% + Mie 30% + Ayam 25% + Fasilitas 15%" 
+                          : "Mie 40% + Ayam 40% + Fasilitas 20%"})
+                      </span>
+                    </AlertDescription>
+                  </Alert>
+                )}
 
                 {productType === "kuah" && (
                   <>

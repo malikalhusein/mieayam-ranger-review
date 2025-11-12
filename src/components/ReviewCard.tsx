@@ -184,9 +184,14 @@ const ReviewCard = ({
         
         <CardContent className="flex-grow flex flex-col">
           {notes && (
-            <p className="text-xs md:text-sm text-muted-foreground line-clamp-2 mb-3">
-              {notes}
-            </p>
+            <div className="text-xs md:text-sm text-muted-foreground line-clamp-2 mb-3">
+              {notes.split('\n')[0].split(/(\*\*.*?\*\*)/).map((part, i) => {
+                if (part.startsWith('**') && part.endsWith('**')) {
+                  return <strong key={i}>{part.slice(2, -2)}</strong>;
+                }
+                return part;
+              })}
+            </div>
           )}
           
           {radarData && (

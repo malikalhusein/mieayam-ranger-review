@@ -311,7 +311,25 @@ const ReviewDetail = () => {
                     <h3 className="font-semibold mb-2 flex items-center text-foreground">
                       💬 Catatan
                     </h3>
-                    <p className="text-sm md:text-base text-muted-foreground leading-relaxed">{review.notes}</p>
+                    <div className="prose prose-sm max-w-none">
+                      {review.notes.split('\n').map((paragraph: string, index: number) => {
+                        if (!paragraph.trim()) return null;
+                        
+                        // Replace **text** with bold
+                        const formattedText = paragraph.split(/(\*\*.*?\*\*)/).map((part, i) => {
+                          if (part.startsWith('**') && part.endsWith('**')) {
+                            return <strong key={i}>{part.slice(2, -2)}</strong>;
+                          }
+                          return part;
+                        });
+                        
+                        return (
+                          <p key={index} className="text-sm md:text-base text-muted-foreground leading-relaxed mb-3">
+                            {formattedText}
+                          </p>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </CardContent>
