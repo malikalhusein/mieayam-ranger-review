@@ -22,7 +22,7 @@ export const SemanticDifferential = ({
   onChange,
   className
 }: SemanticDifferentialProps) => {
-  const steps = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+  const steps = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5];
 
   return (
     <div className={cn("space-y-3", className)}>
@@ -45,9 +45,9 @@ export const SemanticDifferential = ({
                   ? "bg-primary text-primary-foreground shadow-md scale-110"
                   : "bg-muted hover:bg-muted/80 text-muted-foreground"
               )}
-              aria-label={`${label}: ${step + 1}`}
+              aria-label={`${label}: ${step}`}
             >
-              {step + 1}
+              {step}
             </button>
           ))}
         </div>

@@ -114,8 +114,8 @@ const Home = () => {
 
   const perceptualData = reviews.map(r => ({
     name: r.outlet_name,
-    complexity: r.complexity ?? 4, // Use 0-8 scale directly (default to middle value 4)
-    sweetness: r.sweetness ?? 4,   // Use 0-8 scale directly (default to middle value 4)
+    complexity: r.complexity ?? 0, // Use -5 to +5 scale directly (default to middle value 0)
+    sweetness: r.sweetness ?? 0,   // Use -5 to +5 scale directly (default to middle value 0)
     type: r.product_type,
   }));
 

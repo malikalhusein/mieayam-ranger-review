@@ -385,14 +385,25 @@ const ReviewDetail = () => {
                   </div>
                 </div>
 
-                {(review.complexity || review.sweetness) && (
+                {(review.complexity !== null && review.complexity !== undefined) || 
+                 (review.sweetness !== null && review.sweetness !== undefined) && (
                   <div>
                     <h3 className="font-semibold mb-3 text-base md:text-lg flex items-center">
                       📈 Perceptual Mapping
                     </h3>
                     <div className="space-y-3">
-                      <ScoreBar label="Complexity" score={review.complexity} />
-                      <ScoreBar label="Sweetness" score={review.sweetness} />
+                      {review.complexity !== null && review.complexity !== undefined && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm md:text-base font-medium">Complexity</span>
+                          <span className="text-sm md:text-base font-bold text-primary">{review.complexity}</span>
+                        </div>
+                      )}
+                      {review.sweetness !== null && review.sweetness !== undefined && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm md:text-base font-medium">Sweetness</span>
+                          <span className="text-sm md:text-base font-bold text-primary">{review.sweetness}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -452,25 +463,26 @@ const ReviewDetail = () => {
                         name: review.outlet_name,
                         complexity: review.complexity,
                         sweetness: review.sweetness,
-                        type: review.product_type as "kuah" | "goreng"
+                        type: review.product_type
                       }]}
+                      showDescription={true}
                     />
                   </div>
-                  
+
                   {/* Position Info */}
                   <div className="mt-4 pt-4 border-t grid grid-cols-2 gap-3">
                     <div className="text-center">
                       <div className="text-xs text-muted-foreground mb-1">Complexity</div>
-                      <div className="text-sm font-bold text-primary">{review.complexity + 1} / 9</div>
+                      <div className="text-sm font-bold text-primary">{review.complexity}</div>
                       <div className="text-xs text-muted-foreground mt-1">
-                        {review.complexity <= 2 ? "Simple" : review.complexity >= 6 ? "Complex" : "Subtle"}
+                        {review.complexity <= -2 ? "Simple" : review.complexity >= 2 ? "Complex" : "Subtle"}
                       </div>
                     </div>
                     <div className="text-center">
                       <div className="text-xs text-muted-foreground mb-1">Sweetness</div>
-                      <div className="text-sm font-bold text-primary">{review.sweetness + 1} / 9</div>
+                      <div className="text-sm font-bold text-primary">{review.sweetness}</div>
                       <div className="text-xs text-muted-foreground mt-1">
-                        {review.sweetness <= 2 ? "Salty" : review.sweetness >= 6 ? "Sweet" : "Savory"}
+                        {review.sweetness <= -2 ? "Salty" : review.sweetness >= 2 ? "Sweet" : "Savory"}
                       </div>
                     </div>
                   </div>

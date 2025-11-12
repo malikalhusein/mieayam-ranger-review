@@ -773,7 +773,7 @@ const Admin = () => {
                   <div className="col-span-2">
                     <SemanticDifferential
                       id="complexity"
-                      label="Complexity (Kompleksitas Rasa)"
+                      label="Kompleksitas Rasa (-5: Simple, 0: Subtle, +5: Complex)"
                       leftLabel="Simple"
                       centerLabel="Subtle"
                       rightLabel="Complex"
@@ -785,7 +785,7 @@ const Admin = () => {
                   <div className="col-span-2">
                     <SemanticDifferential
                       id="sweetness"
-                      label="Sweetness (Profil Rasa)"
+                      label="Profil Rasa (-5: Salty, 0: Savory, +5: Sweet)"
                       leftLabel="Salty"
                       centerLabel="Savory"
                       rightLabel="Sweet"
