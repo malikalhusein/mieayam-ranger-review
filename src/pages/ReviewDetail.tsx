@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 const ReviewDetail = () => {
   const { id } = useParams();
   const [review, setReview] = useState<any>(null);
+  const [visitHistory, setVisitHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [generatingScorecard, setGeneratingScorecard] = useState(false);
@@ -40,6 +41,24 @@ const ReviewDetail = () => {
       const scores = calculateScores(data);
       // @ts-ignore
       setReview({ ...data, scores });
+
+      // Fetch all visits for this outlet
+      const { data: allVisits, error: visitsError } = await supabase
+        // @ts-ignore
+        .from("reviews")
+        .select("*")
+        .eq("outlet_name", data.outlet_name)
+        .eq("address", data.address)
+        .order("visit_date", { ascending: false });
+
+      if (!visitsError && allVisits) {
+        const processedVisits = allVisits.map(v => ({
+          ...v,
+          scores: calculateScores(v)
+        }));
+        setVisitHistory(processedVisits);
+      }
+
       setError(null);
     } catch (error: any) {
       const errorMessage = error.message || "Gagal memuat detail review";
@@ -529,6 +548,78 @@ const ReviewDetail = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* Visit History */}
+            {visitHistory.length > 1 && (
+              <Card className="shadow-md">
+                <CardContent className="p-5 md:p-6">
+                  <h3 className="font-semibold mb-4 flex items-center">
+                    <Clock className="mr-2 h-5 w-5 text-primary" />
+                    Riwayat Kunjungan ({visitHistory.length})
+                  </h3>
+                  <p className="text-xs md:text-sm text-muted-foreground mb-4">
+                    Menampilkan semua kunjungan ke outlet ini
+                  </p>
+                  <div className="space-y-3">
+                    {visitHistory.map((visit, index) => {
+                      const isCurrentVisit = visit.id === review.id;
+                      const scoreDiff = index < visitHistory.length - 1 
+                        ? (visit.overall_score || 0) - (visitHistory[index + 1].overall_score || 0)
+                        : null;
+                      
+                      return (
+                        <div 
+                          key={visit.id}
+                          className={`p-3 rounded-lg border ${isCurrentVisit ? 'border-primary bg-primary/5' : 'border-border'}`}
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <Badge variant={isCurrentVisit ? "default" : "outline"} className="text-xs">
+                                  {new Date(visit.visit_date).toLocaleDateString('id-ID', { 
+                                    day: 'numeric', 
+                                    month: 'short', 
+                                    year: 'numeric' 
+                                  })}
+                                </Badge>
+                                {index === 0 && (
+                                  <Badge variant="secondary" className="text-xs">Terbaru</Badge>
+                                )}
+                              </div>
+                              {scoreDiff !== null && (
+                                <p className={`text-xs mt-1 ${scoreDiff > 0 ? 'text-green-600' : scoreDiff < 0 ? 'text-red-600' : 'text-muted-foreground'}`}>
+                                  {scoreDiff > 0 ? '↑' : scoreDiff < 0 ? '↓' : '='} {Math.abs(scoreDiff).toFixed(1)} dari kunjungan sebelumnya
+                                </p>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <div className="text-lg font-bold text-primary">
+                                {(visit.overall_score || 0).toFixed(1)}
+                              </div>
+                              <div className="text-xs text-muted-foreground">Score</div>
+                            </div>
+                          </div>
+                          
+                          {visit.notes && (
+                            <p className="text-xs text-muted-foreground line-clamp-2 mt-2">
+                              {visit.notes.split('\n')[0]}
+                            </p>
+                          )}
+                          
+                          {!isCurrentVisit && (
+                            <Link to={`/review/${visit.id}`}>
+                              <Button size="sm" variant="ghost" className="w-full mt-2 text-xs">
+                                Lihat Detail
+                              </Button>
+                            </Link>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>

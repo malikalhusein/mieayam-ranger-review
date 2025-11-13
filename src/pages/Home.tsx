@@ -42,11 +42,22 @@ const Home = () => {
         totalScore: calculateTotalScore(review),
       }));
 
-      setReviews(processedReviews);
-      setFilteredReviews(processedReviews);
+      // Group by outlet and show only highest score per outlet
+      const groupedByOutlet = processedReviews.reduce((acc, review) => {
+        const outletKey = `${review.outlet_name}-${review.address}`;
+        if (!acc[outletKey] || (review.overall_score || 0) > (acc[outletKey].overall_score || 0)) {
+          acc[outletKey] = review;
+        }
+        return acc;
+      }, {} as Record<string, any>);
+
+      const uniqueOutletReviews = Object.values(groupedByOutlet);
+
+      setReviews(uniqueOutletReviews);
+      setFilteredReviews(uniqueOutletReviews);
       
-      // Get top 5 based on score
-      const sorted = [...processedReviews].sort((a, b) => b.totalScore - a.totalScore);
+      // Get top 5 based on overall_score
+      const sorted = [...uniqueOutletReviews].sort((a, b) => (b.overall_score || 0) - (a.overall_score || 0));
       setTopReviews(sorted.slice(0, 5));
       setError(null);
     } catch (error: any) {

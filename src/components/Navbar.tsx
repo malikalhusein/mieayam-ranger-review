@@ -28,7 +28,7 @@ const Navbar = () => {
         className={`${mobile ? 'block py-2' : ''} text-sm font-medium transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-4`}
         onClick={onLinkClick}
       >
-        Donation
+        Dukung Kami
       </Link>
       <Link to="/login" onClick={onLinkClick}>
         <Button variant="outline" size="sm" className="w-full sm:w-auto">

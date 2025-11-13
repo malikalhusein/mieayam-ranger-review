@@ -14,16 +14,126 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      reviews: {
+        Row: {
+          address: string
+          ayam_bumbu: number | null
+          ayam_potongan: number | null
+          city: string
+          complexity: number | null
+          created_at: string
+          fasilitas_alat_makan: number | null
+          fasilitas_kebersihan: number | null
+          fasilitas_tempat: number | null
+          google_map_url: string | null
+          id: string
+          image_url: string | null
+          image_urls: string[] | null
+          kuah_aroma: number | null
+          kuah_kaldu: number | null
+          kuah_kekentalan: number | null
+          kuah_keseimbangan: number | null
+          mie_tekstur: number | null
+          mie_tipe: string | null
+          notes: string | null
+          outlet_name: string
+          overall_score: number | null
+          price: number
+          product_type: string
+          service_durasi: number | null
+          sweetness: number | null
+          updated_at: string
+          visit_date: string
+        }
+        Insert: {
+          address: string
+          ayam_bumbu?: number | null
+          ayam_potongan?: number | null
+          city: string
+          complexity?: number | null
+          created_at?: string
+          fasilitas_alat_makan?: number | null
+          fasilitas_kebersihan?: number | null
+          fasilitas_tempat?: number | null
+          google_map_url?: string | null
+          id?: string
+          image_url?: string | null
+          image_urls?: string[] | null
+          kuah_aroma?: number | null
+          kuah_kaldu?: number | null
+          kuah_kekentalan?: number | null
+          kuah_keseimbangan?: number | null
+          mie_tekstur?: number | null
+          mie_tipe?: string | null
+          notes?: string | null
+          outlet_name: string
+          overall_score?: number | null
+          price: number
+          product_type: string
+          service_durasi?: number | null
+          sweetness?: number | null
+          updated_at?: string
+          visit_date: string
+        }
+        Update: {
+          address?: string
+          ayam_bumbu?: number | null
+          ayam_potongan?: number | null
+          city?: string
+          complexity?: number | null
+          created_at?: string
+          fasilitas_alat_makan?: number | null
+          fasilitas_kebersihan?: number | null
+          fasilitas_tempat?: number | null
+          google_map_url?: string | null
+          id?: string
+          image_url?: string | null
+          image_urls?: string[] | null
+          kuah_aroma?: number | null
+          kuah_kaldu?: number | null
+          kuah_kekentalan?: number | null
+          kuah_keseimbangan?: number | null
+          mie_tekstur?: number | null
+          mie_tipe?: string | null
+          notes?: string | null
+          outlet_name?: string
+          overall_score?: number | null
+          price?: number
+          product_type?: string
+          service_durasi?: number | null
+          sweetness?: number | null
+          updated_at?: string
+          visit_date?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +260,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const

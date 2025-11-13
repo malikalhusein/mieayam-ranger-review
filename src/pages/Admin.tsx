@@ -28,9 +28,9 @@ const reviewSchema = z.object({
   fasilitas_kebersihan: z.number().min(0).max(10).optional(),
   fasilitas_alat_makan: z.number().min(0).max(10).optional(),
   fasilitas_tempat: z.number().min(0).max(10).optional(),
-  service_durasi: z.number().min(0).max(10).optional(),
-  complexity: z.number().min(0).max(8).optional(),
-  sweetness: z.number().min(0).max(8).optional(),
+  service_durasi: z.number().min(0).max(120).optional(),
+  complexity: z.number().min(-5).max(5).optional(),
+  sweetness: z.number().min(-5).max(5).optional(),
   kuah_kekentalan: z.number().min(0).max(10).optional(),
   kuah_kaldu: z.number().min(0).max(10).optional(),
   kuah_keseimbangan: z.number().min(0).max(10).optional(),
@@ -747,8 +747,9 @@ const Admin = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="service_durasi">Durasi Service</Label>
-                    <Input id="service_durasi" type="number" step="0.1" min="0" max="10"
+                    <Label htmlFor="service_durasi">Waktu Penyajian (menit)</Label>
+                    <Input id="service_durasi" type="number" step="1" min="0" max="120"
+                      placeholder="Contoh: 10"
                       {...form.register("service_durasi", { valueAsNumber: true })} />
                   </div>
 
@@ -803,7 +804,7 @@ const Admin = () => {
                       <span className="font-semibold">Preview Overall Score: </span>
                       <span className="text-2xl font-bold text-primary">{previewScore.toFixed(2)}</span>
                       <span className="text-sm text-muted-foreground ml-2">
-                        ({productType === "kuah" 
+                        ({form.watch("product_type") === "kuah" 
                           ? "Kuah 30% + Mie 30% + Ayam 25% + Fasilitas 15%" 
                           : "Mie 40% + Ayam 40% + Fasilitas 20%"})
                       </span>
@@ -811,7 +812,7 @@ const Admin = () => {
                   </Alert>
                 )}
 
-                {productType === "kuah" && (
+                {form.watch("product_type") === "kuah" && (
                   <>
                     <h4 className="font-medium mt-4">Penilaian Kuah</h4>
                     <div className="grid grid-cols-2 gap-4">

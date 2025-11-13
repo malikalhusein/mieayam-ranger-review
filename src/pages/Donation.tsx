@@ -55,12 +55,18 @@ const Donation = () => {
                 </ul>
               </div>
 
-              <div className="bg-gradient-hero p-6 rounded-lg text-center">
-                <p className="text-white/90 mb-4">
-                  Link donasi akan segera tersedia
-                </p>
-                <p className="text-white font-semibold text-2xl">
-                  Coming Soon
+              <div className="text-center">
+                <a 
+                  href="https://saweria.co/mieayamranger" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-gradient-hero hover:opacity-90 transition-opacity rounded-lg shadow-elegant"
+                >
+                  <Coffee className="mr-2 h-5 w-5" />
+                  Donasi via Saweria
+                </a>
+                <p className="text-sm text-muted-foreground mt-4">
+                  Klik tombol di atas untuk memberikan dukungan melalui Saweria
                 </p>
               </div>
 
