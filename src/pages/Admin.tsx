@@ -76,24 +76,27 @@ const Admin = () => {
   // Calculate preview score in real-time
   useEffect(() => {
     const subscription = form.watch((value) => {
-      const kuahScore = value.product_type === "kuah" 
-        ? ((Number(value.kuah_kekentalan) || 0) + (Number(value.kuah_kaldu) || 0) + 
-           (Number(value.kuah_keseimbangan) || 0) + (Number(value.kuah_aroma) || 0)) / 4
-        : 0;
-      const mieScore = Number(value.mie_tekstur) || 0;
-      const ayamScore = ((Number(value.ayam_bumbu) || 0) + (Number(value.ayam_potongan) || 0)) / 2;
-      const fasilitasScore = ((Number(value.fasilitas_kebersihan) || 0) + 
-                             (Number(value.fasilitas_alat_makan) || 0) + 
-                             (Number(value.fasilitas_tempat) || 0)) / 3;
+      const totalScore = 
+        (Number(value.kuah_kekentalan) || 0) +
+        (Number(value.kuah_kaldu) || 0) +
+        (Number(value.kuah_keseimbangan) || 0) +
+        (Number(value.kuah_aroma) || 0) +
+        (Number(value.mie_tekstur) || 0) +
+        (Number(value.ayam_bumbu) || 0) +
+        (Number(value.ayam_potongan) || 0) +
+        (Number(value.fasilitas_kebersihan) || 0) +
+        (Number(value.fasilitas_alat_makan) || 0) +
+        (Number(value.fasilitas_tempat) || 0);
       
-      let score: number;
-      if (value.product_type === "kuah") {
-        score = (kuahScore * 0.3) + (mieScore * 0.3) + (ayamScore * 0.25) + (fasilitasScore * 0.15);
-      } else {
-        score = (mieScore * 0.4) + (ayamScore * 0.4) + (fasilitasScore * 0.2);
-      }
+      const price = Number(value.price) || 0;
+      const serviceDuration = Number(value.service_durasi) || 8; // Default to 8 if empty
       
-      setPreviewScore(score);
+      // Apply 8-minute tolerance: faster = bonus, slower = penalty
+      const timeAdjustment = (serviceDuration - 8) * 100;
+      const effectiveCost = price + timeAdjustment;
+      
+      const overallScore = effectiveCost > 0 ? (totalScore / effectiveCost) * 1000 : 0;
+      setPreviewScore(overallScore);
     });
     return () => subscription.unsubscribe();
   }, [form]);
@@ -801,13 +804,16 @@ const Admin = () => {
                   <Alert className="bg-primary/10 border-primary">
                     <TrendingUp className="h-4 w-4" />
                     <AlertDescription>
-                      <span className="font-semibold">Preview Overall Score: </span>
-                      <span className="text-2xl font-bold text-primary">{previewScore.toFixed(2)}</span>
-                      <span className="text-sm text-muted-foreground ml-2">
-                        ({form.watch("product_type") === "kuah" 
-                          ? "Kuah 30% + Mie 30% + Ayam 25% + Fasilitas 15%" 
-                          : "Mie 40% + Ayam 40% + Fasilitas 20%"})
-                      </span>
+                      <div>
+                        <span className="font-semibold">Preview Overall Score: </span>
+                        <span className="text-2xl font-bold text-primary">{previewScore.toFixed(2)}</span>
+                      </div>
+                      <div className="text-xs mt-2 text-muted-foreground">
+                        Formula: (Total Skor) / (Harga + (Waktu - 8) × 100) × 1000
+                      </div>
+                      <div className="text-xs mt-1 text-muted-foreground italic">
+                        Toleransi 8 menit: lebih cepat = bonus, lebih lambat = penalti
+                      </div>
                     </AlertDescription>
                   </Alert>
                 )}
