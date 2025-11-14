@@ -80,7 +80,19 @@ const About = () => {
                 
                 <h3 className="text-lg font-semibold mb-2 mt-4">Formula Penilaian</h3>
                 <div className="bg-muted p-4 rounded-lg mb-4">
-                  <code className="text-sm">Score = (Total Skor Rasa & Fasilitas) / (Harga + Waktu Penyajian × 100) × 1000</code>
+                  <code className="text-sm">Score = (Total Skor) / (Harga + (Waktu - 8) × 100) × 1000</code>
+                </div>
+                
+                <div className="bg-primary/10 border border-primary/20 p-4 rounded-lg mb-4">
+                  <p className="text-sm font-medium mb-2">⏱️ Toleransi Waktu Penyajian: 8 Menit</p>
+                  <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                    <li><strong>Tepat 8 menit</strong>: Tidak ada penalti/bonus</li>
+                    <li><strong>Lebih cepat dari 8 menit</strong>: Mendapat bonus poin (mengurangi biaya efektif)</li>
+                    <li><strong>Lebih lambat dari 8 menit</strong>: Terkena penalti (menambah biaya efektif)</li>
+                  </ul>
+                  <p className="text-xs mt-2 text-muted-foreground italic">
+                    Contoh: Waktu 5 menit = bonus Rp 300, Waktu 12 menit = penalti Rp 400
+                  </p>
                 </div>
                 
                 <p className="text-muted-foreground mb-3">
@@ -112,11 +124,17 @@ const About = () => {
                   *Kategori harga mempengaruhi ekspektasi kualitas dan fasilitas yang disediakan
                 </p>
 
-                <h3 className="text-lg font-semibold mb-2 mt-4">Waktu Penyajian</h3>
-                <p className="text-muted-foreground mb-2">
-                  Waktu penyajian (dalam menit) menjadi faktor pengurang dalam penilaian akhir. Semakin cepat makanan disajikan, 
-                  semakin baik nilai overall score-nya. Setiap 1 menit waktu penyajian setara dengan penalti Rp 100 pada harga.
+                <h3 className="text-lg font-semibold mb-2 mt-4">Waktu Penyajian (Toleransi 8 Menit)</h3>
+                <p className="text-muted-foreground leading-relaxed mb-2">
+                  Waktu penyajian diperhitungkan dengan <strong>sistem toleransi 8 menit</strong>:
                 </p>
+                <ul className="list-disc list-inside text-muted-foreground space-y-2 mb-4">
+                  <li><strong>Standar 8 menit</strong>: Tidak ada penalti atau bonus</li>
+                  <li><strong>Lebih cepat dari 8 menit</strong>: Mendapat bonus poin (mengurangi biaya efektif Rp 100 per menit)</li>
+                  <li><strong>Lebih lambat dari 8 menit</strong>: Terkena penalti (menambah biaya efektif Rp 100 per menit)</li>
+                  <li>Contoh 1: Waktu 5 menit = bonus Rp 300 (5-8 = -3, maka -3 × 100 = -300)</li>
+                  <li>Contoh 2: Waktu 12 menit = penalti Rp 400 (12-8 = 4, maka 4 × 100 = +400)</li>
+                </ul>
               </div>
 
               <div>
