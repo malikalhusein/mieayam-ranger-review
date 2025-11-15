@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { MapPin, Calendar, DollarSign, Clock, ArrowLeft, ExternalLink, Image as ImageIcon, Download, AlertCircle } from "lucide-react";
+import { MapPin, Calendar, DollarSign, Clock, ArrowLeft, ExternalLink, Image as ImageIcon, Download, AlertCircle, Trophy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const ReviewDetail = () => {
@@ -549,73 +549,144 @@ const ReviewDetail = () => {
               </CardContent>
             </Card>
 
-            {/* Visit History */}
+            {/* Visit History Timeline */}
             {visitHistory.length > 1 && (
               <Card className="shadow-md">
                 <CardContent className="p-5 md:p-6">
-                  <h3 className="font-semibold mb-4 flex items-center">
+                  <h3 className="font-semibold mb-2 flex items-center">
                     <Clock className="mr-2 h-5 w-5 text-primary" />
-                    Riwayat Kunjungan ({visitHistory.length})
+                    Riwayat Kunjungan
                   </h3>
-                  <p className="text-xs md:text-sm text-muted-foreground mb-4">
-                    Menampilkan semua kunjungan ke outlet ini
+                  <p className="text-xs md:text-sm text-muted-foreground mb-6">
+                    Timeline kunjungan menampilkan perkembangan dari review sebelumnya - 
+                    apakah ada improvisasi atau penurunan kualitas
                   </p>
-                  <div className="space-y-3">
-                    {visitHistory.map((visit, index) => {
-                      const isCurrentVisit = visit.id === review.id;
-                      const scoreDiff = index < visitHistory.length - 1 
-                        ? (visit.overall_score || 0) - (visitHistory[index + 1].overall_score || 0)
-                        : null;
-                      
-                      return (
-                        <div 
-                          key={visit.id}
-                          className={`p-3 rounded-lg border ${isCurrentVisit ? 'border-primary bg-primary/5' : 'border-border'}`}
-                        >
-                          <div className="flex justify-between items-start mb-2">
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <Badge variant={isCurrentVisit ? "default" : "outline"} className="text-xs">
-                                  {new Date(visit.visit_date).toLocaleDateString('id-ID', { 
-                                    day: 'numeric', 
-                                    month: 'short', 
-                                    year: 'numeric' 
-                                  })}
-                                </Badge>
-                                {index === 0 && (
-                                  <Badge variant="secondary" className="text-xs">Terbaru</Badge>
-                                )}
+                  
+                  {/* Timeline */}
+                  <div className="relative">
+                    {/* Timeline line */}
+                    <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-border" />
+                    
+                    <div className="space-y-6">
+                      {visitHistory.map((visit, index) => {
+                        const isCurrentVisit = visit.id === review.id;
+                        const isHighestScore = visitHistory.findIndex(v => 
+                          (v.overall_score || 0) === Math.max(...visitHistory.map(v => v.overall_score || 0))
+                        ) === index;
+                        const scoreDiff = index < visitHistory.length - 1 
+                          ? (visit.overall_score || 0) - (visitHistory[index + 1].overall_score || 0)
+                          : null;
+                        
+                        return (
+                          <div key={visit.id} className="relative pl-10">
+                            {/* Timeline dot */}
+                            <div className={`absolute left-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                              isCurrentVisit 
+                                ? 'bg-primary ring-4 ring-primary/20' 
+                                : isHighestScore
+                                ? 'bg-yellow-500 ring-4 ring-yellow-500/20'
+                                : 'bg-muted'
+                            }`}>
+                              <span className="text-xs font-bold text-white">{visitHistory.length - index}</span>
+                            </div>
+                            
+                            {/* Visit card */}
+                            <div className={`p-4 rounded-lg border ${
+                              isCurrentVisit 
+                                ? 'border-primary bg-primary/5' 
+                                : isHighestScore
+                                ? 'border-yellow-500/50 bg-yellow-500/5'
+                                : 'border-border bg-card'
+                            }`}>
+                              <div className="flex justify-between items-start mb-3">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                                    <Badge variant={isCurrentVisit ? "default" : "outline"} className="text-xs">
+                                      {new Date(visit.visit_date).toLocaleDateString('id-ID', { 
+                                        day: 'numeric', 
+                                        month: 'long', 
+                                        year: 'numeric' 
+                                      })}
+                                    </Badge>
+                                    {index === 0 && (
+                                      <Badge variant="secondary" className="text-xs">Terbaru</Badge>
+                                    )}
+                                    {isHighestScore && (
+                                      <Badge className="text-xs bg-yellow-500 hover:bg-yellow-600">
+                                        <Trophy className="w-3 h-3 mr-1" />
+                                        Skor Tertinggi
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  
+                                  {scoreDiff !== null && (
+                                    <div className={`text-sm font-medium mt-2 flex items-center gap-1 ${
+                                      scoreDiff > 0 
+                                        ? 'text-green-600' 
+                                        : scoreDiff < 0 
+                                        ? 'text-red-600' 
+                                        : 'text-muted-foreground'
+                                    }`}>
+                                      <span className="text-lg">
+                                        {scoreDiff > 0 ? '📈' : scoreDiff < 0 ? '📉' : '➡️'}
+                                      </span>
+                                      <span>
+                                        {scoreDiff > 0 
+                                          ? `Meningkat ${Math.abs(scoreDiff).toFixed(1)} poin` 
+                                          : scoreDiff < 0 
+                                          ? `Menurun ${Math.abs(scoreDiff).toFixed(1)} poin`
+                                          : 'Tidak ada perubahan'}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                <div className="text-right ml-4">
+                                  <div className="text-2xl font-bold text-primary">
+                                    {(visit.overall_score || 0).toFixed(1)}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">Score</div>
+                                </div>
                               </div>
-                              {scoreDiff !== null && (
-                                <p className={`text-xs mt-1 ${scoreDiff > 0 ? 'text-green-600' : scoreDiff < 0 ? 'text-red-600' : 'text-muted-foreground'}`}>
-                                  {scoreDiff > 0 ? '↑' : scoreDiff < 0 ? '↓' : '='} {Math.abs(scoreDiff).toFixed(1)} dari kunjungan sebelumnya
+                              
+                              {/* Mini scores preview */}
+                              <div className="grid grid-cols-4 gap-2 mb-3 pt-3 border-t">
+                                <div className="text-center">
+                                  <div className="text-xs text-muted-foreground">Kuah</div>
+                                  <div className="text-sm font-semibold">{visit.scores.kuah}</div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="text-xs text-muted-foreground">Mie</div>
+                                  <div className="text-sm font-semibold">{visit.scores.mie}</div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="text-xs text-muted-foreground">Ayam</div>
+                                  <div className="text-sm font-semibold">{visit.scores.ayam}</div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="text-xs text-muted-foreground">Tempat</div>
+                                  <div className="text-sm font-semibold">{visit.scores.fasilitas}</div>
+                                </div>
+                              </div>
+                              
+                              {visit.notes && (
+                                <p className="text-xs text-muted-foreground line-clamp-2 italic border-l-2 border-primary/30 pl-3 mb-2">
+                                  "{visit.notes.split('\n')[0]}"
                                 </p>
                               )}
-                            </div>
-                            <div className="text-right">
-                              <div className="text-lg font-bold text-primary">
-                                {(visit.overall_score || 0).toFixed(1)}
-                              </div>
-                              <div className="text-xs text-muted-foreground">Score</div>
+                              
+                              {!isCurrentVisit && (
+                                <Link to={`/review/${visit.id}`}>
+                                  <Button size="sm" variant="outline" className="w-full mt-2 text-xs hover:bg-primary hover:text-primary-foreground">
+                                    Lihat Detail Lengkap →
+                                  </Button>
+                                </Link>
+                              )}
                             </div>
                           </div>
-                          
-                          {visit.notes && (
-                            <p className="text-xs text-muted-foreground line-clamp-2 mt-2">
-                              {visit.notes.split('\n')[0]}
-                            </p>
-                          )}
-                          
-                          {!isCurrentVisit && (
-                            <Link to={`/review/${visit.id}`}>
-                              <Button size="sm" variant="ghost" className="w-full mt-2 text-xs">
-                                Lihat Detail
-                              </Button>
-                            </Link>
-                          )}
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
                 </CardContent>
               </Card>

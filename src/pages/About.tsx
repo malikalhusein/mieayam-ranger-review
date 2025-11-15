@@ -80,10 +80,15 @@ const About = () => {
                 
                 <h3 className="text-lg font-semibold mb-2 mt-4">Formula Penilaian</h3>
                 <div className="bg-muted p-4 rounded-lg mb-4">
-                  <code className="text-sm">Score = (Total Skor) / (Harga + (Waktu - 8) × 100) × 1000</code>
+                  <code className="text-sm">Score = (Total Skor) / ((Harga × 85%) + (Waktu - 8) × 100) × 1000</code>
                 </div>
                 
                 <div className="bg-primary/10 border border-primary/20 p-4 rounded-lg mb-4">
+                  <p className="text-sm font-medium mb-2">💰 Penyesuaian Harga: 85%</p>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Harga dikalikan 85% untuk menurunkan standar penilaian, sehingga nilai akhir tidak terlalu rendah dan lebih mencerminkan value yang didapat.
+                  </p>
+                  
                   <p className="text-sm font-medium mb-2">⏱️ Toleransi Waktu Penyajian: 8 Menit</p>
                   <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
                     <li><strong>Tepat 8 menit</strong>: Tidak ada penalti/bonus</li>

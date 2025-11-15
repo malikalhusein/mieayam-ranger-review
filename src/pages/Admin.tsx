@@ -93,7 +93,7 @@ const Admin = () => {
       
       // Apply 8-minute tolerance: faster = bonus, slower = penalty
       const timeAdjustment = (serviceDuration - 8) * 100;
-      const effectiveCost = price + timeAdjustment;
+      const effectiveCost = (price * 0.85) + timeAdjustment;
       
       const overallScore = effectiveCost > 0 ? (totalScore / effectiveCost) * 1000 : 0;
       setPreviewScore(overallScore);
@@ -809,10 +809,10 @@ const Admin = () => {
                         <span className="text-2xl font-bold text-primary">{previewScore.toFixed(2)}</span>
                       </div>
                       <div className="text-xs mt-2 text-muted-foreground">
-                        Formula: (Total Skor) / (Harga + (Waktu - 8) × 100) × 1000
+                        Formula: (Total Skor) / ((Harga × 85%) + (Waktu - 8) × 100) × 1000
                       </div>
                       <div className="text-xs mt-1 text-muted-foreground italic">
-                        Toleransi 8 menit: lebih cepat = bonus, lebih lambat = penalti
+                        Harga dikali 85% untuk menurunkan standar penilaian. Toleransi 8 menit: lebih cepat = bonus, lebih lambat = penalti
                       </div>
                     </AlertDescription>
                   </Alert>
