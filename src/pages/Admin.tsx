@@ -53,6 +53,7 @@ const Admin = () => {
   const [editingReview, setEditingReview] = useState<any>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [previewScore, setPreviewScore] = useState<number | null>(null);
+  const [uniqueOutlets, setUniqueOutlets] = useState<Array<{name: string, address: string, city: string}>>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -114,6 +115,20 @@ const Admin = () => {
     }
 
     setReviews(data || []);
+    
+    // Extract unique outlets for autocomplete
+    const outlets = data || [];
+    const uniqueOutletsMap = new Map();
+    outlets.forEach(review => {
+      if (!uniqueOutletsMap.has(review.outlet_name)) {
+        uniqueOutletsMap.set(review.outlet_name, {
+          name: review.outlet_name,
+          address: review.address,
+          city: review.city
+        });
+      }
+    });
+    setUniqueOutlets(Array.from(uniqueOutletsMap.values()));
   };
 
   const checkAuth = async () => {
@@ -176,6 +191,16 @@ const Admin = () => {
     setExistingImageUrls(review.image_urls || []);
     setImageFiles([]);
     setImagePreviews([]);
+  };
+
+  const selectOutletForRevisit = (outletName: string) => {
+    const outlet = uniqueOutlets.find(o => o.name === outletName);
+    if (outlet) {
+      form.setValue("outlet_name", outlet.name);
+      form.setValue("address", outlet.address);
+      form.setValue("city", outlet.city);
+      toast({ title: "Info outlet terisi otomatis - tinggal ubah tanggal kunjungan dan penilaian" });
+    }
   };
 
   const cancelEdit = () => {
@@ -406,6 +431,12 @@ const Admin = () => {
     return acc;
   }, {} as Record<string, { count: number; totalScore: number }>);
 
+  // Group reviews by outlet to show visit numbers
+  const outletVisitCounts = reviews.reduce((acc, r) => {
+    acc[r.outlet_name] = (acc[r.outlet_name] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
   const topOutlets = Object.entries(outletPerformance)
     .map(([name, data]) => {
       const performanceData = data as { count: number; totalScore: number };
@@ -540,37 +571,51 @@ const Admin = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {reviews.map((review) => (
-                        <tr key={review.id} className="border-b hover:bg-muted/50">
-                          <td className="px-4 py-3">{review.outlet_name}</td>
-                          <td className="px-4 py-3">{review.city}</td>
-                          <td className="px-4 py-3">
-                            <span className="capitalize">{review.product_type}</span>
-                          </td>
-                          <td className="px-4 py-3">
-                            {review.overall_score ? review.overall_score.toFixed(1) : '-'}
-                          </td>
-                          <td className="px-4 py-3">
-                            {new Date(review.visit_date).toLocaleDateString('id-ID')}
-                          </td>
-                          <td className="px-4 py-3 text-right space-x-2">
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => startEdit(review)}
-                            >
-                              Edit
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="destructive"
-                              onClick={() => deleteReview(review.id)}
-                            >
-                              Hapus
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
+                      {reviews.map((review) => {
+                        const visitCount = outletVisitCounts[review.outlet_name];
+                        const hasMultipleVisits = visitCount > 1;
+                        
+                        return (
+                          <tr key={review.id} className="border-b hover:bg-muted/50">
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                {review.outlet_name}
+                                {hasMultipleVisits && (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                                    {visitCount}x kunjungan
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">{review.city}</td>
+                            <td className="px-4 py-3">
+                              <span className="capitalize">{review.product_type}</span>
+                            </td>
+                            <td className="px-4 py-3">
+                              {review.overall_score ? review.overall_score.toFixed(1) : '-'}
+                            </td>
+                            <td className="px-4 py-3">
+                              {new Date(review.visit_date).toLocaleDateString('id-ID')}
+                            </td>
+                            <td className="px-4 py-3 text-right space-x-2">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => startEdit(review)}
+                              >
+                                Edit
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="destructive"
+                                onClick={() => deleteReview(review.id)}
+                              >
+                                Hapus
+                              </Button>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -599,9 +644,40 @@ const Admin = () => {
                 
                 <div>
                   <Label htmlFor="outlet_name">Nama Outlet</Label>
-                  <Input id="outlet_name" {...form.register("outlet_name")} />
+                  {!editingReview && uniqueOutlets.length > 0 && (
+                    <p className="text-xs text-muted-foreground mb-1">
+                      💡 Pilih outlet yang sudah pernah direview untuk menambahkan kunjungan ulang
+                    </p>
+                  )}
+                  <Input 
+                    id="outlet_name" 
+                    {...form.register("outlet_name")} 
+                    list="outlets-datalist"
+                    placeholder="Ketik atau pilih nama outlet"
+                  />
+                  <datalist id="outlets-datalist">
+                    {uniqueOutlets.map((outlet) => (
+                      <option key={outlet.name} value={outlet.name} />
+                    ))}
+                  </datalist>
                   {form.formState.errors.outlet_name && (
                     <p className="text-sm text-destructive">{form.formState.errors.outlet_name.message}</p>
+                  )}
+                  {!editingReview && uniqueOutlets.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {uniqueOutlets.slice(0, 5).map((outlet) => (
+                        <Button
+                          key={outlet.name}
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => selectOutletForRevisit(outlet.name)}
+                          className="text-xs"
+                        >
+                          {outlet.name}
+                        </Button>
+                      ))}
+                    </div>
                   )}
                 </div>
 
