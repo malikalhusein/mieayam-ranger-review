@@ -25,19 +25,19 @@ const reviewSchema = z.object({
   mie_tipe: z.string().optional(),
   google_map_url: z.string().url("URL tidak valid").optional().or(z.literal("")),
   notes: z.string().optional(),
-  fasilitas_kebersihan: z.number().min(0).max(10).optional(),
-  fasilitas_alat_makan: z.number().min(0).max(10).optional(),
-  fasilitas_tempat: z.number().min(0).max(10).optional(),
-  service_durasi: z.number().min(0).max(120).optional(),
-  complexity: z.number().min(-5).max(5).optional(),
-  sweetness: z.number().min(-5).max(5).optional(),
-  kuah_kekentalan: z.number().min(0).max(10).optional(),
-  kuah_kaldu: z.number().min(0).max(10).optional(),
-  kuah_keseimbangan: z.number().min(0).max(10).optional(),
-  kuah_aroma: z.number().min(0).max(10).optional(),
-  mie_tekstur: z.number().min(0).max(10).optional(),
-  ayam_bumbu: z.number().min(0).max(10).optional(),
-  ayam_potongan: z.number().min(0).max(10).optional(),
+  fasilitas_kebersihan: z.number().min(0).max(10).optional().or(z.nan()).transform(val => isNaN(val) ? undefined : val),
+  fasilitas_alat_makan: z.number().min(0).max(10).optional().or(z.nan()).transform(val => isNaN(val) ? undefined : val),
+  fasilitas_tempat: z.number().min(0).max(10).optional().or(z.nan()).transform(val => isNaN(val) ? undefined : val),
+  service_durasi: z.number().min(0).max(120).optional().or(z.nan()).transform(val => isNaN(val) ? undefined : val),
+  complexity: z.number().min(-5).max(5).optional().or(z.nan()).transform(val => isNaN(val) ? undefined : val),
+  sweetness: z.number().min(-5).max(5).optional().or(z.nan()).transform(val => isNaN(val) ? undefined : val),
+  kuah_kekentalan: z.number().min(0).max(10).optional().or(z.nan()).transform(val => isNaN(val) ? undefined : val),
+  kuah_kaldu: z.number().min(0).max(10).optional().or(z.nan()).transform(val => isNaN(val) ? undefined : val),
+  kuah_keseimbangan: z.number().min(0).max(10).optional().or(z.nan()).transform(val => isNaN(val) ? undefined : val),
+  kuah_aroma: z.number().min(0).max(10).optional().or(z.nan()).transform(val => isNaN(val) ? undefined : val),
+  mie_tekstur: z.number().min(0).max(10).optional().or(z.nan()).transform(val => isNaN(val) ? undefined : val),
+  ayam_bumbu: z.number().min(0).max(10).optional().or(z.nan()).transform(val => isNaN(val) ? undefined : val),
+  ayam_potongan: z.number().min(0).max(10).optional().or(z.nan()).transform(val => isNaN(val) ? undefined : val),
 });
 
 type ReviewFormData = z.infer<typeof reviewSchema>;
@@ -74,14 +74,19 @@ const Admin = () => {
     }
   }, [user]);
 
-  // Calculate preview score in real-time
+  // Calculate preview score in real-time (matches database formula)
   useEffect(() => {
     const subscription = form.watch((value) => {
+      // Only include kuah scores if product type is "kuah"
+      const kuahScore = value.product_type === "kuah" 
+        ? (Number(value.kuah_kekentalan) || 0) +
+          (Number(value.kuah_kaldu) || 0) +
+          (Number(value.kuah_keseimbangan) || 0) +
+          (Number(value.kuah_aroma) || 0)
+        : 0;
+      
       const totalScore = 
-        (Number(value.kuah_kekentalan) || 0) +
-        (Number(value.kuah_kaldu) || 0) +
-        (Number(value.kuah_keseimbangan) || 0) +
-        (Number(value.kuah_aroma) || 0) +
+        kuahScore +
         (Number(value.mie_tekstur) || 0) +
         (Number(value.ayam_bumbu) || 0) +
         (Number(value.ayam_potongan) || 0) +
@@ -90,12 +95,10 @@ const Admin = () => {
         (Number(value.fasilitas_tempat) || 0);
       
       const price = Number(value.price) || 0;
-      const serviceDuration = Number(value.service_durasi) || 8; // Default to 8 if empty
+      const serviceDuration = Number(value.service_durasi) || 0;
       
-      // Apply 8-minute tolerance: faster = bonus, slower = penalty
-      const timeAdjustment = (serviceDuration - 8) * 100;
-      const effectiveCost = (price * 0.85) + timeAdjustment;
-      
+      // Match database formula: (total_score / (price + (service_durasi * 100))) * 1000
+      const effectiveCost = price + (serviceDuration * 100);
       const overallScore = effectiveCost > 0 ? (totalScore / effectiveCost) * 1000 : 0;
       setPreviewScore(overallScore);
     });
