@@ -7,9 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trophy, TrendingUp, Search, AlertCircle } from "lucide-react";
+import { Trophy, TrendingUp, Search, AlertCircle, SlidersHorizontal } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Slider } from "@/components/ui/slider";
 
 const Home = () => {
   const [reviews, setReviews] = useState<any[]>([]);
@@ -20,6 +22,8 @@ const Home = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [cityFilter, setCityFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [complexityRange, setComplexityRange] = useState<[number, number]>([-5, 5]);
+  const [sweetnessRange, setSweetnessRange] = useState<[number, number]>([-5, 5]);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -118,8 +122,20 @@ const Home = () => {
       filtered = filtered.filter(r => r.product_type === typeFilter);
     }
 
+    // Filter by complexity range
+    filtered = filtered.filter(r => {
+      const complexity = r.complexity ?? 0;
+      return complexity >= complexityRange[0] && complexity <= complexityRange[1];
+    });
+
+    // Filter by sweetness range
+    filtered = filtered.filter(r => {
+      const sweetness = r.sweetness ?? 0;
+      return sweetness >= sweetnessRange[0] && sweetness <= sweetnessRange[1];
+    });
+
     setFilteredReviews(filtered);
-  }, [searchTerm, cityFilter, typeFilter, reviews]);
+  }, [searchTerm, cityFilter, typeFilter, complexityRange, sweetnessRange, reviews]);
 
   const cities = Array.from(new Set(reviews.map(r => r.city)));
 
@@ -250,40 +266,114 @@ const Home = () => {
         <h2 id="all-reviews-heading" className="text-2xl md:text-3xl font-bold mb-8 text-center">Semua Review</h2>
         
         {/* Filters */}
-        <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4" role="search" aria-label="Filter reviews">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
-            <Input
-              placeholder="Cari nama outlet, alamat, kota..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-              aria-label="Search reviews by name, address, or city"
-            />
-          </div>
-          
-          <Select value={cityFilter} onValueChange={setCityFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Filter Kota" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Semua Kota</SelectItem>
-              {cities.map(city => (
-                <SelectItem key={city} value={city}>{city}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="mb-8 border border-border rounded-lg p-6 bg-card" role="search" aria-label="Filter reviews">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+              <Input
+                placeholder="Cari nama outlet, alamat, kota..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+                aria-label="Search reviews by name, address, or city"
+              />
+            </div>
+            
+            <Select value={cityFilter} onValueChange={setCityFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter Kota" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Kota</SelectItem>
+                {cities.map(city => (
+                  <SelectItem key={city} value={city}>{city}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Filter Tipe" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Semua Tipe</SelectItem>
-              <SelectItem value="kuah">Kuah</SelectItem>
-              <SelectItem value="goreng">Goreng</SelectItem>
-            </SelectContent>
-          </Select>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter Tipe" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Tipe</SelectItem>
+                <SelectItem value="kuah">Kuah</SelectItem>
+                <SelectItem value="goreng">Goreng</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Advanced Filter - Perceptual Mapping */}
+          <Accordion type="single" collapsible className="border-t pt-4">
+            <AccordionItem value="advanced-filter" className="border-0">
+              <AccordionTrigger className="py-2 hover:no-underline">
+                <div className="flex items-center gap-2">
+                  <SlidersHorizontal className="h-4 w-4" />
+                  <span className="font-medium">Filter Preferensi Rasa</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pt-4 space-y-6">
+                {/* Complexity Slider */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <label className="text-sm font-medium">Kompleksitas Rasa</label>
+                    <span className="text-xs text-muted-foreground">
+                      {complexityRange[0]} hingga {complexityRange[1]}
+                    </span>
+                  </div>
+                  <Slider
+                    min={-5}
+                    max={5}
+                    step={1}
+                    value={complexityRange}
+                    onValueChange={(value) => setComplexityRange(value as [number, number])}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Simpel (-5)</span>
+                    <span>Netral (0)</span>
+                    <span>Kompleks (+5)</span>
+                  </div>
+                </div>
+
+                {/* Sweetness Slider */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <label className="text-sm font-medium">Tingkat Rasa</label>
+                    <span className="text-xs text-muted-foreground">
+                      {sweetnessRange[0]} hingga {sweetnessRange[1]}
+                    </span>
+                  </div>
+                  <Slider
+                    min={-5}
+                    max={5}
+                    step={1}
+                    value={sweetnessRange}
+                    onValueChange={(value) => setSweetnessRange(value as [number, number])}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Asin (-5)</span>
+                    <span>Netral (0)</span>
+                    <span>Manis (+5)</span>
+                  </div>
+                </div>
+
+                {/* Reset Button */}
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setComplexityRange([-5, 5]);
+                    setSweetnessRange([-5, 5]);
+                  }}
+                  className="w-full"
+                >
+                  Reset Filter Preferensi
+                </Button>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
         
         {filteredReviews.length === 0 ? (
