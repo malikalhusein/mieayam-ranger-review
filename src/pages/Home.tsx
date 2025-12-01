@@ -22,8 +22,8 @@ const Home = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [cityFilter, setCityFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
-  const [complexityRange, setComplexityRange] = useState<[number, number]>([-5, 5]);
-  const [sweetnessRange, setSweetnessRange] = useState<[number, number]>([-5, 5]);
+  const [complexityRange, setComplexityRange] = useState<[number, number]>([-6, -6]);
+  const [sweetnessRange, setSweetnessRange] = useState<[number, number]>([-6, -6]);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -122,17 +122,21 @@ const Home = () => {
       filtered = filtered.filter(r => r.product_type === typeFilter);
     }
 
-    // Filter by complexity range
-    filtered = filtered.filter(r => {
-      const complexity = r.complexity ?? 0;
-      return complexity >= complexityRange[0] && complexity <= complexityRange[1];
-    });
+    // Filter by complexity range (skip if Off state is selected)
+    if (complexityRange[0] !== -6 || complexityRange[1] !== -6) {
+      filtered = filtered.filter(r => {
+        const complexity = r.complexity ?? 0;
+        return complexity >= complexityRange[0] && complexity <= complexityRange[1];
+      });
+    }
 
-    // Filter by sweetness range
-    filtered = filtered.filter(r => {
-      const sweetness = r.sweetness ?? 0;
-      return sweetness >= sweetnessRange[0] && sweetness <= sweetnessRange[1];
-    });
+    // Filter by sweetness range (skip if Off state is selected)
+    if (sweetnessRange[0] !== -6 || sweetnessRange[1] !== -6) {
+      filtered = filtered.filter(r => {
+        const sweetness = r.sweetness ?? 0;
+        return sweetness >= sweetnessRange[0] && sweetness <= sweetnessRange[1];
+      });
+    }
 
     setFilteredReviews(filtered);
   }, [searchTerm, cityFilter, typeFilter, complexityRange, sweetnessRange, reviews]);
@@ -318,11 +322,13 @@ const Home = () => {
                   <div className="flex justify-between items-center">
                     <label className="text-sm font-medium">Kompleksitas Rasa</label>
                     <span className="text-xs text-muted-foreground">
-                      {complexityRange[0]} hingga {complexityRange[1]}
+                      {complexityRange[0] === -6 && complexityRange[1] === -6 
+                        ? 'Off' 
+                        : `${complexityRange[0]} hingga ${complexityRange[1]}`}
                     </span>
                   </div>
                   <Slider
-                    min={-5}
+                    min={-6}
                     max={5}
                     step={1}
                     value={complexityRange}
@@ -330,9 +336,10 @@ const Home = () => {
                     className="w-full"
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Off</span>
                     <span>Simpel (-5)</span>
-                    <span>Netral (0)</span>
-                    <span>Kompleks (+5)</span>
+                    <span>Subtle (0)</span>
+                    <span>Complex (+5)</span>
                   </div>
                 </div>
 
@@ -341,11 +348,13 @@ const Home = () => {
                   <div className="flex justify-between items-center">
                     <label className="text-sm font-medium">Tingkat Rasa</label>
                     <span className="text-xs text-muted-foreground">
-                      {sweetnessRange[0]} hingga {sweetnessRange[1]}
+                      {sweetnessRange[0] === -6 && sweetnessRange[1] === -6 
+                        ? 'Off' 
+                        : `${sweetnessRange[0]} hingga ${sweetnessRange[1]}`}
                     </span>
                   </div>
                   <Slider
-                    min={-5}
+                    min={-6}
                     max={5}
                     step={1}
                     value={sweetnessRange}
@@ -353,9 +362,10 @@ const Home = () => {
                     className="w-full"
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Asin (-5)</span>
-                    <span>Netral (0)</span>
-                    <span>Manis (+5)</span>
+                    <span>Off</span>
+                    <span>Salty (-5)</span>
+                    <span>Savory (0)</span>
+                    <span>Sweet (+5)</span>
                   </div>
                 </div>
 
@@ -364,8 +374,8 @@ const Home = () => {
                   variant="outline" 
                   size="sm"
                   onClick={() => {
-                    setComplexityRange([-5, 5]);
-                    setSweetnessRange([-5, 5]);
+                    setComplexityRange([-6, -6]);
+                    setSweetnessRange([-6, -6]);
                   }}
                   className="w-full"
                 >
