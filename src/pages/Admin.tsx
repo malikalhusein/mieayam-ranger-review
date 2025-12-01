@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { LogOut, Upload, X, Home, TrendingUp, BarChart3, Award } from "lucide-react";
 import { SemanticDifferential } from "@/components/ui/semantic-differential";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { calculateScore, type ReviewData } from "@/lib/scoring";
 
 const reviewSchema = z.object({
   outlet_name: z.string().min(1, "Nama outlet wajib diisi"),
@@ -31,13 +32,20 @@ const reviewSchema = z.object({
   service_durasi: z.union([z.number().min(0).max(120), z.nan(), z.null()]).optional().transform(val => (val === null || isNaN(val as number)) ? undefined : val),
   complexity: z.union([z.number().min(-5).max(5), z.nan(), z.null()]).optional().transform(val => (val === null || isNaN(val as number)) ? undefined : val),
   sweetness: z.union([z.number().min(-5).max(5), z.nan(), z.null()]).optional().transform(val => (val === null || isNaN(val as number)) ? undefined : val),
+  // Kuah indicators
   kuah_kekentalan: z.union([z.number().min(0).max(10), z.nan(), z.null()]).optional().transform(val => (val === null || isNaN(val as number)) ? undefined : val),
   kuah_kaldu: z.union([z.number().min(0).max(10), z.nan(), z.null()]).optional().transform(val => (val === null || isNaN(val as number)) ? undefined : val),
   kuah_keseimbangan: z.union([z.number().min(0).max(10), z.nan(), z.null()]).optional().transform(val => (val === null || isNaN(val as number)) ? undefined : val),
   kuah_aroma: z.union([z.number().min(0).max(10), z.nan(), z.null()]).optional().transform(val => (val === null || isNaN(val as number)) ? undefined : val),
+  kuah_kejernihan: z.union([z.number().min(0).max(10), z.nan(), z.null()]).optional().transform(val => (val === null || isNaN(val as number)) ? undefined : val),
+  // Common indicators
   mie_tekstur: z.union([z.number().min(0).max(10), z.nan(), z.null()]).optional().transform(val => (val === null || isNaN(val as number)) ? undefined : val),
   ayam_bumbu: z.union([z.number().min(0).max(10), z.nan(), z.null()]).optional().transform(val => (val === null || isNaN(val as number)) ? undefined : val),
   ayam_potongan: z.union([z.number().min(0).max(10), z.nan(), z.null()]).optional().transform(val => (val === null || isNaN(val as number)) ? undefined : val),
+  // Goreng indicators
+  goreng_keseimbangan_minyak: z.union([z.number().min(0).max(10), z.nan(), z.null()]).optional().transform(val => (val === null || isNaN(val as number)) ? undefined : val),
+  goreng_bumbu_tumisan: z.union([z.number().min(0).max(10), z.nan(), z.null()]).optional().transform(val => (val === null || isNaN(val as number)) ? undefined : val),
+  goreng_aroma_tumisan: z.union([z.number().min(0).max(10), z.nan(), z.null()]).optional().transform(val => (val === null || isNaN(val as number)) ? undefined : val),
 });
 
 type ReviewFormData = z.infer<typeof reviewSchema>;
@@ -74,33 +82,37 @@ const Admin = () => {
     }
   }, [user]);
 
-  // Calculate preview score in real-time (matches database formula)
+  // Calculate preview score in real-time using new algorithm
   useEffect(() => {
     const subscription = form.watch((value) => {
-      // Only include kuah scores if product type is "kuah"
-      const kuahScore = value.product_type === "kuah" 
-        ? (Number(value.kuah_kekentalan) || 0) +
-          (Number(value.kuah_kaldu) || 0) +
-          (Number(value.kuah_keseimbangan) || 0) +
-          (Number(value.kuah_aroma) || 0)
-        : 0;
-      
-      const totalScore = 
-        kuahScore +
-        (Number(value.mie_tekstur) || 0) +
-        (Number(value.ayam_bumbu) || 0) +
-        (Number(value.ayam_potongan) || 0) +
-        (Number(value.fasilitas_kebersihan) || 0) +
-        (Number(value.fasilitas_alat_makan) || 0) +
-        (Number(value.fasilitas_tempat) || 0);
-      
       const price = Number(value.price) || 0;
-      const serviceDuration = Number(value.service_durasi) || 0;
-      
-      // Match database formula: (total_score / (price + (service_durasi * 100))) * 1000
-      const effectiveCost = price + (serviceDuration * 100);
-      const overallScore = effectiveCost > 0 ? (totalScore / effectiveCost) * 1000 : 0;
-      setPreviewScore(overallScore);
+      if (price === 0) {
+        setPreviewScore(null);
+        return;
+      }
+
+      const reviewData: ReviewData = {
+        product_type: value.product_type as "kuah" | "goreng",
+        price: price,
+        mie_tekstur: Number(value.mie_tekstur) || undefined,
+        ayam_bumbu: Number(value.ayam_bumbu) || undefined,
+        ayam_potongan: Number(value.ayam_potongan) || undefined,
+        kuah_kekentalan: Number(value.kuah_kekentalan) || undefined,
+        kuah_keseimbangan: Number(value.kuah_keseimbangan) || undefined,
+        kuah_kaldu: Number(value.kuah_kaldu) || undefined,
+        kuah_aroma: Number(value.kuah_aroma) || undefined,
+        kuah_kejernihan: Number(value.kuah_kejernihan) || undefined,
+        goreng_keseimbangan_minyak: Number(value.goreng_keseimbangan_minyak) || undefined,
+        goreng_bumbu_tumisan: Number(value.goreng_bumbu_tumisan) || undefined,
+        goreng_aroma_tumisan: Number(value.goreng_aroma_tumisan) || undefined,
+        fasilitas_kebersihan: Number(value.fasilitas_kebersihan) || undefined,
+        fasilitas_alat_makan: Number(value.fasilitas_alat_makan) || undefined,
+        fasilitas_tempat: Number(value.fasilitas_tempat) || undefined,
+        service_durasi: Number(value.service_durasi) || undefined,
+      };
+
+      const result = calculateScore(reviewData);
+      setPreviewScore(result.final_score_10);
     });
     return () => subscription.unsubscribe();
   }, [form]);
@@ -185,9 +197,13 @@ const Admin = () => {
       kuah_kaldu: review.kuah_kaldu ?? undefined,
       kuah_keseimbangan: review.kuah_keseimbangan ?? undefined,
       kuah_aroma: review.kuah_aroma ?? undefined,
+      kuah_kejernihan: review.kuah_kejernihan ?? undefined,
       mie_tekstur: review.mie_tekstur ?? undefined,
       ayam_bumbu: review.ayam_bumbu ?? undefined,
       ayam_potongan: review.ayam_potongan ?? undefined,
+      goreng_keseimbangan_minyak: review.goreng_keseimbangan_minyak ?? undefined,
+      goreng_bumbu_tumisan: review.goreng_bumbu_tumisan ?? undefined,
+      goreng_aroma_tumisan: review.goreng_aroma_tumisan ?? undefined,
     });
 
     // Set existing images
@@ -326,9 +342,13 @@ const Admin = () => {
         kuah_kaldu: data.kuah_kaldu || null,
         kuah_keseimbangan: data.kuah_keseimbangan || null,
         kuah_aroma: data.kuah_aroma || null,
+        kuah_kejernihan: data.kuah_kejernihan || null,
         mie_tekstur: data.mie_tekstur || null,
         ayam_bumbu: data.ayam_bumbu || null,
         ayam_potongan: data.ayam_potongan || null,
+        goreng_keseimbangan_minyak: data.goreng_keseimbangan_minyak || null,
+        goreng_bumbu_tumisan: data.goreng_bumbu_tumisan || null,
+        goreng_aroma_tumisan: data.goreng_aroma_tumisan || null,
       };
 
       // overall_score is auto-generated by database
@@ -381,9 +401,13 @@ const Admin = () => {
         kuah_kaldu: data.kuah_kaldu || null,
         kuah_keseimbangan: data.kuah_keseimbangan || null,
         kuah_aroma: data.kuah_aroma || null,
+        kuah_kejernihan: data.kuah_kejernihan || null,
         mie_tekstur: data.mie_tekstur || null,
         ayam_bumbu: data.ayam_bumbu || null,
         ayam_potongan: data.ayam_potongan || null,
+        goreng_keseimbangan_minyak: data.goreng_keseimbangan_minyak || null,
+        goreng_bumbu_tumisan: data.goreng_bumbu_tumisan || null,
+        goreng_aroma_tumisan: data.goreng_aroma_tumisan || null,
       };
 
       // overall_score is auto-generated by database
@@ -886,12 +910,13 @@ const Admin = () => {
                       <div>
                         <span className="font-semibold">Preview Overall Score: </span>
                         <span className="text-2xl font-bold text-primary">{previewScore.toFixed(2)}</span>
+                        <span className="text-sm text-muted-foreground ml-2">/10</span>
                       </div>
                       <div className="text-xs mt-2 text-muted-foreground">
-                        Formula: (Total Skor) / ((Harga × 85%) + (Waktu - 8) × 100) × 1000
+                        Formula Baru: (BASE_SCORE + TIME_SCORE) × VALUE_FACTOR
                       </div>
                       <div className="text-xs mt-1 text-muted-foreground italic">
-                        Harga dikali 85% untuk menurunkan standar penilaian. Toleransi 8 menit: lebih cepat = bonus, lebih lambat = penalti
+                        Rasa 80% + Fasilitas 20% | Standar waktu: 8 menit | Standar harga: Rp 17.000
                       </div>
                     </AlertDescription>
                   </Alert>
@@ -902,27 +927,58 @@ const Admin = () => {
                     <h4 className="font-medium mt-4">Penilaian Kuah</h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="kuah_kekentalan">Kekentalan</Label>
+                        <Label htmlFor="kuah_kekentalan">Body Kuah</Label>
                         <Input id="kuah_kekentalan" type="number" step="0.1" min="0" max="10"
                           {...form.register("kuah_kekentalan", { valueAsNumber: true })} />
                       </div>
 
                       <div>
-                        <Label htmlFor="kuah_kaldu">Kaldu</Label>
-                        <Input id="kuah_kaldu" type="number" step="0.1" min="0" max="10"
-                          {...form.register("kuah_kaldu", { valueAsNumber: true })} />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="kuah_keseimbangan">Keseimbangan</Label>
+                        <Label htmlFor="kuah_keseimbangan">Keseimbangan Rasa</Label>
                         <Input id="kuah_keseimbangan" type="number" step="0.1" min="0" max="10"
                           {...form.register("kuah_keseimbangan", { valueAsNumber: true })} />
                       </div>
 
                       <div>
-                        <Label htmlFor="kuah_aroma">Aroma</Label>
+                        <Label htmlFor="kuah_kaldu">Kaldu/Umami/Depth</Label>
+                        <Input id="kuah_kaldu" type="number" step="0.1" min="0" max="10"
+                          {...form.register("kuah_kaldu", { valueAsNumber: true })} />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="kuah_aroma">Aroma Kuah</Label>
                         <Input id="kuah_aroma" type="number" step="0.1" min="0" max="10"
                           {...form.register("kuah_aroma", { valueAsNumber: true })} />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="kuah_kejernihan">Kejernihan/Visual</Label>
+                        <Input id="kuah_kejernihan" type="number" step="0.1" min="0" max="10"
+                          {...form.register("kuah_kejernihan", { valueAsNumber: true })} />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {form.watch("product_type") === "goreng" && (
+                  <>
+                    <h4 className="font-medium mt-4">Penilaian Goreng</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="goreng_keseimbangan_minyak">Keseimbangan Minyak</Label>
+                        <Input id="goreng_keseimbangan_minyak" type="number" step="0.1" min="0" max="10"
+                          {...form.register("goreng_keseimbangan_minyak", { valueAsNumber: true })} />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="goreng_bumbu_tumisan">Bumbu Tumisan/Coating</Label>
+                        <Input id="goreng_bumbu_tumisan" type="number" step="0.1" min="0" max="10"
+                          {...form.register("goreng_bumbu_tumisan", { valueAsNumber: true })} />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="goreng_aroma_tumisan">Aroma Tumisan</Label>
+                        <Input id="goreng_aroma_tumisan" type="number" step="0.1" min="0" max="10"
+                          {...form.register("goreng_aroma_tumisan", { valueAsNumber: true })} />
                       </div>
                     </div>
                   </>

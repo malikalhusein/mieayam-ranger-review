@@ -26,11 +26,15 @@ export type Database = {
           fasilitas_kebersihan: number | null
           fasilitas_tempat: number | null
           google_map_url: string | null
+          goreng_aroma_tumisan: number | null
+          goreng_bumbu_tumisan: number | null
+          goreng_keseimbangan_minyak: number | null
           id: string
           image_url: string | null
           image_urls: string[] | null
           kuah_aroma: number | null
           kuah_kaldu: number | null
+          kuah_kejernihan: number | null
           kuah_kekentalan: number | null
           kuah_keseimbangan: number | null
           mie_tekstur: number | null
@@ -56,11 +60,15 @@ export type Database = {
           fasilitas_kebersihan?: number | null
           fasilitas_tempat?: number | null
           google_map_url?: string | null
+          goreng_aroma_tumisan?: number | null
+          goreng_bumbu_tumisan?: number | null
+          goreng_keseimbangan_minyak?: number | null
           id?: string
           image_url?: string | null
           image_urls?: string[] | null
           kuah_aroma?: number | null
           kuah_kaldu?: number | null
+          kuah_kejernihan?: number | null
           kuah_kekentalan?: number | null
           kuah_keseimbangan?: number | null
           mie_tekstur?: number | null
@@ -86,11 +94,15 @@ export type Database = {
           fasilitas_kebersihan?: number | null
           fasilitas_tempat?: number | null
           google_map_url?: string | null
+          goreng_aroma_tumisan?: number | null
+          goreng_bumbu_tumisan?: number | null
+          goreng_keseimbangan_minyak?: number | null
           id?: string
           image_url?: string | null
           image_urls?: string[] | null
           kuah_aroma?: number | null
           kuah_kaldu?: number | null
+          kuah_kejernihan?: number | null
           kuah_kekentalan?: number | null
           kuah_keseimbangan?: number | null
           mie_tekstur?: number | null
