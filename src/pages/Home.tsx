@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Slider } from "@/components/ui/slider";
+import { calculateScore, calculateLegacyScore, type ReviewData } from "@/lib/scoring";
 
 const Home = () => {
   const [reviews, setReviews] = useState<any[]>([]);
@@ -40,11 +41,43 @@ const Home = () => {
 
       if (error) throw error;
 
-      const processedReviews = (data || []).map((review) => ({
-        ...review,
-        scores: calculateScores(review),
-        totalScore: calculateTotalScore(review),
-      }));
+      const processedReviews = (data || []).map((review) => {
+        // Use new scoring algorithm if new fields are present, otherwise use legacy
+        const hasNewFields = review.kuah_kejernihan !== null || 
+                             review.goreng_keseimbangan_minyak !== null ||
+                             review.goreng_bumbu_tumisan !== null ||
+                             review.goreng_aroma_tumisan !== null;
+
+        const reviewData: ReviewData = {
+          product_type: review.product_type as "kuah" | "goreng",
+          price: review.price,
+          mie_tekstur: review.mie_tekstur,
+          ayam_bumbu: review.ayam_bumbu,
+          ayam_potongan: review.ayam_potongan,
+          kuah_kekentalan: review.kuah_kekentalan,
+          kuah_keseimbangan: review.kuah_keseimbangan,
+          kuah_kaldu: review.kuah_kaldu,
+          kuah_aroma: review.kuah_aroma,
+          kuah_kejernihan: review.kuah_kejernihan,
+          goreng_keseimbangan_minyak: review.goreng_keseimbangan_minyak,
+          goreng_bumbu_tumisan: review.goreng_bumbu_tumisan,
+          goreng_aroma_tumisan: review.goreng_aroma_tumisan,
+          fasilitas_kebersihan: review.fasilitas_kebersihan,
+          fasilitas_alat_makan: review.fasilitas_alat_makan,
+          fasilitas_tempat: review.fasilitas_tempat,
+          service_durasi: review.service_durasi,
+        };
+
+        const totalScore = hasNewFields 
+          ? calculateScore(reviewData).final_score_10
+          : review.overall_score || calculateLegacyScore(reviewData);
+
+        return {
+          ...review,
+          scores: calculateScores(review),
+          totalScore: totalScore,
+        };
+      });
 
       // Group by outlet and show only highest score per outlet
       const groupedByOutlet = processedReviews.reduce((acc, review) => {
@@ -427,13 +460,41 @@ const Home = () => {
           
           <div className="space-y-6 text-muted-foreground">
             <div className="bg-background p-6 rounded-lg">
-              <h3 className="font-bold text-foreground mb-2">Formula Penilaian</h3>
+              <h3 className="font-bold text-foreground mb-2">Formula Penilaian Baru</h3>
               <p className="mb-2">
-                <code className="bg-muted px-2 py-1 rounded">Score = (Rasa + Fasilitas) / Harga × 1000</code>
+                <code className="bg-muted px-2 py-1 rounded">Score = (BASE_SCORE + TIME_SCORE) × VALUE_FACTOR</code>
               </p>
-              <p className="text-sm">
-                Rasa = rata-rata dari skor Kuah, Mie, dan Ayam<br/>
-                Fasilitas = rata-rata dari Kebersihan, Alat Makan, dan Tempat
+              <p className="text-sm space-y-1">
+                <span className="block">• BASE_SCORE = (Rasa × 80%) + (Fasilitas × 20%)</span>
+                <span className="block">• TIME_SCORE = Bonus/Penalti berdasarkan waktu penyajian (standar: 8 menit)</span>
+                <span className="block">• VALUE_FACTOR = 17.000 / Harga (dibatasi 0.85-1.15)</span>
+              </p>
+            </div>
+
+            <div className="bg-background p-6 rounded-lg">
+              <h3 className="font-bold text-foreground mb-3">Indikator Penilaian</h3>
+              <div className="grid md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="font-semibold text-foreground mb-2">Untuk Mie Ayam Kuah:</p>
+                  <ul className="space-y-1">
+                    <li>• Tekstur Mie, Bumbu Ayam, Potongan Ayam</li>
+                    <li>• Body Kuah, Keseimbangan Rasa Kuah</li>
+                    <li>• Kaldu/Umami/Depth, Aroma Kuah</li>
+                    <li>• Kejernihan/Visual Kuah</li>
+                  </ul>
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground mb-2">Untuk Mie Ayam Goreng:</p>
+                  <ul className="space-y-1">
+                    <li>• Tekstur Mie, Bumbu Ayam, Potongan Ayam</li>
+                    <li>• Keseimbangan Minyak</li>
+                    <li>• Bumbu Tumisan/Coating</li>
+                    <li>• Aroma Tumisan</li>
+                  </ul>
+                </div>
+              </div>
+              <p className="text-sm mt-3">
+                Fasilitas: Kebersihan, Alat Makan, Tempat
               </p>
             </div>
 
@@ -446,6 +507,19 @@ const Home = () => {
                 <li>• Rp 13.000 - 15.000 = Resto Menengah ⭐⭐⭐⭐</li>
                 <li>• Rp 18.000 - 20.000 = Cukup Mahal ⭐⭐⭐⭐⭐</li>
                 <li>• &gt; Rp 20.000 = Mahal ⭐⭐⭐⭐⭐⭐</li>
+              </ul>
+              <p className="text-xs mt-3 italic">
+                * Kategori harga untuk referensi, tidak mempengaruhi skor akhir
+              </p>
+            </div>
+
+            <div className="bg-background p-6 rounded-lg">
+              <h3 className="font-bold text-foreground mb-2">Catatan Penting</h3>
+              <ul className="space-y-1 text-sm">
+                <li>• Algoritma terinspirasi dari Coffee Value Assessment (SCA)</li>
+                <li>• Kompleksitas rasa dan profil rasa tidak mempengaruhi skor</li>
+                <li>• Standar waktu penyajian: 8 menit (lebih cepat = bonus, lebih lambat = penalti)</li>
+                <li>• Standar harga nasional: Rp 17.000</li>
               </ul>
             </div>
           </div>
