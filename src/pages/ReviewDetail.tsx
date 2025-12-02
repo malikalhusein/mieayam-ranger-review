@@ -4,13 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import RadarChart from "@/components/RadarChart";
 import PerceptualMap from "@/components/PerceptualMap";
+import ImageLightbox from "@/components/ImageLightbox";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { MapPin, Calendar, DollarSign, Clock, ArrowLeft, ExternalLink, Image as ImageIcon, Download, AlertCircle, Trophy } from "lucide-react";
+import { MapPin, Calendar, DollarSign, Clock, ArrowLeft, ExternalLink, Image as ImageIcon, Download, AlertCircle, Trophy, Menu } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const ReviewDetail = () => {
@@ -21,7 +22,16 @@ const ReviewDetail = () => {
   const [error, setError] = useState<string | null>(null);
   const [generatingScorecard, setGeneratingScorecard] = useState(false);
   const [scorecardImage, setScorecardImage] = useState<string | null>(null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxImages, setLightboxImages] = useState<string[]>([]);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
   const { toast } = useToast();
+
+  const openLightbox = (images: string[], index: number = 0) => {
+    setLightboxImages(images);
+    setLightboxIndex(index);
+    setLightboxOpen(true);
+  };
 
   useEffect(() => {
     if (id) fetchReview();
@@ -222,7 +232,7 @@ const ReviewDetail = () => {
             {review.overall_score && (
               <div className="flex flex-col items-center justify-center bg-primary text-primary-foreground rounded-2xl p-6 shadow-lg min-w-[140px]">
                 <div className="text-sm font-medium opacity-90 mb-1">Overall Score</div>
-                <div className="text-5xl md:text-6xl font-bold">{review.overall_score.toFixed(1)}</div>
+                <div className="text-5xl md:text-6xl font-bold">{Math.min(10, review.overall_score).toFixed(1)}</div>
                 <div className="text-sm opacity-75 mt-1">/ 10</div>
               </div>
             )}
@@ -240,13 +250,19 @@ const ReviewDetail = () => {
                   <CarouselContent>
                     {(review.image_urls && review.image_urls.length > 0 ? review.image_urls.slice(0, 6) : [review.image_url]).map((imgUrl: string, index: number) => (
                       <CarouselItem key={index}>
-                        <div className="relative aspect-video md:aspect-[16/10] bg-muted">
+                        <div 
+                          className="relative aspect-video md:aspect-[16/10] bg-muted cursor-pointer"
+                          onClick={() => openLightbox(review.image_urls && review.image_urls.length > 0 ? review.image_urls : [review.image_url], index)}
+                        >
                           <img 
                             src={imgUrl} 
                             alt={`${review.outlet_name} - Foto ${index + 1} dari ${review.image_urls?.length || 1}`}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover hover:opacity-90 transition-opacity"
                             loading="lazy"
                           />
+                          <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
+                            Klik untuk perbesar
+                          </div>
                         </div>
                       </CarouselItem>
                     ))}
@@ -258,6 +274,32 @@ const ReviewDetail = () => {
                     </>
                   )}
                 </Carousel>
+              </Card>
+            )}
+
+            {/* Menu Image */}
+            {review.menu_image_url && (
+              <Card className="shadow-md">
+                <CardContent className="p-5 md:p-6">
+                  <h2 className="text-xl md:text-2xl font-bold mb-4 flex items-center">
+                    <Menu className="mr-2 h-5 w-5 text-primary" />
+                    Daftar Menu
+                  </h2>
+                  <div 
+                    className="relative aspect-[4/3] bg-muted rounded-lg overflow-hidden cursor-pointer"
+                    onClick={() => openLightbox([review.menu_image_url], 0)}
+                  >
+                    <img 
+                      src={review.menu_image_url} 
+                      alt={`Daftar Menu ${review.outlet_name}`}
+                      className="w-full h-full object-cover hover:opacity-90 transition-opacity"
+                      loading="lazy"
+                    />
+                    <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
+                      Klik untuk perbesar
+                    </div>
+                  </div>
+                </CardContent>
               </Card>
             )}
 
@@ -694,6 +736,14 @@ const ReviewDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* Image Lightbox */}
+      <ImageLightbox 
+        images={lightboxImages} 
+        initialIndex={lightboxIndex} 
+        isOpen={lightboxOpen} 
+        onClose={() => setLightboxOpen(false)} 
+      />
     </div>
   );
 };

@@ -77,69 +77,87 @@ const About = () => {
                   Sistem penilaian Mie Ayam Ranger terinspirasi dari <strong>Coffee Value Assessment</strong> yang dipublikasikan oleh <strong>SCA (Specialty Coffee Association)</strong>, 
                   di mana kami mengadopsi pendekatan objektif dan terstruktur dalam menilai kualitas produk kuliner.
                 </p>
+              </div>
+
+              {/* Cara Kerja Penilaian Section */}
+              <div className="space-y-6">
+                <h2 className="text-2xl font-bold">Cara Kerja Penilaian</h2>
                 
-                <h3 className="text-lg font-semibold mb-2 mt-4">Formula Penilaian</h3>
-                <div className="bg-muted p-4 rounded-lg mb-4">
-                  <code className="text-sm">Score = (Total Skor) / ((Harga × 85%) + (Waktu - 8) × 100) × 1000</code>
-                </div>
-                
-                <div className="bg-primary/10 border border-primary/20 p-4 rounded-lg mb-4">
-                  <p className="text-sm font-medium mb-2">💰 Penyesuaian Harga: 85%</p>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Harga dikalikan 85% untuk menurunkan standar penilaian, sehingga nilai akhir tidak terlalu rendah dan lebih mencerminkan value yang didapat.
+                <div className="bg-muted p-6 rounded-lg">
+                  <h3 className="font-bold text-foreground mb-2">Formula Penilaian</h3>
+                  <p className="mb-2">
+                    <code className="bg-background px-2 py-1 rounded text-sm">Score = (BASE_SCORE + TIME_SCORE) × VALUE_FACTOR</code>
                   </p>
-                  
-                  <p className="text-sm font-medium mb-2">⏱️ Toleransi Waktu Penyajian: 8 Menit</p>
-                  <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                    <li><strong>Tepat 8 menit</strong>: Tidak ada penalti/bonus</li>
-                    <li><strong>Lebih cepat dari 8 menit</strong>: Mendapat bonus poin (mengurangi biaya efektif)</li>
-                    <li><strong>Lebih lambat dari 8 menit</strong>: Terkena penalti (menambah biaya efektif)</li>
+                  <ul className="text-sm space-y-1 text-muted-foreground">
+                    <li>• <strong>BASE_SCORE</strong> = (Rasa × 80%) + (Fasilitas × 20%)</li>
+                    <li>• <strong>TIME_SCORE</strong> = Bonus/Penalti berdasarkan waktu penyajian (standar: 8 menit)</li>
+                    <li>• <strong>VALUE_FACTOR</strong> = 17.000 / Harga (dibatasi 0.85-1.15)</li>
                   </ul>
-                  <p className="text-xs mt-2 text-muted-foreground italic">
-                    Contoh: Waktu 5 menit = bonus Rp 300, Waktu 12 menit = penalti Rp 400
+                </div>
+
+                <div className="bg-muted p-6 rounded-lg">
+                  <h3 className="font-bold text-foreground mb-3">Indikator Penilaian</h3>
+                  <div className="grid md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="font-semibold text-foreground mb-2">Untuk Mie Ayam Kuah:</p>
+                      <ul className="space-y-1 text-muted-foreground">
+                        <li>• Tekstur Mie, Bumbu Ayam, Potongan Ayam</li>
+                        <li>• Body Kuah, Keseimbangan Rasa Kuah</li>
+                        <li>• Kaldu/Umami/Depth, Aroma Kuah</li>
+                        <li>• Kejernihan/Visual Kuah</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground mb-2">Untuk Mie Ayam Goreng:</p>
+                      <ul className="space-y-1 text-muted-foreground">
+                        <li>• Tekstur Mie, Bumbu Ayam, Potongan Ayam</li>
+                        <li>• Keseimbangan Minyak</li>
+                        <li>• Bumbu Tumisan/Coating</li>
+                        <li>• Aroma Tumisan</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <p className="text-sm mt-3 text-muted-foreground">
+                    <strong>Fasilitas:</strong> Kebersihan, Alat Makan, Tempat
                   </p>
                 </div>
-                
-                <p className="text-muted-foreground mb-3">
-                  Formula ini memastikan bahwa warung dengan <strong>harga lebih murah</strong> dan <strong>waktu penyajian lebih cepat</strong> namun kualitas baik 
-                  akan mendapat skor lebih tinggi dibanding warung mahal atau lambat dengan kualitas serupa.
-                </p>
 
-                <h3 className="text-lg font-semibold mb-2 mt-4">Komponen Penilaian</h3>
-                <p className="text-muted-foreground mb-2">
-                  Setiap aspek dinilai dengan skala 1-10 berdasarkan kriteria yang konsisten:
-                </p>
-                <ul className="list-disc list-inside text-muted-foreground space-y-1 mb-4">
-                  <li><strong>Kuah</strong> (untuk mie kuah): kekentalan, kaldu, keseimbangan rasa, aroma</li>
-                  <li><strong>Mie</strong>: tipe dan tekstur (kenyal, lembut, atau mengembang)</li>
-                  <li><strong>Ayam</strong>: bumbu dan ukuran potongan</li>
-                  <li><strong>Fasilitas</strong>: kebersihan, alat makan, kenyamanan tempat</li>
-                </ul>
+                <div className="bg-muted p-6 rounded-lg">
+                  <h3 className="font-bold text-foreground mb-3">Kategori Harga</h3>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li>• &lt; Rp 8.000 = Murah Ga Masuk Akal ⭐</li>
+                    <li>• Rp 8.000 - 10.000 = Murah ⭐⭐</li>
+                    <li>• Rp 11.000 - 12.000 = Normal ⭐⭐⭐</li>
+                    <li>• Rp 13.000 - 15.000 = Resto Menengah ⭐⭐⭐⭐</li>
+                    <li>• Rp 18.000 - 20.000 = Cukup Mahal ⭐⭐⭐⭐⭐</li>
+                    <li>• &gt; Rp 20.000 = Mahal ⭐⭐⭐⭐⭐⭐</li>
+                  </ul>
+                  <p className="text-xs mt-3 italic text-muted-foreground">
+                    * Kategori harga untuk referensi, tidak mempengaruhi skor akhir
+                  </p>
+                </div>
 
-                <h3 className="text-lg font-semibold mb-2 mt-4">Kategori Harga</h3>
-                <p className="text-muted-foreground mb-2">
-                  Kami mengklasifikasikan warung mie ayam berdasarkan rentang harga:
-                </p>
-                <ul className="list-disc list-inside text-muted-foreground space-y-1 mb-4">
-                  <li><strong>Budget</strong>: &lt; Rp 15.000</li>
-                  <li><strong>Moderate</strong>: Rp 15.000 - Rp 25.000</li>
-                  <li><strong>Premium</strong>: &gt; Rp 25.000</li>
-                </ul>
-                <p className="text-muted-foreground text-sm">
-                  *Kategori harga mempengaruhi ekspektasi kualitas dan fasilitas yang disediakan
-                </p>
+                <div className="bg-primary/10 border border-primary/20 p-6 rounded-lg">
+                  <h3 className="font-bold text-foreground mb-2">Waktu Penyajian (Toleransi 8 Menit)</h3>
+                  <ul className="text-sm space-y-2 text-muted-foreground">
+                    <li>• <strong>Standar 8 menit:</strong> Tidak ada penalti atau bonus</li>
+                    <li>• <strong>Lebih cepat dari 8 menit:</strong> Mendapat bonus poin ((8 − waktu) × 1.5)</li>
+                    <li>• <strong>Lebih lambat dari 8 menit:</strong> Terkena penalti ((8 − waktu) × 2)</li>
+                  </ul>
+                  <p className="text-xs mt-3 text-muted-foreground italic">
+                    Contoh: Waktu 5 menit = bonus +4.5 poin, Waktu 12 menit = penalti -8 poin
+                  </p>
+                </div>
 
-                <h3 className="text-lg font-semibold mb-2 mt-4">Waktu Penyajian (Toleransi 8 Menit)</h3>
-                <p className="text-muted-foreground leading-relaxed mb-2">
-                  Waktu penyajian diperhitungkan dengan <strong>sistem toleransi 8 menit</strong>:
-                </p>
-                <ul className="list-disc list-inside text-muted-foreground space-y-2 mb-4">
-                  <li><strong>Standar 8 menit</strong>: Tidak ada penalti atau bonus</li>
-                  <li><strong>Lebih cepat dari 8 menit</strong>: Mendapat bonus poin (mengurangi biaya efektif Rp 100 per menit)</li>
-                  <li><strong>Lebih lambat dari 8 menit</strong>: Terkena penalti (menambah biaya efektif Rp 100 per menit)</li>
-                  <li>Contoh 1: Waktu 5 menit = bonus Rp 300 (5-8 = -3, maka -3 × 100 = -300)</li>
-                  <li>Contoh 2: Waktu 12 menit = penalti Rp 400 (12-8 = 4, maka 4 × 100 = +400)</li>
-                </ul>
+                <div className="bg-muted p-6 rounded-lg">
+                  <h3 className="font-bold text-foreground mb-2">Catatan Penting</h3>
+                  <ul className="space-y-1 text-sm text-muted-foreground">
+                    <li>• Algoritma terinspirasi dari Coffee Value Assessment (SCA)</li>
+                    <li>• Kompleksitas rasa dan profil rasa tidak mempengaruhi skor - hanya metadata</li>
+                    <li>• Standar harga nasional: Rp 17.000</li>
+                    <li>• Skor maksimal: 10 (skala 0-10)</li>
+                  </ul>
+                </div>
               </div>
 
               <div>
