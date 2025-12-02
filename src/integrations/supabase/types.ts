@@ -37,6 +37,7 @@ export type Database = {
           kuah_kejernihan: number | null
           kuah_kekentalan: number | null
           kuah_keseimbangan: number | null
+          menu_image_url: string | null
           mie_tekstur: number | null
           mie_tipe: string | null
           notes: string | null
@@ -71,6 +72,7 @@ export type Database = {
           kuah_kejernihan?: number | null
           kuah_kekentalan?: number | null
           kuah_keseimbangan?: number | null
+          menu_image_url?: string | null
           mie_tekstur?: number | null
           mie_tipe?: string | null
           notes?: string | null
@@ -105,6 +107,7 @@ export type Database = {
           kuah_kejernihan?: number | null
           kuah_kekentalan?: number | null
           kuah_keseimbangan?: number | null
+          menu_image_url?: string | null
           mie_tekstur?: number | null
           mie_tipe?: string | null
           notes?: string | null

@@ -148,7 +148,7 @@ const ReviewCard = ({
             {overall_score && (
               <div className="absolute top-2 left-2 flex items-center gap-1 bg-primary/90 text-primary-foreground px-2 py-1 rounded-full shadow-md">
                 <Star className="h-3 w-3 fill-current" />
-                <span className="text-sm font-bold">{overall_score.toFixed(1)}</span>
+                <span className="text-sm font-bold">{Math.min(10, overall_score).toFixed(1)}</span>
               </div>
             )}
           </div>
@@ -162,7 +162,7 @@ const ReviewCard = ({
             {overall_score && images.length === 0 && (
               <div className="flex items-center gap-1 bg-primary text-primary-foreground px-2 py-1 rounded-full">
                 <Star className="h-3 w-3 fill-current" />
-                <span className="text-sm font-bold">{overall_score.toFixed(1)}</span>
+                <span className="text-sm font-bold">{Math.min(10, overall_score).toFixed(1)}</span>
               </div>
             )}
           </div>

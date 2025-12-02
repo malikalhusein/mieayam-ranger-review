@@ -57,6 +57,9 @@ const Admin = () => {
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
+  const [menuImageFile, setMenuImageFile] = useState<File | null>(null);
+  const [menuImagePreview, setMenuImagePreview] = useState<string | null>(null);
+  const [existingMenuImageUrl, setExistingMenuImageUrl] = useState<string | null>(null);
   const [reviews, setReviews] = useState<any[]>([]);
   const [editingReview, setEditingReview] = useState<any>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -210,6 +213,9 @@ const Admin = () => {
     setExistingImageUrls(review.image_urls || []);
     setImageFiles([]);
     setImagePreviews([]);
+    setExistingMenuImageUrl(review.menu_image_url || null);
+    setMenuImageFile(null);
+    setMenuImagePreview(null);
   };
 
   const selectOutletForRevisit = (outletName: string) => {
@@ -229,6 +235,9 @@ const Admin = () => {
     setImageFiles([]);
     setImagePreviews([]);
     setExistingImageUrls([]);
+    setMenuImageFile(null);
+    setMenuImagePreview(null);
+    setExistingMenuImageUrl(null);
   };
 
   const deleteReview = async (id: string) => {
@@ -307,6 +316,44 @@ const Admin = () => {
     return uploadedUrls;
   };
 
+  const uploadMenuImage = async (): Promise<string | null> => {
+    if (!menuImageFile) return existingMenuImageUrl;
+
+    const fileExt = menuImageFile.name.split('.').pop();
+    const fileName = `menu-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('review-images')
+      .upload(filePath, menuImageFile);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('review-images')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
+
+  const handleMenuImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setMenuImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setMenuImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeMenuImage = () => {
+    setMenuImageFile(null);
+    setMenuImagePreview(null);
+    setExistingMenuImageUrl(null);
+  };
+
   const onSubmit = async (data: ReviewFormData) => {
     if (editingReview) {
       await handleUpdate(data);
@@ -320,6 +367,7 @@ const Admin = () => {
     try {
       const newImageUrls = await uploadImages();
       const allImageUrls = [...existingImageUrls, ...newImageUrls];
+      const menuImageUrl = await uploadMenuImage();
 
       const reviewData = {
         outlet_name: data.outlet_name,
@@ -332,6 +380,7 @@ const Admin = () => {
         google_map_url: data.google_map_url || null,
         notes: data.notes || null,
         image_urls: allImageUrls,
+        menu_image_url: menuImageUrl,
         fasilitas_kebersihan: data.fasilitas_kebersihan || null,
         fasilitas_alat_makan: data.fasilitas_alat_makan || null,
         fasilitas_tempat: data.fasilitas_tempat || null,
@@ -379,6 +428,7 @@ const Admin = () => {
     setSubmitting(true);
     try {
       const imageUrls = await uploadImages();
+      const menuImageUrl = await uploadMenuImage();
 
       const reviewData = {
         outlet_name: data.outlet_name,
@@ -391,6 +441,7 @@ const Admin = () => {
         google_map_url: data.google_map_url || null,
         notes: data.notes || null,
         image_urls: imageUrls,
+        menu_image_url: menuImageUrl,
         fasilitas_kebersihan: data.fasilitas_kebersihan || null,
         fasilitas_alat_makan: data.fasilitas_alat_makan || null,
         fasilitas_tempat: data.fasilitas_tempat || null,
@@ -778,7 +829,7 @@ const Admin = () => {
 
               {/* Images */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Gambar (max 6)</h3>
+                <h3 className="text-lg font-semibold">Gambar Produk (max 6)</h3>
                 
                 <div className="grid grid-cols-3 gap-4">
                   {existingImageUrls.map((url, index) => (
@@ -822,6 +873,48 @@ const Admin = () => {
                         accept="image/*"
                         multiple
                         onChange={handleImageChange}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+
+              {/* Menu Image */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Foto Daftar Menu (opsional)</h3>
+                <p className="text-sm text-muted-foreground">Upload foto daftar menu warung untuk referensi pengunjung</p>
+                
+                <div className="grid grid-cols-3 gap-4">
+                  {(existingMenuImageUrl || menuImagePreview) && (
+                    <div className="relative">
+                      <img 
+                        src={menuImagePreview || existingMenuImageUrl || ''} 
+                        alt="Menu" 
+                        className="w-full h-32 object-cover rounded" 
+                      />
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="destructive"
+                        className="absolute top-1 right-1 h-6 w-6"
+                        onClick={removeMenuImage}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                  
+                  {!existingMenuImageUrl && !menuImagePreview && (
+                    <label className="border-2 border-dashed rounded h-32 flex items-center justify-center cursor-pointer hover:bg-muted/50">
+                      <div className="text-center">
+                        <Upload className="mx-auto h-8 w-8 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">Upload Menu</span>
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleMenuImageChange}
                         className="hidden"
                       />
                     </label>
