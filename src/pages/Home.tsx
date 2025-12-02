@@ -23,8 +23,8 @@ const Home = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [cityFilter, setCityFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
-  const [complexityRange, setComplexityRange] = useState<[number, number]>([-6, -6]);
-  const [sweetnessRange, setSweetnessRange] = useState<[number, number]>([-6, -6]);
+  const [complexityFilter, setComplexityFilter] = useState<number>(-6);
+  const [sweetnessFilter, setSweetnessFilter] = useState<number>(-6);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -155,24 +155,26 @@ const Home = () => {
       filtered = filtered.filter(r => r.product_type === typeFilter);
     }
 
-    // Filter by complexity range (skip if Off state is selected)
-    if (complexityRange[0] !== -6 || complexityRange[1] !== -6) {
+    // Filter by complexity (skip if Off state -6 is selected)
+    if (complexityFilter !== -6) {
       filtered = filtered.filter(r => {
         const complexity = r.complexity ?? 0;
-        return complexity >= complexityRange[0] && complexity <= complexityRange[1];
+        // Match reviews within ±1 of the selected value
+        return Math.abs(complexity - complexityFilter) <= 1;
       });
     }
 
-    // Filter by sweetness range (skip if Off state is selected)
-    if (sweetnessRange[0] !== -6 || sweetnessRange[1] !== -6) {
+    // Filter by sweetness (skip if Off state -6 is selected)
+    if (sweetnessFilter !== -6) {
       filtered = filtered.filter(r => {
         const sweetness = r.sweetness ?? 0;
-        return sweetness >= sweetnessRange[0] && sweetness <= sweetnessRange[1];
+        // Match reviews within ±1 of the selected value
+        return Math.abs(sweetness - sweetnessFilter) <= 1;
       });
     }
 
     setFilteredReviews(filtered);
-  }, [searchTerm, cityFilter, typeFilter, complexityRange, sweetnessRange, reviews]);
+  }, [searchTerm, cityFilter, typeFilter, complexityFilter, sweetnessFilter, reviews]);
 
   const cities = Array.from(new Set(reviews.map(r => r.city)));
 
@@ -355,17 +357,17 @@ const Home = () => {
                   <div className="flex justify-between items-center">
                     <label className="text-sm font-medium">Kompleksitas Rasa</label>
                     <span className="text-xs text-muted-foreground">
-                      {complexityRange[0] === -6 && complexityRange[1] === -6 
+                      {complexityFilter === -6 
                         ? 'Off' 
-                        : `${complexityRange[0]} hingga ${complexityRange[1]}`}
+                        : complexityFilter}
                     </span>
                   </div>
                   <Slider
                     min={-6}
                     max={5}
                     step={1}
-                    value={complexityRange}
-                    onValueChange={(value) => setComplexityRange(value as [number, number])}
+                    value={[complexityFilter]}
+                    onValueChange={(value) => setComplexityFilter(value[0])}
                     className="w-full"
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
@@ -381,17 +383,17 @@ const Home = () => {
                   <div className="flex justify-between items-center">
                     <label className="text-sm font-medium">Tingkat Rasa</label>
                     <span className="text-xs text-muted-foreground">
-                      {sweetnessRange[0] === -6 && sweetnessRange[1] === -6 
+                      {sweetnessFilter === -6 
                         ? 'Off' 
-                        : `${sweetnessRange[0]} hingga ${sweetnessRange[1]}`}
+                        : sweetnessFilter}
                     </span>
                   </div>
                   <Slider
                     min={-6}
                     max={5}
                     step={1}
-                    value={sweetnessRange}
-                    onValueChange={(value) => setSweetnessRange(value as [number, number])}
+                    value={[sweetnessFilter]}
+                    onValueChange={(value) => setSweetnessFilter(value[0])}
                     className="w-full"
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
@@ -407,8 +409,8 @@ const Home = () => {
                   variant="outline" 
                   size="sm"
                   onClick={() => {
-                    setComplexityRange([-6, -6]);
-                    setSweetnessRange([-6, -6]);
+                    setComplexityFilter(-6);
+                    setSweetnessFilter(-6);
                   }}
                   className="w-full"
                 >
