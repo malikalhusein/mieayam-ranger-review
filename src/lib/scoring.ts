@@ -168,8 +168,8 @@ export function calculateScore(review: ReviewData): ScoringResult {
   // Clamp between 0 and 100
   finalScore100 = Math.max(0, Math.min(100, finalScore100));
   
-  // 7. Convert to 0-10 scale for UI
-  const finalScore10 = finalScore100 / 10;
+  // 7. Convert to 0-10 scale for UI and clamp to max 10
+  const finalScore10 = Math.min(10, finalScore100 / 10);
   
   // 8. Get price tier
   const priceTier = getPriceTier(review.price);
