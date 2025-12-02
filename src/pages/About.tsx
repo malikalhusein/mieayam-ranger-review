@@ -1,10 +1,8 @@
 import Navbar from "@/components/Navbar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Award, Target, TrendingUp } from "lucide-react";
-
 const About = () => {
-  return (
-    <div className="min-h-screen bg-gradient-subtle">
+  return <div className="min-h-screen bg-gradient-subtle">
       <Navbar />
       
       <div className="container py-16">
@@ -91,7 +89,7 @@ const About = () => {
                   <ul className="text-sm space-y-1 text-muted-foreground">
                     <li>• <strong>BASE_SCORE</strong> = (Rasa × 80%) + (Fasilitas × 20%)</li>
                     <li>• <strong>TIME_SCORE</strong> = Bonus/Penalti berdasarkan waktu penyajian (standar: 8 menit)</li>
-                    <li>• <strong>VALUE_FACTOR</strong> = 17.000 / Harga (dibatasi 0.85-1.15)</li>
+                    <li>• VALUE_FACTOR = Faktor harga, set normatif Rp 17.000 sebagai treshold parameter.<strong>VALUE_FACTOR</strong> = 17.000 / Harga (dibatasi 0.85-1.15)</li>
                   </ul>
                 </div>
 
@@ -132,9 +130,7 @@ const About = () => {
                     <li>• Rp 18.000 - 20.000 = Cukup Mahal ⭐⭐⭐⭐⭐</li>
                     <li>• &gt; Rp 20.000 = Mahal ⭐⭐⭐⭐⭐⭐</li>
                   </ul>
-                  <p className="text-xs mt-3 italic text-muted-foreground">
-                    * Kategori harga untuk referensi, tidak mempengaruhi skor akhir
-                  </p>
+                  <p className="text-xs mt-3 italic text-muted-foreground">* Kategori harga dibuah sebagai bentuk kompensasi, semakin mahal semakin banyak value yang bisa kita tuntut. Sebaliknya semakin murah mie ayam semakin sedikit hal yang bisa diekspektasikan, semisal mie ayam 8rb tidak bisa dibandingkan dengan yang harganya 15rb baik untuk rasa maupun dari segi fasilitas lainnya.</p>
                 </div>
 
                 <div className="bg-primary/10 border border-primary/20 p-6 rounded-lg">
@@ -167,20 +163,24 @@ const About = () => {
                   warung mie ayam dalam dua dimensi:
                 </p>
                 <ul className="list-disc list-inside text-muted-foreground space-y-2 mb-4">
-                  <li>
-                    <strong>Sumbu X (Kompleksitas)</strong>: Skala -5 hingga +5
+                  <li>Sumbu X (Kompleksitas):
+-5 = Simple (rasa sederhana, langsung)
+0 = Subtle (rasa seimbang)
++5 = Complex (rasa berlapis, kaya)<strong>Sumbu X (Kompleksitas)</strong>: Skala -5 hingga +5
                     <ul className="list-circle list-inside ml-6 mt-1">
-                      <li>-5 = Simple (rasa sederhana, langsung)</li>
-                      <li>0 = Subtle (rasa seimbang)</li>
-                      <li>+5 = Complex (rasa berlapis, kaya)</li>
+                      <li>-5 = Simple (kuah berbody tipis, segar tidak terlalu banyak bumbu/rempah)</li>
+                      <li>0 = Subtle (kuah kaldu masih terasa segar, perpaduan bumbu rempah masih berasa, seimbang)</li>
+                      <li>+5 = Complex (kuah didominasi dengan bumbu/rempah, kaldu tipis)</li>
                     </ul>
                   </li>
-                  <li>
-                    <strong>Sumbu Y (Profil Rasa)</strong>: Skala -5 hingga +5
+                  <li>Sumbu Y (Profil Rasa): 
+-5 = Salty (asin-gurih dominan)
+0 = Savory (gurih seimbang)
++5 = Sweet (manis kecap dominan)<strong>Sumbu Y (Profil Rasa)</strong>: Skala -5 hingga +5
                     <ul className="list-circle list-inside ml-6 mt-1">
                       <li>-5 = Salty (asin-gurih dominan)</li>
-                      <li>0 = Savory (gurih seimbang)</li>
-                      <li>+5 = Sweet (manis kecap dominan)</li>
+                      <li>0 = Savory (manis, gurih, umami seimbang)</li>
+                      <li>+5 = Sweet (rasa manis lebih dominan)</li>
                     </ul>
                   </li>
                 </ul>
@@ -213,8 +213,6 @@ const About = () => {
           </Card>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default About;
