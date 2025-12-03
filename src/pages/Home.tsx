@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Trophy, TrendingUp, Search, AlertCircle, SlidersHorizontal } from "lucide-react";
 import AIChatbot from "@/components/AIChatbot";
+import PreferenceWizard from "@/components/PreferenceWizard";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -26,6 +27,8 @@ const Home = () => {
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [complexityFilter, setComplexityFilter] = useState<number>(-6);
   const [sweetnessFilter, setSweetnessFilter] = useState<number>(-6);
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [chatbotOpen, setChatbotOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -244,6 +247,7 @@ const Home = () => {
               variant="secondary" 
               className="shadow-glow focus-visible:ring-2 focus-visible:ring-offset-2"
               aria-label="Explore all reviews"
+              onClick={() => setWizardOpen(true)}
             >
               <TrendingUp className="mr-2 h-5 w-5" aria-hidden="true" />
               Explore Reviews
@@ -469,8 +473,15 @@ const Home = () => {
         </div>
       </footer>
 
+      {/* Preference Wizard */}
+      <PreferenceWizard 
+        isOpen={wizardOpen} 
+        onClose={() => setWizardOpen(false)}
+        onOpenChatbot={() => setChatbotOpen(true)}
+      />
+
       {/* AI Chatbot */}
-      <AIChatbot />
+      <AIChatbot isOpen={chatbotOpen} onOpenChange={setChatbotOpen} />
     </div>
   );
 };
