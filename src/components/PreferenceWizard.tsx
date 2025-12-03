@@ -30,11 +30,22 @@ interface PreferenceWizardProps {
 
 const PreferenceWizard = ({ isOpen, onClose, onOpenChatbot }: PreferenceWizardProps) => {
   const [step, setStep] = useState<WizardStep>("welcome");
+  const [prevStep, setPrevStep] = useState<WizardStep>("welcome");
+  const [animating, setAnimating] = useState(false);
   const [selectedType, setSelectedType] = useState<"kuah" | "goreng" | null>(null);
   const [selectedTaste, setSelectedTaste] = useState<"salty" | "savory" | "sweet" | null>(null);
   const [selectedComplexity, setSelectedComplexity] = useState<"simple" | "subtle" | "complex" | null>(null);
   const [matchedReview, setMatchedReview] = useState<Review | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const goToStep = (newStep: WizardStep) => {
+    setAnimating(true);
+    setPrevStep(step);
+    setTimeout(() => {
+      setStep(newStep);
+      setAnimating(false);
+    }, 150);
+  };
 
   // Reset wizard when closed
   useEffect(() => {
@@ -110,7 +121,7 @@ const PreferenceWizard = ({ isOpen, onClose, onOpenChatbot }: PreferenceWizardPr
 
   const handleTasteSelect = (taste: "salty" | "savory" | "sweet") => {
     setSelectedTaste(taste);
-    setStep("complexity");
+    goToStep("complexity");
   };
 
   const handleComplexitySelect = (complexity: "simple" | "subtle" | "complex") => {
@@ -189,7 +200,7 @@ const PreferenceWizard = ({ isOpen, onClose, onOpenChatbot }: PreferenceWizardPr
         </button>
 
         {/* Content */}
-        <div className="p-6">
+        <div className={`p-6 transition-all duration-150 ${animating ? 'opacity-0 translate-x-4' : 'opacity-100 translate-x-0'}`}>
           {/* Welcome Step */}
           {step === "welcome" && (
             <div className="text-center py-4">
@@ -206,7 +217,7 @@ const PreferenceWizard = ({ isOpen, onClose, onOpenChatbot }: PreferenceWizardPr
               <Button 
                 size="lg" 
                 className="rounded-full px-8"
-                onClick={() => setStep("type")}
+                onClick={() => goToStep("type")}
               >
                 Mulai Cari 🚀
               </Button>
@@ -221,8 +232,8 @@ const PreferenceWizard = ({ isOpen, onClose, onOpenChatbot }: PreferenceWizardPr
               
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <button
-                  onClick={() => { setSelectedType("kuah"); setStep("taste"); }}
-                  className={`p-6 rounded-xl border-2 transition-all hover:border-primary hover:bg-primary/5 ${
+                  onClick={() => { setSelectedType("kuah"); goToStep("taste"); }}
+                  className={`p-6 rounded-xl border-2 transition-all hover:border-primary hover:bg-primary/5 hover:scale-[1.02] ${
                     selectedType === "kuah" ? "border-primary bg-primary/10" : "border-border"
                   }`}
                 >
@@ -231,8 +242,8 @@ const PreferenceWizard = ({ isOpen, onClose, onOpenChatbot }: PreferenceWizardPr
                   <p className="text-xs text-muted-foreground mt-1">Banjir kuah kaldu segar</p>
                 </button>
                 <button
-                  onClick={() => { setSelectedType("goreng"); setStep("taste"); }}
-                  className={`p-6 rounded-xl border-2 transition-all hover:border-primary hover:bg-primary/5 ${
+                  onClick={() => { setSelectedType("goreng"); goToStep("taste"); }}
+                  className={`p-6 rounded-xl border-2 transition-all hover:border-primary hover:bg-primary/5 hover:scale-[1.02] ${
                     selectedType === "goreng" ? "border-primary bg-primary/10" : "border-border"
                   }`}
                 >

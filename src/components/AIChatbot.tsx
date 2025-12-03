@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -11,6 +12,60 @@ type Message = {
 };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mieayam-chat`;
+
+// Parse markdown links and render as clickable links
+const renderMessageContent = (content: string) => {
+  if (!content) return null;
+  
+  // Match markdown links: [text](/path) or [text](url)
+  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+  const parts: (string | JSX.Element)[] = [];
+  let lastIndex = 0;
+  let match;
+  
+  while ((match = linkRegex.exec(content)) !== null) {
+    // Add text before the link
+    if (match.index > lastIndex) {
+      parts.push(content.slice(lastIndex, match.index));
+    }
+    
+    const [, linkText, linkUrl] = match;
+    
+    // Check if it's an internal link (starts with /)
+    if (linkUrl.startsWith('/')) {
+      parts.push(
+        <Link 
+          key={match.index} 
+          to={linkUrl} 
+          className="text-primary underline hover:text-primary/80 font-medium"
+        >
+          {linkText}
+        </Link>
+      );
+    } else {
+      parts.push(
+        <a 
+          key={match.index} 
+          href={linkUrl} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="text-primary underline hover:text-primary/80 font-medium"
+        >
+          {linkText}
+        </a>
+      );
+    }
+    
+    lastIndex = match.index + match[0].length;
+  }
+  
+  // Add remaining text
+  if (lastIndex < content.length) {
+    parts.push(content.slice(lastIndex));
+  }
+  
+  return parts.length > 0 ? parts : content;
+};
 
 interface AIChatbotProps {
   isOpen?: boolean;
@@ -179,13 +234,13 @@ const AIChatbot = ({ isOpen: controlledIsOpen, onOpenChange }: AIChatbotProps = 
                   className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm ${
+                    className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm whitespace-pre-wrap ${
                       msg.role === "user"
                         ? "bg-primary text-primary-foreground rounded-br-md"
                         : "bg-muted text-foreground rounded-bl-md"
                     }`}
                   >
-                    {msg.content || (isLoading && idx === messages.length - 1 && (
+                    {msg.content ? renderMessageContent(msg.content) : (isLoading && idx === messages.length - 1 && (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ))}
                   </div>
