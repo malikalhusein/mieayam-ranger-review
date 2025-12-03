@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Trophy, TrendingUp, Search, AlertCircle, SlidersHorizontal } from "lucide-react";
+import AIChatbot from "@/components/AIChatbot";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -455,6 +456,21 @@ const Home = () => {
         )}
       </section>
 
+      {/* Footer */}
+      <footer className="bg-card border-t border-border py-8">
+        <div className="container text-center">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <span className="text-primary text-2xl">🍜</span>
+            <h3 className="text-lg font-bold text-foreground">Mie Ayam Ranger</h3>
+          </div>
+          <p className="text-muted-foreground">
+            © 2025 Mie Ayam Ranger. Dibuat dengan ❤️ dan 🍜.
+          </p>
+        </div>
+      </footer>
+
+      {/* AI Chatbot */}
+      <AIChatbot />
     </div>
   );
 };
