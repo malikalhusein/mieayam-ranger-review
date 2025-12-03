@@ -26,7 +26,7 @@ serve(async (req) => {
 
     const { data: reviews, error: dbError } = await supabase
       .from("reviews")
-      .select("outlet_name, address, city, product_type, price, overall_score, notes, complexity, sweetness")
+      .select("id, outlet_name, address, city, product_type, price, overall_score, notes, complexity, sweetness")
       .order("overall_score", { ascending: false })
       .limit(50);
 
@@ -34,9 +34,9 @@ serve(async (req) => {
       console.error("Database error:", dbError);
     }
 
-    // Build context from reviews
+    // Build context from reviews with IDs for linking
     const reviewsContext = reviews?.map((r) => 
-      `- ${r.outlet_name} (${r.city}): ${r.product_type}, Rp${r.price?.toLocaleString()}, Score: ${r.overall_score?.toFixed(1) || 'N/A'}, Complexity: ${r.complexity || 0}, Sweetness: ${r.sweetness || 0}${r.notes ? `, Notes: ${r.notes.substring(0, 100)}` : ''}`
+      `- [ID:${r.id}] ${r.outlet_name} (${r.city}): ${r.product_type}, Rp${r.price?.toLocaleString()}, Score: ${r.overall_score?.toFixed(1) || 'N/A'}, Complexity: ${r.complexity || 0}, Sweetness: ${r.sweetness || 0}${r.notes ? `, Notes: ${r.notes.substring(0, 100)}` : ''}`
     ).join("\n") || "Belum ada data review.";
 
     const systemPrompt = `Kamu adalah asisten AI untuk Mie Ayam Ranger, sebuah direktori review warung mie ayam Indonesia. 
@@ -57,6 +57,7 @@ INSTRUKSI:
 5. Jika user bertanya di luar topik mie ayam, arahkan kembali dengan sopan
 6. Sebutkan score, lokasi, dan karakteristik rasa saat merekomendasikan
 7. Jawab dengan singkat dan padat, maksimal 3-4 kalimat per poin
+8. PENTING: Saat merekomendasikan warung, SELALU sertakan link ke halaman review dengan format: [Lihat Review](ID_REVIEW). Contoh: [Lihat Review Mie Ayam Sultan](/review/abc123). Gunakan ID yang ada di data review.
 
 Jangan pernah mengaku-ngaku atau membuat data yang tidak ada dalam database.`;
 

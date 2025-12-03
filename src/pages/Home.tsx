@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import ReviewCard from "@/components/ReviewCard";
+import HallOfFameCard from "@/components/HallOfFameCard";
 import PerceptualMap from "@/components/PerceptualMap";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -256,40 +257,35 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Top 5 Section */}
+      {/* Hall of Fame - Top 5 Section */}
       {topReviews.length > 0 && (
         <section className="container py-16" aria-labelledby="top-5-heading">
-          <div className="flex items-center justify-center mb-8">
-            <Trophy className="h-8 w-8 text-primary mr-3" aria-hidden="true" />
-            <h2 id="top-5-heading" className="text-2xl md:text-3xl font-bold">Top 5 Rekomendasi</h2>
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-4">
+              <Trophy className="h-5 w-5 text-primary" aria-hidden="true" />
+              <span className="text-sm font-medium text-primary">Hall of Fame</span>
+            </div>
+            <h2 id="top-5-heading" className="text-3xl md:text-4xl font-bold text-foreground">
+              Top 5 Rekomendasi
+            </h2>
+            <p className="text-muted-foreground mt-2">Warung mie ayam dengan skor tertinggi</p>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+          <div className="max-w-2xl mx-auto space-y-3">
             {topReviews.map((review, index) => (
-              <div key={review.id} className="relative">
-                <div className="absolute -top-3 -left-3 z-10 bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg shadow-lg">
-                  {index + 1}
-                </div>
-                <ReviewCard
-                  id={review.id}
-                  outlet_name={review.outlet_name}
-                  address={review.address}
-                  city={review.city}
-                  visit_date={review.visit_date}
-                  price={review.price}
-                  product_type={review.product_type}
-                  notes={review.notes}
-                  image_url={review.image_url}
-                  image_urls={review.image_urls}
-                  overall_score={review.overall_score}
-                  scores={review.scores}
-                  kuah_kekentalan={review.kuah_kekentalan}
-                  kuah_kaldu={review.kuah_kaldu}
-                  kuah_keseimbangan={review.kuah_keseimbangan}
-                  mie_tekstur={review.mie_tekstur}
-                  ayam_bumbu={review.ayam_bumbu}
-                />
-              </div>
+              <HallOfFameCard
+                key={review.id}
+                id={review.id}
+                rank={index + 1}
+                outlet_name={review.outlet_name}
+                address={review.address}
+                city={review.city}
+                overall_score={review.overall_score}
+                image_url={review.image_url}
+                image_urls={review.image_urls}
+                product_type={review.product_type}
+                price={review.price}
+              />
             ))}
           </div>
         </section>
