@@ -12,8 +12,23 @@ type Message = {
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mieayam-chat`;
 
-const AIChatbot = () => {
-  const [isOpen, setIsOpen] = useState(false);
+interface AIChatbotProps {
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+const AIChatbot = ({ isOpen: controlledIsOpen, onOpenChange }: AIChatbotProps = {}) => {
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
+  
+  const setIsOpen = (open: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(open);
+    } else {
+      setInternalIsOpen(open);
+    }
+  };
+
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
