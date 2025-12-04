@@ -81,14 +81,15 @@ const AIChatbot = ({
       inputRef.current.focus();
     }
   }, [isOpen]);
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+  const handleSend = async (directMessage?: string) => {
+    const messageToSend = directMessage || input.trim();
+    if (!messageToSend || isLoading) return;
     const userMessage: Message = {
       role: "user",
-      content: input.trim()
+      content: messageToSend
     };
     setMessages(prev => [...prev, userMessage]);
-    setInput("");
+    if (!directMessage) setInput("");
     setIsLoading(true);
     let assistantContent = "";
     try {
@@ -187,7 +188,7 @@ const AIChatbot = ({
           </div>
 
           {/* Messages */}
-          <ScrollArea className="h-[350px] p-4" ref={scrollRef}>
+          <ScrollArea className="h-[300px] p-4" ref={scrollRef}>
             <div className="space-y-4">
               {messages.map((msg, idx) => <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm whitespace-pre-wrap ${msg.role === "user" ? "bg-primary text-primary-foreground rounded-br-md" : "bg-muted text-foreground rounded-bl-md"}`}>
@@ -197,10 +198,30 @@ const AIChatbot = ({
             </div>
           </ScrollArea>
 
+          {/* Quick Suggestions */}
+          {messages.length <= 2 && !isLoading && (
+            <div className="px-3 pb-2 flex flex-wrap gap-2">
+              {[
+                { label: "🏆 Rekomendasi terbaik", query: "Apa rekomendasi mie ayam terbaik?" },
+                { label: "💰 Mie ayam murah", query: "Mie ayam murah yang enak dimana?" },
+                { label: "🍜 Kuah terenak", query: "Mie ayam kuah paling enak?" },
+                { label: "🍝 Goreng favorit", query: "Mie ayam goreng yang recommended?" },
+              ].map((suggestion) => (
+                <button
+                  key={suggestion.label}
+                  onClick={() => handleSend(suggestion.query)}
+                  className="text-xs px-3 py-1.5 bg-muted hover:bg-primary/10 text-muted-foreground hover:text-primary rounded-full border border-border hover:border-primary/30 transition-all duration-200"
+                >
+                  {suggestion.label}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Input */}
           <div className="border-t border-border p-3 flex gap-2">
             <Input ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Ketik pesan..." disabled={isLoading} className="flex-1" />
-            <Button size="icon" onClick={handleSend} disabled={!input.trim() || isLoading}>
+            <Button size="icon" onClick={() => handleSend()} disabled={!input.trim() || isLoading}>
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>
           </div>
