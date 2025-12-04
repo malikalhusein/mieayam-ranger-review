@@ -45,13 +45,13 @@ const HallOfFameCard = ({
   const getGlowStyle = (rank: number) => {
     switch (rank) {
       case 1:
-        return "hover:shadow-[0_0_25px_rgba(251,191,36,0.4)]";
+        return "hover:shadow-[0_0_40px_rgba(251,191,36,0.6)] hover:border-yellow-400/70";
       case 2:
-        return "hover:shadow-[0_0_25px_rgba(148,163,184,0.4)]";
+        return "hover:shadow-[0_0_35px_rgba(148,163,184,0.5)] hover:border-slate-400/70";
       case 3:
-        return "hover:shadow-[0_0_20px_rgba(217,119,6,0.4)]";
+        return "hover:shadow-[0_0_30px_rgba(217,119,6,0.5)] hover:border-amber-500/70";
       default:
-        return "hover:shadow-[0_0_20px_hsl(var(--primary)/0.3)]";
+        return "hover:shadow-[0_0_25px_hsl(var(--primary)/0.4)] hover:border-primary/60";
     }
   };
 
