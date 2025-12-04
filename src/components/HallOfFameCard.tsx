@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Star, MapPin } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 interface HallOfFameCardProps {
   id: string;
@@ -28,6 +29,26 @@ const HallOfFameCard = ({
 }: HallOfFameCardProps) => {
   const displayImage = image_urls?.[0] || image_url || "/placeholder.svg";
   const score = Math.min(10, overall_score || 0);
+  const cardRef = useRef<HTMLAnchorElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1, rootMargin: "50px" }
+    );
+
+    if (cardRef.current) {
+      observer.observe(cardRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   const getRankStyle = (rank: number) => {
     switch (rank) {
@@ -57,9 +78,14 @@ const HallOfFameCard = ({
 
   return (
     <Link
+      ref={cardRef}
       to={`/review/${id}`}
-      className={`group relative overflow-hidden rounded-xl border border-border hover:border-primary/50 transition-all duration-300 animate-fade-in ${getGlowStyle(rank)}`}
-      style={{ animationDelay: `${(rank - 1) * 100}ms` }}
+      className={`group relative overflow-hidden rounded-xl border border-border hover:border-primary/50 transition-all duration-500 ${getGlowStyle(rank)} ${
+        isVisible 
+          ? "opacity-100 translate-y-0" 
+          : "opacity-0 translate-y-8"
+      }`}
+      style={{ transitionDelay: isVisible ? `${(rank - 1) * 100}ms` : "0ms" }}
     >
       {/* Mobile: Background image with overlay */}
       <div className="md:hidden relative min-h-[100px]">
