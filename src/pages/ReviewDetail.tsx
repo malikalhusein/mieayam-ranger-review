@@ -11,8 +11,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { MapPin, Calendar, DollarSign, Clock, ArrowLeft, ExternalLink, Image as ImageIcon, Download, AlertCircle, Trophy, Menu } from "lucide-react";
+import { MapPin, Calendar, DollarSign, Clock, ArrowLeft, ExternalLink, Image as ImageIcon, Download, AlertCircle, Trophy, Menu, Share2, Check, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const ReviewDetail = () => {
   const { id } = useParams();
@@ -25,7 +26,43 @@ const ReviewDetail = () => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [copied, setCopied] = useState(false);
   const { toast } = useToast();
+
+  const shareReview = async () => {
+    const url = window.location.href;
+    const title = `${review?.outlet_name} - Mie Ayam Ranger`;
+    const text = `Review ${review?.outlet_name} di Mie Ayam Ranger. Score: ${Math.min(10, review?.overall_score || 0).toFixed(1)}/10`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text, url });
+      } catch (err) {
+        // User cancelled or share failed, fallback to copy
+        copyToClipboard(url);
+      }
+    } else {
+      copyToClipboard(url);
+    }
+  };
+
+  const copyToClipboard = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      toast({
+        title: "Link disalin!",
+        description: "Link review telah disalin ke clipboard",
+      });
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast({
+        title: "Gagal menyalin",
+        description: "Silakan salin link secara manual",
+        variant: "destructive",
+      });
+    }
+  };
 
   const openLightbox = (images: string[], index: number = 0) => {
     setLightboxImages(images);
@@ -201,14 +238,32 @@ const ReviewDetail = () => {
       <Navbar />
       
       <div className="container py-6 md:py-10 max-w-7xl mx-auto px-4 md:px-6">
-        {/* Header with Back Button */}
-        <div className="mb-6">
+        {/* Header with Back Button & Share */}
+        <div className="mb-6 flex items-center justify-between">
           <Link to="/">
             <Button variant="ghost" className="hover:bg-accent transition-colors">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Kembali
             </Button>
           </Link>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={shareReview}
+                  className="hover:bg-accent transition-colors"
+                >
+                  {copied ? <Check className="h-4 w-4 text-green-500" /> : <Share2 className="h-4 w-4" />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Bagikan review ini</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
 
         {/* Hero Section - Title & Overall Score */}

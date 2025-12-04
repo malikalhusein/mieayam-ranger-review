@@ -248,7 +248,7 @@ const PreferenceWizard = ({ isOpen, onClose, onOpenChatbot }: PreferenceWizardPr
                   }`}
                 >
                   <span className="text-4xl block mb-3">🍝</span>
-                  <h3 className="font-bold text-foreground">Tim Yamin</h3>
+                  <h3 className="font-bold text-foreground">Tim Goreng</h3>
                   <p className="text-xs text-muted-foreground mt-1">Kering, manis, gurih</p>
                 </button>
               </div>
