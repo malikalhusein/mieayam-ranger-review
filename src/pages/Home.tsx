@@ -17,6 +17,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Slider } from "@/components/ui/slider";
 import { calculateScore, calculateLegacyScore, type ReviewData } from "@/lib/scoring";
 
+const REVIEWS_PER_PAGE = 9;
+
 const Home = () => {
   const [reviews, setReviews] = useState<any[]>([]);
   const [topReviews, setTopReviews] = useState<any[]>([]);
@@ -30,6 +32,7 @@ const Home = () => {
   const [sweetnessFilter, setSweetnessFilter] = useState<number>(-6);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [chatbotOpen, setChatbotOpen] = useState(false);
+  const [showAllReviews, setShowAllReviews] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -271,7 +274,27 @@ const Home = () => {
             <p className="text-muted-foreground mt-2">Warung mie ayam dengan skor tertinggi</p>
           </div>
           
-          <div className="max-w-2xl mx-auto space-y-3">
+          {/* Desktop: Grid tile layout */}
+          <div className="hidden lg:grid grid-cols-5 gap-4">
+            {topReviews.map((review, index) => (
+              <HallOfFameCard
+                key={review.id}
+                id={review.id}
+                rank={index + 1}
+                outlet_name={review.outlet_name}
+                address={review.address}
+                city={review.city}
+                overall_score={review.overall_score}
+                image_url={review.image_url}
+                image_urls={review.image_urls}
+                product_type={review.product_type}
+                price={review.price}
+              />
+            ))}
+          </div>
+          
+          {/* Tablet & Mobile: Stacked list layout */}
+          <div className="lg:hidden max-w-2xl mx-auto space-y-3">
             {topReviews.map((review, index) => (
               <HallOfFameCard
                 key={review.id}
@@ -429,30 +452,59 @@ const Home = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-            {filteredReviews.map((review) => (
-              <ReviewCard
-                key={review.id}
-                id={review.id}
-                outlet_name={review.outlet_name}
-                address={review.address}
-                city={review.city}
-                visit_date={review.visit_date}
-                price={review.price}
-                product_type={review.product_type}
-                notes={review.notes}
-                image_url={review.image_url}
-                image_urls={review.image_urls}
-                overall_score={review.overall_score}
-                scores={review.scores}
-                kuah_kekentalan={review.kuah_kekentalan}
-                kuah_kaldu={review.kuah_kaldu}
-                kuah_keseimbangan={review.kuah_keseimbangan}
-                mie_tekstur={review.mie_tekstur}
-                ayam_bumbu={review.ayam_bumbu}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+              {(showAllReviews ? filteredReviews : filteredReviews.slice(0, REVIEWS_PER_PAGE)).map((review) => (
+                <ReviewCard
+                  key={review.id}
+                  id={review.id}
+                  outlet_name={review.outlet_name}
+                  address={review.address}
+                  city={review.city}
+                  visit_date={review.visit_date}
+                  price={review.price}
+                  product_type={review.product_type}
+                  notes={review.notes}
+                  image_url={review.image_url}
+                  image_urls={review.image_urls}
+                  overall_score={review.overall_score}
+                  scores={review.scores}
+                  kuah_kekentalan={review.kuah_kekentalan}
+                  kuah_kaldu={review.kuah_kaldu}
+                  kuah_keseimbangan={review.kuah_keseimbangan}
+                  mie_tekstur={review.mie_tekstur}
+                  ayam_bumbu={review.ayam_bumbu}
+                />
+              ))}
+            </div>
+            
+            {/* Show "Lihat semua" button if there are more than 9 reviews */}
+            {!showAllReviews && filteredReviews.length > REVIEWS_PER_PAGE && (
+              <div className="text-center mt-8">
+                <Button 
+                  variant="outline" 
+                  size="lg"
+                  onClick={() => setShowAllReviews(true)}
+                  className="px-8"
+                >
+                  Lihat semua ({filteredReviews.length} review)
+                </Button>
+              </div>
+            )}
+            
+            {/* Show "Tampilkan lebih sedikit" when showing all */}
+            {showAllReviews && filteredReviews.length > REVIEWS_PER_PAGE && (
+              <div className="text-center mt-8">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowAllReviews(false)}
+                >
+                  Tampilkan lebih sedikit
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </section>
 
