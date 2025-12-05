@@ -50,7 +50,7 @@ const HallOfFameCard = ({
     return () => observer.disconnect();
   }, []);
 
-  const getRankStyle = (rank: number) => {
+  const getRankBadgeStyle = (rank: number) => {
     switch (rank) {
       case 1:
         return "from-yellow-400 to-amber-500 text-yellow-900 shadow-yellow-400/50";
@@ -80,56 +80,59 @@ const HallOfFameCard = ({
     <Link
       ref={cardRef}
       to={`/review/${id}`}
-      className={`group relative overflow-hidden rounded-xl border border-border hover:border-primary/50 transition-all duration-500 ${getGlowStyle(rank)} ${
+      className={`group relative overflow-hidden rounded-xl border border-border transition-all duration-500 ${getGlowStyle(rank)} ${
         isVisible 
           ? "opacity-100 translate-y-0" 
           : "opacity-0 translate-y-8"
       }`}
       style={{ transitionDelay: isVisible ? `${(rank - 1) * 100}ms` : "0ms" }}
     >
-      {/* Mobile: Background image with overlay */}
-      <div className="md:hidden relative min-h-[100px]">
-        <img
-          src={displayImage}
-          alt={outlet_name}
-          className="absolute inset-0 w-full h-full object-cover opacity-30"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/70 to-background/50" />
-        <div className="relative z-10 flex items-center gap-3 p-3">
-          {/* Rank Badge */}
-          <div className={`shrink-0 w-12 h-12 rounded-lg bg-gradient-to-br ${getRankStyle(rank)} flex items-center justify-center font-bold text-2xl shadow-lg`}>
+      {/* Desktop: Tile card layout (vertical) */}
+      <div className="hidden lg:block bg-card">
+        {/* Image section */}
+        <div className="relative aspect-[4/3] overflow-hidden">
+          <img
+            src={displayImage}
+            alt={outlet_name}
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            loading="lazy"
+          />
+          {/* Rank badge overlay */}
+          <div className={`absolute top-3 left-3 w-10 h-10 rounded-lg bg-gradient-to-br ${getRankBadgeStyle(rank)} flex items-center justify-center font-bold text-lg shadow-lg`}>
             {rank}
           </div>
-          
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-foreground text-base leading-tight group-hover:text-primary transition-colors line-clamp-2">
-              {outlet_name}
-            </h3>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-              <MapPin className="h-3 w-3 shrink-0" />
-              <span className="truncate">{city}</span>
-            </div>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs text-muted-foreground">Rp{price.toLocaleString("id-ID")}</span>
-              <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded">
-                {product_type === "kuah" ? "🍜 Kuah" : "🍝 Goreng"}
-              </span>
+          {/* Product type badge */}
+          <div className="absolute top-3 right-3 bg-background/90 backdrop-blur-sm text-foreground text-xs px-2.5 py-1 rounded-full font-medium">
+            {product_type === "kuah" ? "🍜 Kuah" : "🍝 Goreng"}
+          </div>
+          {/* Score overlay at bottom */}
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
+                <span className="font-bold text-white text-xl">{score.toFixed(1)}</span>
+              </div>
+              <span className="text-white/80 text-sm">Rp{price.toLocaleString("id-ID")}</span>
             </div>
           </div>
-          
-          {/* Score Badge */}
-          <div className="shrink-0 flex flex-col items-center bg-primary/10 px-3 py-2 rounded-lg">
-            <Star className="h-5 w-5 text-primary fill-primary" />
-            <span className="font-bold text-primary text-xl">{score.toFixed(1)}</span>
+        </div>
+        
+        {/* Content section */}
+        <div className="p-4">
+          <h3 className="font-bold text-foreground text-base leading-tight group-hover:text-primary transition-colors line-clamp-2 mb-2">
+            {outlet_name}
+          </h3>
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <MapPin className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">{city}</span>
           </div>
         </div>
       </div>
 
-      {/* Desktop: Original horizontal layout */}
-      <div className="hidden md:flex items-center gap-5 bg-card p-4">
+      {/* Tablet: Horizontal card layout */}
+      <div className="hidden md:flex lg:hidden items-center gap-5 bg-card p-4">
         {/* Rank Badge */}
-        <div className={`shrink-0 w-14 h-14 rounded-lg bg-gradient-to-br ${getRankStyle(rank)} flex items-center justify-center font-bold text-2xl shadow-md`}>
+        <div className={`shrink-0 w-14 h-14 rounded-lg bg-gradient-to-br ${getRankBadgeStyle(rank)} flex items-center justify-center font-bold text-2xl shadow-md`}>
           {rank}
         </div>
 
@@ -139,6 +142,7 @@ const HallOfFameCard = ({
             src={displayImage}
             alt={outlet_name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
           />
           <div className="absolute bottom-1 right-1 bg-black/70 text-white text-[11px] px-1.5 py-0.5 rounded">
             {product_type === "kuah" ? "🍜 Kuah" : "🍝 Goreng"}
@@ -162,6 +166,46 @@ const HallOfFameCard = ({
         {/* Score Badge */}
         <div className="shrink-0 flex flex-col items-center">
           <div className="flex items-center gap-1 bg-primary/10 px-4 py-2 rounded-lg">
+            <Star className="h-5 w-5 text-primary fill-primary" />
+            <span className="font-bold text-primary text-xl">{score.toFixed(1)}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile: Background image with overlay */}
+      <div className="md:hidden relative min-h-[100px]">
+        <img
+          src={displayImage}
+          alt={outlet_name}
+          className="absolute inset-0 w-full h-full object-cover opacity-30"
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/70 to-background/50" />
+        <div className="relative z-10 flex items-center gap-3 p-3">
+          {/* Rank Badge */}
+          <div className={`shrink-0 w-12 h-12 rounded-lg bg-gradient-to-br ${getRankBadgeStyle(rank)} flex items-center justify-center font-bold text-2xl shadow-lg`}>
+            {rank}
+          </div>
+          
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-foreground text-base leading-tight group-hover:text-primary transition-colors line-clamp-2">
+              {outlet_name}
+            </h3>
+            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+              <MapPin className="h-3 w-3 shrink-0" />
+              <span className="truncate">{city}</span>
+            </div>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-xs text-muted-foreground">Rp{price.toLocaleString("id-ID")}</span>
+              <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded">
+                {product_type === "kuah" ? "🍜 Kuah" : "🍝 Goreng"}
+              </span>
+            </div>
+          </div>
+          
+          {/* Score Badge */}
+          <div className="shrink-0 flex flex-col items-center bg-primary/10 px-3 py-2 rounded-lg">
             <Star className="h-5 w-5 text-primary fill-primary" />
             <span className="font-bold text-primary text-xl">{score.toFixed(1)}</span>
           </div>
