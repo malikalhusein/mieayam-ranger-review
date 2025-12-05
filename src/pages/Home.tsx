@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import ReviewCard from "@/components/ReviewCard";
 import HallOfFameCard from "@/components/HallOfFameCard";
+import HallOfFameSkeleton from "@/components/HallOfFameSkeleton";
 import PerceptualMap from "@/components/PerceptualMap";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -204,16 +205,27 @@ const Home = () => {
             <Skeleton className="h-6 w-1/2 mx-auto" />
           </div>
           
-          {/* Cards Skeleton */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-            {[...Array(10)].map((_, i) => (
-              <div key={i} className="space-y-3">
-                <Skeleton className="aspect-[4/3] w-full" />
-                <Skeleton className="h-6 w-full" />
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-              </div>
-            ))}
+          {/* Hall of Fame Skeleton with shimmer */}
+          <div className="text-center mb-10">
+            <Skeleton className="h-8 w-32 mx-auto mb-4 rounded-full" />
+            <Skeleton className="h-10 w-64 mx-auto mb-2" />
+            <Skeleton className="h-4 w-48 mx-auto" />
+          </div>
+          <HallOfFameSkeleton />
+          
+          {/* Reviews Grid Skeleton */}
+          <div className="mt-16">
+            <Skeleton className="h-8 w-48 mx-auto mb-8" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+              {[...Array(9)].map((_, i) => (
+                <div key={i} className="space-y-3">
+                  <Skeleton className="aspect-[4/3] w-full" />
+                  <Skeleton className="h-6 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
