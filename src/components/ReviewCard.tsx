@@ -4,6 +4,7 @@ import { MapPin, Calendar, DollarSign, Star, ChevronLeft, ChevronRight } from "l
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
 import { Badge } from "./ui/badge";
 import RadarChart from "./RadarChart";
+import OptimizedImage from "./OptimizedImage";
 
 interface ReviewCardProps {
   id: string;
@@ -96,11 +97,12 @@ const ReviewCard = ({
       <Card className="group h-full flex flex-col overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer">
         {images.length > 0 && (
           <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-            <img 
-              src={images[currentImageIndex]} 
+            {/* OptimizedImage with blur placeholder */}
+            <OptimizedImage
+              src={images[currentImageIndex]}
               alt={`${outlet_name} - Foto ${currentImageIndex + 1}`}
-              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-              loading="lazy"
+              className="h-full w-full group-hover:scale-110 transition-transform duration-300"
+              aspectRatio="4/3"
             />
             
             {/* Navigation arrows */}
@@ -108,21 +110,21 @@ const ReviewCard = ({
               <>
                 <button
                   onClick={prevImage}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1 transition-all"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1 transition-all z-10"
                   aria-label="Previous image"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
                 <button
                   onClick={nextImage}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1 transition-all"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1 transition-all z-10"
                   aria-label="Next image"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
                 
                 {/* Image indicators */}
-                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
                   {images.map((_, index) => (
                     <div
                       key={index}
@@ -137,7 +139,7 @@ const ReviewCard = ({
               </>
             )}
             
-            <div className="absolute top-2 right-2 flex gap-2">
+            <div className="absolute top-2 right-2 flex gap-2 z-10">
               <Badge variant={product_type === "kuah" ? "default" : "secondary"} className="shadow-md">
                 {product_type === "kuah" ? "Kuah" : "Goreng"}
               </Badge>
@@ -146,7 +148,7 @@ const ReviewCard = ({
               </Badge>
             </div>
             {overall_score && (
-              <div className="absolute top-2 left-2 flex items-center gap-1 bg-primary/90 text-primary-foreground px-2 py-1 rounded-full shadow-md">
+              <div className="absolute top-2 left-2 flex items-center gap-1 bg-primary/90 text-primary-foreground px-2 py-1 rounded-full shadow-md z-10">
                 <Star className="h-3 w-3 fill-current" />
                 <span className="text-sm font-bold">{Math.min(10, overall_score).toFixed(1)}</span>
               </div>

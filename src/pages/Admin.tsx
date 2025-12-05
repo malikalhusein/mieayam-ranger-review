@@ -11,10 +11,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, Upload, X, Home, TrendingUp, BarChart3, Award } from "lucide-react";
+import { LogOut, Upload, X, Home, TrendingUp, BarChart3, Award, Loader2 } from "lucide-react";
 import { SemanticDifferential } from "@/components/ui/semantic-differential";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { calculateScore, type ReviewData } from "@/lib/scoring";
+import { optimizeImage } from "@/lib/imageOptimizer";
 
 const reviewSchema = z.object({
   outlet_name: z.string().min(1, "Nama outlet wajib diisi"),
@@ -296,13 +297,32 @@ const Admin = () => {
     const uploadedUrls: string[] = [];
 
     for (const file of imageFiles) {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+      // Optimize image before upload
+      let optimizedFile: Blob | File = file;
+      try {
+        optimizedFile = await optimizeImage(file, {
+          maxWidth: 1200,
+          maxHeight: 1200,
+          quality: 0.85,
+          format: 'image/webp',
+        });
+        toast({
+          title: "Gambar dioptimasi",
+          description: `Ukuran: ${(file.size / 1024).toFixed(0)}KB → ${(optimizedFile.size / 1024).toFixed(0)}KB`,
+        });
+      } catch (error) {
+        console.warn("Image optimization failed, using original:", error);
+        optimizedFile = file;
+      }
+
+      const fileName = `${Math.random().toString(36).substring(2)}.webp`;
       const filePath = `${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('review-images')
-        .upload(filePath, file);
+        .upload(filePath, optimizedFile, {
+          contentType: 'image/webp',
+        });
 
       if (uploadError) throw uploadError;
 
@@ -319,13 +339,32 @@ const Admin = () => {
   const uploadMenuImage = async (): Promise<string | null> => {
     if (!menuImageFile) return existingMenuImageUrl;
 
-    const fileExt = menuImageFile.name.split('.').pop();
-    const fileName = `menu-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    // Optimize menu image before upload
+    let optimizedFile: Blob | File = menuImageFile;
+    try {
+      optimizedFile = await optimizeImage(menuImageFile, {
+        maxWidth: 1600,
+        maxHeight: 1600,
+        quality: 0.85,
+        format: 'image/webp',
+      });
+      toast({
+        title: "Menu image dioptimasi",
+        description: `Ukuran: ${(menuImageFile.size / 1024).toFixed(0)}KB → ${(optimizedFile.size / 1024).toFixed(0)}KB`,
+      });
+    } catch (error) {
+      console.warn("Menu image optimization failed, using original:", error);
+      optimizedFile = menuImageFile;
+    }
+
+    const fileName = `menu-${Math.random().toString(36).substring(2)}.webp`;
     const filePath = `${fileName}`;
 
     const { error: uploadError } = await supabase.storage
       .from('review-images')
-      .upload(filePath, menuImageFile);
+      .upload(filePath, optimizedFile, {
+        contentType: 'image/webp',
+      });
 
     if (uploadError) throw uploadError;
 
