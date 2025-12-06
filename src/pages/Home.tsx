@@ -1,15 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import ReviewCard from "@/components/ReviewCard";
 import HallOfFameCard from "@/components/HallOfFameCard";
 import HallOfFameSkeleton from "@/components/HallOfFameSkeleton";
 import PerceptualMap from "@/components/PerceptualMap";
+import LoadingScreen from "@/components/LoadingScreen";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trophy, TrendingUp, Search, AlertCircle, SlidersHorizontal } from "lucide-react";
+import { Trophy, TrendingUp, Search, AlertCircle, SlidersHorizontal, Loader2 } from "lucide-react";
 import AIChatbot from "@/components/AIChatbot";
 import PreferenceWizard from "@/components/PreferenceWizard";
 import { useToast } from "@/hooks/use-toast";
@@ -17,14 +18,17 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Slider } from "@/components/ui/slider";
 import { calculateScore, calculateLegacyScore, type ReviewData } from "@/lib/scoring";
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 
-const REVIEWS_PER_PAGE = 9;
+const INITIAL_REVIEWS_COUNT = 9;
+const REVIEWS_PER_LOAD = 6;
 
 const Home = () => {
   const [reviews, setReviews] = useState<any[]>([]);
   const [topReviews, setTopReviews] = useState<any[]>([]);
   const [filteredReviews, setFilteredReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showLoadingScreen, setShowLoadingScreen] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [cityFilter, setCityFilter] = useState<string>("all");
@@ -33,8 +37,20 @@ const Home = () => {
   const [sweetnessFilter, setSweetnessFilter] = useState<number>(-6);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [chatbotOpen, setChatbotOpen] = useState(false);
-  const [showAllReviews, setShowAllReviews] = useState(false);
   const { toast } = useToast();
+
+  // Infinite scroll hook
+  const {
+    displayedItems: displayedReviews,
+    hasMore,
+    isLoading: isLoadingMore,
+    loaderRef,
+    totalCount,
+    loadedCount,
+  } = useInfiniteScroll(filteredReviews, {
+    initialItemsCount: INITIAL_REVIEWS_COUNT,
+    itemsPerLoad: REVIEWS_PER_LOAD,
+  });
 
   useEffect(() => {
     fetchReviews();
@@ -466,7 +482,7 @@ const Home = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-              {(showAllReviews ? filteredReviews : filteredReviews.slice(0, REVIEWS_PER_PAGE)).map((review) => (
+              {displayedReviews.map((review) => (
                 <ReviewCard
                   key={review.id}
                   id={review.id}
@@ -490,35 +506,28 @@ const Home = () => {
               ))}
             </div>
             
-            {/* Show "Lihat semua" button if there are more than 9 reviews */}
-            {!showAllReviews && filteredReviews.length > REVIEWS_PER_PAGE && (
-              <div className="text-center mt-8">
-                <Button 
-                  variant="outline" 
-                  size="lg"
-                  onClick={() => setShowAllReviews(true)}
-                  className="px-8"
-                >
-                  Lihat semua ({filteredReviews.length} review)
-                </Button>
-              </div>
-            )}
-            
-            {/* Show "Tampilkan lebih sedikit" when showing all */}
-            {showAllReviews && filteredReviews.length > REVIEWS_PER_PAGE && (
-              <div className="text-center mt-8">
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => setShowAllReviews(false)}
-                >
-                  Tampilkan lebih sedikit
-                </Button>
-              </div>
-            )}
+            {/* Infinite scroll loader */}
+            <div ref={loaderRef} className="py-8 flex flex-col items-center justify-center">
+              {isLoadingMore && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span>Memuat lebih banyak...</span>
+                </div>
+              )}
+              {!hasMore && loadedCount > 0 && (
+                <p className="text-muted-foreground text-sm">
+                  Menampilkan semua {totalCount} review
+                </p>
+              )}
+            </div>
           </>
         )}
       </section>
+
+      {/* Loading Screen */}
+      {showLoadingScreen && (
+        <LoadingScreen onComplete={() => setShowLoadingScreen(false)} duration={2500} />
+      )}
 
       {/* Footer */}
       <footer className="bg-card border-t border-border py-8">
