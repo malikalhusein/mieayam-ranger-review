@@ -276,12 +276,11 @@ const Home = () => {
             </p>
             <Button 
               size="lg" 
-              variant="secondary" 
-              className="shadow-glow focus-visible:ring-2 focus-visible:ring-offset-2"
+              className="bg-white text-primary font-bold px-8 py-6 text-lg shadow-xl hover:bg-primary hover:text-white hover:scale-110 hover:shadow-2xl hover:shadow-primary/40 transition-all duration-300 ease-out focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-white group"
               aria-label="Explore all reviews"
               onClick={() => setWizardOpen(true)}
             >
-              <TrendingUp className="mr-2 h-5 w-5" aria-hidden="true" />
+              <TrendingUp className="mr-2 h-5 w-5 group-hover:animate-bounce" aria-hidden="true" />
               Explore Reviews
             </Button>
           </div>
