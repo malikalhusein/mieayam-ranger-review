@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, Upload, X, Home, TrendingUp, BarChart3, Award, Loader2 } from "lucide-react";
+import { LogOut, Upload, X, Home, TrendingUp, BarChart3, Award, Loader2, Download, FileUp } from "lucide-react";
 import { SemanticDifferential } from "@/components/ui/semantic-differential";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { calculateScore, type ReviewData } from "@/lib/scoring";
@@ -55,6 +55,8 @@ const Admin = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
@@ -66,6 +68,7 @@ const Admin = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [previewScore, setPreviewScore] = useState<number | null>(null);
   const [uniqueOutlets, setUniqueOutlets] = useState<Array<{name: string, address: string, city: string}>>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -262,6 +265,116 @@ const Admin = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/");
+  };
+
+  // Export database to JSON
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const { data, error } = await supabase
+        // @ts-ignore
+        .from("reviews")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      const exportData = {
+        exportDate: new Date().toISOString(),
+        version: "1.0",
+        totalReviews: data?.length || 0,
+        reviews: data || [],
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `mieayam-backup-${new Date().toISOString().split("T")[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Export berhasil!",
+        description: `${data?.length || 0} review berhasil diekspor.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Export gagal",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  // Import database from JSON
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImporting(true);
+    try {
+      const text = await file.text();
+      const importData = JSON.parse(text);
+
+      if (!importData.reviews || !Array.isArray(importData.reviews)) {
+        throw new Error("Format file tidak valid. Pastikan file adalah hasil export dari sistem ini.");
+      }
+
+      const confirmed = window.confirm(
+        `Anda akan mengimpor ${importData.reviews.length} review.\n\n` +
+        `Tanggal export: ${new Date(importData.exportDate).toLocaleString("id-ID")}\n\n` +
+        `PERHATIAN: Review dengan ID yang sama akan ditimpa.\n\n` +
+        `Lanjutkan?`
+      );
+
+      if (!confirmed) {
+        setImporting(false);
+        return;
+      }
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const review of importData.reviews) {
+        // Remove auto-generated fields that should be recalculated
+        const { created_at, updated_at, ...reviewData } = review;
+        
+        const { error } = await supabase
+          // @ts-ignore
+          .from("reviews")
+          .upsert(reviewData, { onConflict: "id" });
+
+        if (error) {
+          errorCount++;
+          console.error("Import error for review:", review.id, error);
+        } else {
+          successCount++;
+        }
+      }
+
+      toast({
+        title: "Import selesai!",
+        description: `${successCount} review berhasil, ${errorCount} gagal.`,
+      });
+
+      fetchReviews();
+    } catch (error: any) {
+      toast({
+        title: "Import gagal",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setImporting(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -661,6 +774,73 @@ const Admin = () => {
                 </CardContent>
               </Card>
             )}
+
+            {/* Backup Section */}
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Download className="h-5 w-5" />
+                  Backup Database
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1">
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Export semua data review ke file JSON untuk backup atau migrasi.
+                    </p>
+                    <Button
+                      onClick={handleExport}
+                      disabled={exporting}
+                      variant="outline"
+                      className="w-full sm:w-auto"
+                    >
+                      {exporting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Mengekspor...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="mr-2 h-4 w-4" />
+                          Export Database
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Import data review dari file backup JSON.
+                    </p>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleImport}
+                      accept=".json"
+                      className="hidden"
+                    />
+                    <Button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={importing}
+                      variant="outline"
+                      className="w-full sm:w-auto"
+                    >
+                      {importing ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Mengimpor...
+                        </>
+                      ) : (
+                        <>
+                          <FileUp className="mr-2 h-4 w-4" />
+                          Import Database
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </>
         )}
 
