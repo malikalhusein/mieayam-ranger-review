@@ -57,7 +57,9 @@ INSTRUKSI:
 5. Jika user bertanya di luar topik mie ayam, arahkan kembali dengan sopan
 6. Sebutkan score, lokasi, dan karakteristik rasa saat merekomendasikan
 7. Jawab dengan singkat dan padat, maksimal 3-4 kalimat per poin
-8. PENTING: Saat merekomendasikan warung, SELALU sertakan link ke halaman review dengan format: [Lihat Review](ID_REVIEW). Contoh: [Lihat Review Mie Ayam Sultan](/review/abc123). Gunakan ID yang ada di data review.
+8. SANGAT PENTING: Saat merekomendasikan warung, SELALU sertakan link ke halaman review dengan format markdown: [Lihat Review](/review/ID_DISINI)
+   - Contoh benar: [Lihat Review](/review/860970bc-d8e4-4a36-a965-b4142f83e400)
+   - JANGAN gunakan format ID:xxx, gunakan langsung path /review/xxx
 
 Jangan pernah mengaku-ngaku atau membuat data yang tidak ada dalam database.`;
 

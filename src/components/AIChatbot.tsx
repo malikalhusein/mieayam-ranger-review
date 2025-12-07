@@ -15,7 +15,7 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mieayam-chat
 const renderMessageContent = (content: string) => {
   if (!content) return null;
 
-  // Match markdown links: [text](/path) or [text](url)
+  // Match markdown links: [text](/path) or [text](url) or [text](ID:xxx)
   const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
   const parts: (string | JSX.Element)[] = [];
   let lastIndex = 0;
@@ -25,17 +25,43 @@ const renderMessageContent = (content: string) => {
     if (match.index > lastIndex) {
       parts.push(content.slice(lastIndex, match.index));
     }
-    const [, linkText, linkUrl] = match;
+    const [, linkText, rawUrl] = match;
+
+    // Normalize the URL - handle various formats AI might generate
+    let linkUrl = rawUrl;
+    
+    // Handle ID:xxx format -> /review/xxx
+    if (rawUrl.startsWith('ID:')) {
+      linkUrl = `/review/${rawUrl.slice(3)}`;
+    }
+    // Handle bare UUID format -> /review/uuid
+    else if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawUrl)) {
+      linkUrl = `/review/${rawUrl}`;
+    }
 
     // Check if it's an internal link (starts with /)
     if (linkUrl.startsWith('/')) {
-      parts.push(<Link key={match.index} to={linkUrl} className="text-primary underline hover:text-primary/80 font-medium">
+      parts.push(
+        <Link 
+          key={match.index} 
+          to={linkUrl} 
+          className="text-primary underline hover:text-primary/80 font-medium"
+        >
           {linkText}
-        </Link>);
+        </Link>
+      );
     } else {
-      parts.push(<a key={match.index} href={linkUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80 font-medium">
+      parts.push(
+        <a 
+          key={match.index} 
+          href={linkUrl} 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="text-primary underline hover:text-primary/80 font-medium"
+        >
           {linkText}
-        </a>);
+        </a>
+      );
     }
     lastIndex = match.index + match[0].length;
   }
