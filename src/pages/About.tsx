@@ -1,4 +1,5 @@
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Award, Target, TrendingUp } from "lucide-react";
 const About = () => {
@@ -213,6 +214,8 @@ const About = () => {
           </Card>
         </div>
       </div>
+
+      <Footer />
     </div>;
 };
 export default About;

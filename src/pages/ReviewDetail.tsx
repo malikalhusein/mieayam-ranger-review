@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import RadarChart from "@/components/RadarChart";
 import PerceptualMap from "@/components/PerceptualMap";
 import ImageLightbox from "@/components/ImageLightbox";
@@ -799,6 +800,8 @@ const ReviewDetail = () => {
         isOpen={lightboxOpen} 
         onClose={() => setLightboxOpen(false)} 
       />
+
+      <Footer />
     </div>
   );
 };

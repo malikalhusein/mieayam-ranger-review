@@ -18,31 +18,8 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [setupLoading, setSetupLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  const handleSetupAdmin = async () => {
-    setSetupLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('create-admin');
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Admin Created!",
-        description: "Admin user telah dibuat. Silakan login dengan: admin@mieayamranger.web.id",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Setup Failed",
-        description: error.message || "Gagal membuat admin user",
-        variant: "destructive",
-      });
-    } finally {
-      setSetupLoading(false);
-    }
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,28 +111,6 @@ const Login = () => {
                 >
                   {loading ? "Loading..." : "Login"}
                 </Button>
-
-                <div className="relative my-4">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground">Atau</span>
-                  </div>
-                </div>
-
-                <Button 
-                  type="button"
-                  variant="outline"
-                  className="w-full" 
-                  disabled={setupLoading}
-                  onClick={handleSetupAdmin}
-                >
-                  {setupLoading ? "Setting up..." : "Setup Admin User"}
-                </Button>
-                <p className="text-xs text-muted-foreground text-center mt-2">
-                  Klik jika belum punya admin user
-                </p>
               </form>
             </CardContent>
           </Card>
