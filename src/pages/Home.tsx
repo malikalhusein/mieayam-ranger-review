@@ -20,10 +20,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Slider } from "@/components/ui/slider";
 import { calculateScore, calculateLegacyScore, type ReviewData } from "@/lib/scoring";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
-
 const INITIAL_REVIEWS_COUNT = 9;
 const REVIEWS_PER_LOAD = 6;
-
 const Home = () => {
   const [reviews, setReviews] = useState<any[]>([]);
   const [topReviews, setTopReviews] = useState<any[]>([]);
@@ -38,7 +36,9 @@ const Home = () => {
   const [sweetnessFilter, setSweetnessFilter] = useState<number>(-6);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [chatbotOpen, setChatbotOpen] = useState(false);
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
 
   // Infinite scroll hook
   const {
@@ -47,33 +47,28 @@ const Home = () => {
     isLoading: isLoadingMore,
     loaderRef,
     totalCount,
-    loadedCount,
+    loadedCount
   } = useInfiniteScroll(filteredReviews, {
     initialItemsCount: INITIAL_REVIEWS_COUNT,
-    itemsPerLoad: REVIEWS_PER_LOAD,
+    itemsPerLoad: REVIEWS_PER_LOAD
   });
-
   useEffect(() => {
     fetchReviews();
   }, []);
-
   const fetchReviews = async () => {
     try {
-      const { data, error } = await supabase
-        // @ts-ignore - Supabase types are auto-generated
-        .from("reviews")
-        .select("*")
-        .order("created_at", { ascending: false });
-
+      const {
+        data,
+        error
+      } = await supabase
+      // @ts-ignore - Supabase types are auto-generated
+      .from("reviews").select("*").order("created_at", {
+        ascending: false
+      });
       if (error) throw error;
-
-      const processedReviews = (data || []).map((review) => {
+      const processedReviews = (data || []).map(review => {
         // Use new scoring algorithm if new fields are present, otherwise use legacy
-        const hasNewFields = review.kuah_kejernihan !== null || 
-                             review.goreng_keseimbangan_minyak !== null ||
-                             review.goreng_bumbu_tumisan !== null ||
-                             review.goreng_aroma_tumisan !== null;
-
+        const hasNewFields = review.kuah_kejernihan !== null || review.goreng_keseimbangan_minyak !== null || review.goreng_bumbu_tumisan !== null || review.goreng_aroma_tumisan !== null;
         const reviewData: ReviewData = {
           product_type: review.product_type as "kuah" | "goreng",
           price: review.price,
@@ -91,17 +86,13 @@ const Home = () => {
           fasilitas_kebersihan: review.fasilitas_kebersihan,
           fasilitas_alat_makan: review.fasilitas_alat_makan,
           fasilitas_tempat: review.fasilitas_tempat,
-          service_durasi: review.service_durasi,
+          service_durasi: review.service_durasi
         };
-
-        const totalScore = hasNewFields 
-          ? calculateScore(reviewData).final_score_10
-          : review.overall_score || calculateLegacyScore(reviewData);
-
+        const totalScore = hasNewFields ? calculateScore(reviewData).final_score_10 : review.overall_score || calculateLegacyScore(reviewData);
         return {
           ...review,
           scores: calculateScores(review),
-          totalScore: totalScore,
+          totalScore: totalScore
         };
       });
 
@@ -113,12 +104,10 @@ const Home = () => {
         }
         return acc;
       }, {} as Record<string, any>);
-
       const uniqueOutletReviews = Object.values(groupedByOutlet);
-
       setReviews(uniqueOutletReviews);
       setFilteredReviews(uniqueOutletReviews);
-      
+
       // Get top 5 based on overall_score
       const sorted = [...uniqueOutletReviews].sort((a, b) => (b.overall_score || 0) - (a.overall_score || 0));
       setTopReviews(sorted.slice(0, 5));
@@ -129,46 +118,35 @@ const Home = () => {
       toast({
         title: "Error",
         description: errorMessage,
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
   const calculateScores = (review: any) => {
-    const kuahScore = review.product_type === "kuah" 
-      ? ((review.kuah_kekentalan || 0) + (review.kuah_kaldu || 0) + (review.kuah_keseimbangan || 0) + (review.kuah_aroma || 0)) / 4
-      : 0;
-    
+    const kuahScore = review.product_type === "kuah" ? ((review.kuah_kekentalan || 0) + (review.kuah_kaldu || 0) + (review.kuah_keseimbangan || 0) + (review.kuah_aroma || 0)) / 4 : 0;
     const mieScore = review.mie_tekstur || 0;
     const ayamScore = ((review.ayam_bumbu || 0) + (review.ayam_potongan || 0)) / 2;
     const fasilitasScore = ((review.fasilitas_kebersihan || 0) + (review.fasilitas_alat_makan || 0) + (review.fasilitas_tempat || 0)) / 3;
-
     return {
       kuah: parseFloat(kuahScore.toFixed(1)),
       mie: parseFloat(mieScore.toFixed(1)),
       ayam: parseFloat(ayamScore.toFixed(1)),
-      fasilitas: parseFloat(fasilitasScore.toFixed(1)),
+      fasilitas: parseFloat(fasilitasScore.toFixed(1))
     };
   };
-
   const calculateTotalScore = (review: any) => {
     const scores = calculateScores(review);
     const avgRasa = (scores.kuah + scores.mie + scores.ayam) / 3;
-    return ((avgRasa + scores.fasilitas) / review.price) * 1000;
+    return (avgRasa + scores.fasilitas) / review.price * 1000;
   };
-
   useEffect(() => {
     let filtered = reviews;
 
     // Filter by search term
     if (searchTerm) {
-      filtered = filtered.filter(r => 
-        r.outlet_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        r.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        r.city.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      filtered = filtered.filter(r => r.outlet_name.toLowerCase().includes(searchTerm.toLowerCase()) || r.address.toLowerCase().includes(searchTerm.toLowerCase()) || r.city.toLowerCase().includes(searchTerm.toLowerCase()));
     }
 
     // Filter by city
@@ -198,22 +176,19 @@ const Home = () => {
         return Math.abs(sweetness - sweetnessFilter) <= 1;
       });
     }
-
     setFilteredReviews(filtered);
   }, [searchTerm, cityFilter, typeFilter, complexityFilter, sweetnessFilter, reviews]);
-
   const cities = Array.from(new Set(reviews.map(r => r.city)));
-
   const perceptualData = reviews.map(r => ({
     name: r.outlet_name,
-    complexity: r.complexity ?? 0, // Use -5 to +5 scale directly (default to middle value 0)
-    sweetness: r.sweetness ?? 0,   // Use -5 to +5 scale directly (default to middle value 0)
-    type: r.product_type,
+    complexity: r.complexity ?? 0,
+    // Use -5 to +5 scale directly (default to middle value 0)
+    sweetness: r.sweetness ?? 0,
+    // Use -5 to +5 scale directly (default to middle value 0)
+    type: r.product_type
   }));
-
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-subtle">
+    return <div className="min-h-screen bg-gradient-subtle">
         <Navbar />
         <div className="container py-10">
           {/* Hero Skeleton */}
@@ -234,36 +209,29 @@ const Home = () => {
           <div className="mt-16">
             <Skeleton className="h-8 w-48 mx-auto mb-8" />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-              {[...Array(9)].map((_, i) => (
-                <div key={i} className="space-y-3">
+              {[...Array(9)].map((_, i) => <div key={i} className="space-y-3">
                   <Skeleton className="aspect-[4/3] w-full" />
                   <Skeleton className="h-6 w-full" />
                   <Skeleton className="h-4 w-3/4" />
                   <Skeleton className="h-4 w-1/2" />
-                </div>
-              ))}
+                </div>)}
             </div>
           </div>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-gradient-subtle">
+  return <div className="min-h-screen bg-gradient-subtle">
       <Navbar />
       
       {/* Error Alert */}
-      {error && (
-        <div className="container pt-6">
+      {error && <div className="container pt-6">
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               {error}. Silakan coba lagi nanti atau hubungi tim kami jika masalah berlanjut.
             </AlertDescription>
           </Alert>
-        </div>
-      )}
+        </div>}
       
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-hero py-20" role="banner">
@@ -275,22 +243,16 @@ const Home = () => {
             <p className="text-lg md:text-xl mb-8 text-white/90">
               Direktori review warung mie ayam dengan sistem penilaian yang adil dan transparan
             </p>
-            <Button 
-              size="lg" 
-              className="bg-white text-primary font-bold px-8 py-6 text-lg shadow-xl hover:bg-primary hover:text-white hover:scale-110 hover:shadow-2xl hover:shadow-primary/40 transition-all duration-300 ease-out focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-white group"
-              aria-label="Explore all reviews"
-              onClick={() => setWizardOpen(true)}
-            >
+            <Button size="lg" className="bg-white text-primary font-bold px-8 py-6 text-lg shadow-xl hover:bg-primary hover:text-white hover:scale-110 hover:shadow-2xl hover:shadow-primary/40 transition-all duration-300 ease-out focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-white group" aria-label="Explore all reviews" onClick={() => setWizardOpen(true)}>
               <TrendingUp className="mr-2 h-5 w-5 group-hover:animate-bounce" aria-hidden="true" />
-              Explore Reviews
+              ​KLIK UNTUK CARI MIE AYAMMU!       
             </Button>
           </div>
         </div>
       </section>
 
       {/* Hall of Fame - Top 5 Section */}
-      {topReviews.length > 0 && (
-        <section className="container py-16" aria-labelledby="top-5-heading">
+      {topReviews.length > 0 && <section className="container py-16" aria-labelledby="top-5-heading">
           <div className="text-center mb-10">
             <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-4">
               <Trophy className="h-5 w-5 text-primary" aria-hidden="true" />
@@ -304,53 +266,22 @@ const Home = () => {
           
           {/* Desktop: Grid tile layout */}
           <div className="hidden lg:grid grid-cols-5 gap-4">
-            {topReviews.map((review, index) => (
-              <HallOfFameCard
-                key={review.id}
-                id={review.id}
-                rank={index + 1}
-                outlet_name={review.outlet_name}
-                address={review.address}
-                city={review.city}
-                overall_score={review.overall_score}
-                image_url={review.image_url}
-                image_urls={review.image_urls}
-                product_type={review.product_type}
-                price={review.price}
-              />
-            ))}
+            {topReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} />)}
           </div>
           
           {/* Tablet & Mobile: Stacked list layout */}
           <div className="lg:hidden max-w-2xl mx-auto space-y-3">
-            {topReviews.map((review, index) => (
-              <HallOfFameCard
-                key={review.id}
-                id={review.id}
-                rank={index + 1}
-                outlet_name={review.outlet_name}
-                address={review.address}
-                city={review.city}
-                overall_score={review.overall_score}
-                image_url={review.image_url}
-                image_urls={review.image_urls}
-                product_type={review.product_type}
-                price={review.price}
-              />
-            ))}
+            {topReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} />)}
           </div>
-        </section>
-      )}
+        </section>}
 
       {/* Perceptual Map */}
-      {perceptualData.length > 0 && (
-        <section className="container py-16" aria-labelledby="perceptual-map-heading">
+      {perceptualData.length > 0 && <section className="container py-16" aria-labelledby="perceptual-map-heading">
           <div className="bg-card rounded-xl p-6 md:p-8 shadow-card">
             <h2 id="perceptual-map-heading" className="sr-only">Perceptual Mapping</h2>
             <PerceptualMap data={perceptualData} />
           </div>
-        </section>
-      )}
+        </section>}
 
       {/* All Reviews Grid */}
       <section className="container py-16" aria-labelledby="all-reviews-heading">
@@ -361,13 +292,7 @@ const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
-              <Input
-                placeholder="Cari nama outlet, alamat, kota..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-                aria-label="Search reviews by name, address, or city"
-              />
+              <Input placeholder="Cari nama outlet, alamat, kota..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" aria-label="Search reviews by name, address, or city" />
             </div>
             
             <Select value={cityFilter} onValueChange={setCityFilter}>
@@ -376,9 +301,7 @@ const Home = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua Kota</SelectItem>
-                {cities.map(city => (
-                  <SelectItem key={city} value={city}>{city}</SelectItem>
-                ))}
+                {cities.map(city => <SelectItem key={city} value={city}>{city}</SelectItem>)}
               </SelectContent>
             </Select>
 
@@ -409,19 +332,10 @@ const Home = () => {
                   <div className="flex justify-between items-center">
                     <label className="text-sm font-medium">Kompleksitas Rasa</label>
                     <span className="text-xs text-muted-foreground">
-                      {complexityFilter === -6 
-                        ? 'Off' 
-                        : complexityFilter}
+                      {complexityFilter === -6 ? 'Off' : complexityFilter}
                     </span>
                   </div>
-                  <Slider
-                    min={-6}
-                    max={5}
-                    step={1}
-                    value={[complexityFilter]}
-                    onValueChange={(value) => setComplexityFilter(value[0])}
-                    className="w-full"
-                  />
+                  <Slider min={-6} max={5} step={1} value={[complexityFilter]} onValueChange={value => setComplexityFilter(value[0])} className="w-full" />
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>Off</span>
                     <span>Simpel (-5)</span>
@@ -435,19 +349,10 @@ const Home = () => {
                   <div className="flex justify-between items-center">
                     <label className="text-sm font-medium">Tingkat Rasa</label>
                     <span className="text-xs text-muted-foreground">
-                      {sweetnessFilter === -6 
-                        ? 'Off' 
-                        : sweetnessFilter}
+                      {sweetnessFilter === -6 ? 'Off' : sweetnessFilter}
                     </span>
                   </div>
-                  <Slider
-                    min={-6}
-                    max={5}
-                    step={1}
-                    value={[sweetnessFilter]}
-                    onValueChange={(value) => setSweetnessFilter(value[0])}
-                    className="w-full"
-                  />
+                  <Slider min={-6} max={5} step={1} value={[sweetnessFilter]} onValueChange={value => setSweetnessFilter(value[0])} className="w-full" />
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>Off</span>
                     <span>Salty (-5)</span>
@@ -457,15 +362,10 @@ const Home = () => {
                 </div>
 
                 {/* Reset Button */}
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => {
-                    setComplexityFilter(-6);
-                    setSweetnessFilter(-6);
-                  }}
-                  className="w-full"
-                >
+                <Button variant="outline" size="sm" onClick={() => {
+                setComplexityFilter(-6);
+                setSweetnessFilter(-6);
+              }} className="w-full">
                   Reset Filter Preferensi
                 </Button>
               </AccordionContent>
@@ -473,76 +373,39 @@ const Home = () => {
           </Accordion>
         </div>
         
-        {filteredReviews.length === 0 ? (
-          <div className="text-center py-20">
+        {filteredReviews.length === 0 ? <div className="text-center py-20">
             <p className="text-muted-foreground text-lg">
               {reviews.length === 0 ? "Belum ada review tersedia" : "Tidak ada review yang sesuai dengan filter"}
             </p>
-          </div>
-        ) : (
-          <>
+          </div> : <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-              {displayedReviews.map((review) => (
-                <ReviewCard
-                  key={review.id}
-                  id={review.id}
-                  outlet_name={review.outlet_name}
-                  address={review.address}
-                  city={review.city}
-                  visit_date={review.visit_date}
-                  price={review.price}
-                  product_type={review.product_type}
-                  notes={review.notes}
-                  image_url={review.image_url}
-                  image_urls={review.image_urls}
-                  overall_score={review.overall_score}
-                  scores={review.scores}
-                  kuah_kekentalan={review.kuah_kekentalan}
-                  kuah_kaldu={review.kuah_kaldu}
-                  kuah_keseimbangan={review.kuah_keseimbangan}
-                  mie_tekstur={review.mie_tekstur}
-                  ayam_bumbu={review.ayam_bumbu}
-                />
-              ))}
+              {displayedReviews.map(review => <ReviewCard key={review.id} id={review.id} outlet_name={review.outlet_name} address={review.address} city={review.city} visit_date={review.visit_date} price={review.price} product_type={review.product_type} notes={review.notes} image_url={review.image_url} image_urls={review.image_urls} overall_score={review.overall_score} scores={review.scores} kuah_kekentalan={review.kuah_kekentalan} kuah_kaldu={review.kuah_kaldu} kuah_keseimbangan={review.kuah_keseimbangan} mie_tekstur={review.mie_tekstur} ayam_bumbu={review.ayam_bumbu} />)}
             </div>
             
             {/* Infinite scroll loader */}
             <div ref={loaderRef} className="py-8 flex flex-col items-center justify-center">
-              {isLoadingMore && (
-                <div className="flex items-center gap-2 text-muted-foreground">
+              {isLoadingMore && <div className="flex items-center gap-2 text-muted-foreground">
                   <Loader2 className="h-5 w-5 animate-spin" />
                   <span>Memuat lebih banyak...</span>
-                </div>
-              )}
-              {!hasMore && loadedCount > 0 && (
-                <p className="text-muted-foreground text-sm">
+                </div>}
+              {!hasMore && loadedCount > 0 && <p className="text-muted-foreground text-sm">
                   Menampilkan semua {totalCount} review
-                </p>
-              )}
+                </p>}
             </div>
-          </>
-        )}
+          </>}
       </section>
 
       {/* Loading Screen */}
-      {showLoadingScreen && (
-        <LoadingScreen onComplete={() => setShowLoadingScreen(false)} duration={2500} />
-      )}
+      {showLoadingScreen && <LoadingScreen onComplete={() => setShowLoadingScreen(false)} duration={2500} />}
 
       {/* Footer */}
       <Footer />
 
       {/* Preference Wizard */}
-      <PreferenceWizard 
-        isOpen={wizardOpen} 
-        onClose={() => setWizardOpen(false)}
-        onOpenChatbot={() => setChatbotOpen(true)}
-      />
+      <PreferenceWizard isOpen={wizardOpen} onClose={() => setWizardOpen(false)} onOpenChatbot={() => setChatbotOpen(true)} />
 
       {/* AI Chatbot */}
       <AIChatbot isOpen={chatbotOpen} onOpenChange={setChatbotOpen} />
-    </div>
-  );
+    </div>;
 };
-
 export default Home;
