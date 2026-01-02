@@ -154,7 +154,7 @@ serve(async (req) => {
       ? `- Rasa (Mie + Ayam + Kuah): ${rasaScore}/10\n- Fasilitas: ${fasilitasScore}/10`
       : `- Rasa (Mie + Ayam + Goreng): ${rasaScore}/10\n- Fasilitas: ${fasilitasScore}/10`;
 
-    const prompt = `Create a professional Instagram story scorecard (1920x1080px landscape) for a Mie Ayam (Indonesian chicken noodle) restaurant review with these specifications:
+    const prompt = `Create a professional PORTRAIT Instagram story scorecard (1080x1920px, 9:16 aspect ratio) for a Mie Ayam (Indonesian chicken noodle) restaurant review with these specifications:
 
 **Restaurant:** ${review.outlet_name}
 **Location:** ${review.city}
@@ -168,18 +168,20 @@ serve(async (req) => {
 ${scoreBreakdown}
 
 **Design Requirements:**
+- PORTRAIT orientation (9:16 aspect ratio, 1080x1920px) optimized for Instagram Stories
 - Warm, appetizing color scheme (oranges, yellows, warm reds)
 - "MIE AYAM RANGER" branding at the top with noodle bowl logo
-- Clean, modern layout with good readability
+- Vertical layout with content stacked from top to bottom
+- Clean, modern design with good readability
 - Use gradient backgrounds (warm orange to yellow)
 - Include food-related decorative elements (noodle illustrations, bowl icons, steam effects)
-- Display the overall score PROMINENTLY in a large circular badge showing "${displayScore}/10"
+- Display the overall score PROMINENTLY in a large circular badge showing "${displayScore}/10" in the center
 - Professional typography with clear hierarchy
-- Instagram story optimized format (1920x1080px landscape)
 - Add star rating visual (filled stars based on score)
 - Include a decorative border or frame
+- Space elements vertically to use the full portrait canvas
 
-Make it look appetizing, professional, and share-worthy for social media! The score "${displayScore}/10" must be clearly visible and prominent.`;
+Make it look appetizing, professional, and share-worthy for Instagram Stories! The score "${displayScore}/10" must be clearly visible and prominent. This is a VERTICAL/PORTRAIT image.`;
 
     console.log('Sending request to Lovable AI with display score:', displayScore);
 
