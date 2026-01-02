@@ -1,4 +1,5 @@
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Heart, Coffee } from "lucide-react";
 
@@ -89,6 +90,8 @@ const Donation = () => {
           </div>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 };

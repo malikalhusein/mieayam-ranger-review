@@ -1,10 +1,11 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageCircle, X, Send, Loader2, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+
 type Message = {
   role: "user" | "assistant";
   content: string;
@@ -95,13 +96,33 @@ const AIChatbot = ({
   }]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isButtonVisible, setIsButtonVisible] = useState(false);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+
+  // Smooth auto-scroll to bottom when new messages arrive
+  const scrollToBottom = useCallback(() => {
+    if (scrollAreaRef.current) {
+      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollContainer) {
+        scrollContainer.scrollTo({
+          top: scrollContainer.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
     }
-  }, [messages]);
+  }, []);
+
+  // Initial button entrance animation
+  useEffect(() => {
+    const timer = setTimeout(() => setIsButtonVisible(true), 300);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
+
   useEffect(() => {
     if (isOpen && inputRef.current) {
       inputRef.current.focus();
@@ -197,26 +218,41 @@ const AIChatbot = ({
     }
   };
   return <>
-      {/* Floating Button */}
-      <button onClick={() => setIsOpen(!isOpen)} className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-primary text-primary-foreground px-5 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105" aria-label={isOpen ? "Tutup chat" : "Buka chat AI"}>
-        {isOpen ? <X className="h-5 w-5" /> : <>
-            <MessageCircle className="h-5 w-5" />
-            <span className="font-medium">Tanya Asisten </span>
-          </>}
+      {/* Floating Button with entrance/exit animation */}
+      <button 
+        onClick={() => setIsOpen(!isOpen)} 
+        className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-primary text-primary-foreground px-5 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 ${
+          isButtonVisible 
+            ? 'translate-y-0 opacity-100' 
+            : 'translate-y-8 opacity-0'
+        } ${isOpen ? 'scale-90' : ''}`}
+        style={{ 
+          transitionProperty: 'transform, opacity, box-shadow',
+          transitionDuration: isOpen ? '200ms' : '500ms',
+          transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)'
+        }}
+        aria-label={isOpen ? "Tutup chat" : "Buka chat AI"}
+      >
+        <span className={`transition-transform duration-300 ${isOpen ? 'rotate-90 scale-110' : 'rotate-0'}`}>
+          {isOpen ? <X className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
+        </span>
+        <span className={`font-medium transition-all duration-200 overflow-hidden ${isOpen ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}>
+          Tanya Asisten
+        </span>
       </button>
 
       {/* Chat Window */}
-      {isOpen && <div className="fixed bottom-24 right-6 z-50 w-[360px] max-w-[calc(100vw-3rem)] bg-card border border-border rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-5 duration-300">
+      {isOpen && <div className="fixed bottom-24 right-6 z-50 w-[360px] max-w-[calc(100vw-3rem)] bg-card border border-border rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-5 fade-in duration-300">
           {/* Header */}
           <div className="bg-primary px-4 py-3 flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary-foreground" />
+            <Sparkles className="h-5 w-5 text-primary-foreground animate-pulse" />
             <h3 className="font-semibold text-primary-foreground">Mie Ayam AI Assistant</h3>
           </div>
 
           {/* Messages */}
-          <ScrollArea className="h-[300px] p-4" ref={scrollRef}>
+          <ScrollArea className="h-[300px] p-4" ref={scrollAreaRef}>
             <div className="space-y-4">
-              {messages.map((msg, idx) => <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+              {messages.map((msg, idx) => <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} animate-fade-in`}>
                   <div className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm whitespace-pre-wrap ${msg.role === "user" ? "bg-primary text-primary-foreground rounded-br-md" : "bg-muted text-foreground rounded-bl-md"}`}>
                     {msg.content ? renderMessageContent(msg.content) : isLoading && idx === messages.length - 1 && <Loader2 className="h-4 w-4 animate-spin" />}
                   </div>
