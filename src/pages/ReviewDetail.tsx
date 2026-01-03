@@ -266,8 +266,52 @@ const ReviewDetail = () => {
     ? `${window.location.origin}/reviews/${review.slug}` 
     : `${window.location.origin}/review/${review.id}`;
 
+  // JSON-LD Structured Data for Google Rich Results
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Review",
+    "itemReviewed": {
+      "@type": "Restaurant",
+      "name": review.outlet_name,
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": review.address,
+        "addressLocality": review.city,
+        "addressCountry": "ID"
+      },
+      "servesCuisine": "Mie Ayam",
+      "priceRange": priceCategory.label,
+      ...(review.image_urls?.[0] && { "image": review.image_urls[0] }),
+      ...(review.google_map_url && { "hasMap": review.google_map_url })
+    },
+    "reviewRating": {
+      "@type": "Rating",
+      "ratingValue": Math.min(10, review.overall_score || 0).toFixed(1),
+      "bestRating": "10",
+      "worstRating": "0"
+    },
+    "author": {
+      "@type": "Organization",
+      "name": "Mie Ayam Ranger"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "Mie Ayam Ranger",
+      "url": "https://mieayamranger.web.id"
+    },
+    "datePublished": review.created_at,
+    "dateModified": review.updated_at,
+    "description": review.notes || `Review ${review.outlet_name} - Score: ${Math.min(10, review.overall_score || 0).toFixed(1)}/10`,
+    "url": canonicalUrl
+  };
+
   return (
     <div className="min-h-screen bg-gradient-subtle">
+      {/* JSON-LD Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <SEOHead
         title={`${review.outlet_name} - Review Mie Ayam | Mie Ayam Ranger`}
         description={`Review ${review.outlet_name} di ${review.city}. Score: ${Math.min(10, review.overall_score || 0).toFixed(1)}/10. ${review.notes?.substring(0, 120) || 'Lihat review lengkap di Mie Ayam Ranger.'}`}
