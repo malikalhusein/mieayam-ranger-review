@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 interface HallOfFameCardProps {
   id: string;
+  slug?: string;
   rank: number;
   outlet_name: string;
   address: string;
@@ -17,6 +18,7 @@ interface HallOfFameCardProps {
 
 const HallOfFameCard = ({
   id,
+  slug,
   rank,
   outlet_name,
   address,
@@ -76,10 +78,13 @@ const HallOfFameCard = ({
     }
   };
 
+  // Use slug for URL if available, fallback to id
+  const reviewUrl = slug ? `/reviews/${slug}` : `/review/${id}`;
+
   return (
     <Link
       ref={cardRef}
-      to={`/review/${id}`}
+      to={reviewUrl}
       className={`group relative overflow-hidden rounded-xl border border-border transition-all duration-500 ${getGlowStyle(rank)} ${
         isVisible 
           ? "opacity-100 translate-y-0" 

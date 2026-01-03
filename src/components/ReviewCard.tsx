@@ -8,6 +8,7 @@ import OptimizedImage from "./OptimizedImage";
 
 interface ReviewCardProps {
   id: string;
+  slug?: string;
   outlet_name: string;
   address: string;
   city: string;
@@ -42,6 +43,7 @@ const getPriceCategory = (price: number) => {
 
 const ReviewCard = ({ 
   id, 
+  slug,
   outlet_name, 
   address, 
   city, 
@@ -92,8 +94,11 @@ const ReviewCard = ({
     fasilitas: scores.fasilitas || 0,
   } : null;
   
+  // Use slug for URL if available, fallback to id
+  const reviewUrl = slug ? `/reviews/${slug}` : `/review/${id}`;
+  
   return (
-    <Link to={`/review/${id}`}>
+    <Link to={reviewUrl}>
       <Card className="group h-full flex flex-col overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer">
         {images.length > 0 && (
           <div className="relative aspect-[4/3] overflow-hidden bg-muted">
