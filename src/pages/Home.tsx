@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
+import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
 import ReviewCard from "@/components/ReviewCard";
 import HallOfFameCard from "@/components/HallOfFameCard";
@@ -221,6 +222,7 @@ const Home = () => {
       </div>;
   }
   return <div className="min-h-screen bg-gradient-subtle">
+      <SEOHead />
       <Navbar />
       
       {/* Error Alert */}
@@ -266,12 +268,12 @@ const Home = () => {
           
           {/* Desktop: Grid tile layout */}
           <div className="hidden lg:grid grid-cols-5 gap-4">
-            {topReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} />)}
+            {topReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} />)}
           </div>
           
           {/* Tablet & Mobile: Stacked list layout */}
           <div className="lg:hidden max-w-2xl mx-auto space-y-3">
-            {topReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} />)}
+            {topReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} />)}
           </div>
         </section>}
 
@@ -379,7 +381,7 @@ const Home = () => {
             </p>
           </div> : <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-              {displayedReviews.map(review => <ReviewCard key={review.id} id={review.id} outlet_name={review.outlet_name} address={review.address} city={review.city} visit_date={review.visit_date} price={review.price} product_type={review.product_type} notes={review.notes} image_url={review.image_url} image_urls={review.image_urls} overall_score={review.overall_score} scores={review.scores} kuah_kekentalan={review.kuah_kekentalan} kuah_kaldu={review.kuah_kaldu} kuah_keseimbangan={review.kuah_keseimbangan} mie_tekstur={review.mie_tekstur} ayam_bumbu={review.ayam_bumbu} />)}
+              {displayedReviews.map(review => <ReviewCard key={review.id} id={review.id} slug={review.slug} outlet_name={review.outlet_name} address={review.address} city={review.city} visit_date={review.visit_date} price={review.price} product_type={review.product_type} notes={review.notes} image_url={review.image_url} image_urls={review.image_urls} overall_score={review.overall_score} scores={review.scores} kuah_kekentalan={review.kuah_kekentalan} kuah_kaldu={review.kuah_kaldu} kuah_keseimbangan={review.kuah_keseimbangan} mie_tekstur={review.mie_tekstur} ayam_bumbu={review.ayam_bumbu} />)}
             </div>
             
             {/* Infinite scroll loader */}

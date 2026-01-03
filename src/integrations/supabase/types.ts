@@ -46,6 +46,7 @@ export type Database = {
           price: number
           product_type: string
           service_durasi: number | null
+          slug: string | null
           sweetness: number | null
           updated_at: string
           visit_date: string
@@ -81,6 +82,7 @@ export type Database = {
           price: number
           product_type: string
           service_durasi?: number | null
+          slug?: string | null
           sweetness?: number | null
           updated_at?: string
           visit_date: string
@@ -116,6 +118,7 @@ export type Database = {
           price?: number
           product_type?: string
           service_durasi?: number | null
+          slug?: string | null
           sweetness?: number | null
           updated_at?: string
           visit_date?: string
@@ -145,6 +148,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_slug: { Args: { name: string }; Returns: string }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {

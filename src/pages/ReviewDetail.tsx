@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import RadarChart from "@/components/RadarChart";
 import PerceptualMap from "@/components/PerceptualMap";
 import ImageLightbox from "@/components/ImageLightbox";
+import SEOHead from "@/components/SEOHead";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,7 +18,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const ReviewDetail = () => {
-  const { id } = useParams();
+  const { id, slug } = useParams();
+  const navigate = useNavigate();
   const [review, setReview] = useState<any>(null);
   const [visitHistory, setVisitHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,19 +33,23 @@ const ReviewDetail = () => {
   const { toast } = useToast();
 
   const shareReview = async () => {
-    const url = window.location.href;
+    // Generate canonical URL with slug
+    const baseUrl = window.location.origin;
+    const shareUrl = review?.slug 
+      ? `${baseUrl}/reviews/${review.slug}` 
+      : window.location.href;
     const title = `${review?.outlet_name} - Mie Ayam Ranger`;
     const text = `Review ${review?.outlet_name} di Mie Ayam Ranger. Score: ${Math.min(10, review?.overall_score || 0).toFixed(1)}/10`;
 
     if (navigator.share) {
       try {
-        await navigator.share({ title, text, url });
+        await navigator.share({ title, text, url: shareUrl });
       } catch (err) {
         // User cancelled or share failed, fallback to copy
-        copyToClipboard(url);
+        copyToClipboard(shareUrl);
       }
     } else {
-      copyToClipboard(url);
+      copyToClipboard(shareUrl);
     }
   };
 
@@ -72,17 +78,38 @@ const ReviewDetail = () => {
   };
 
   useEffect(() => {
-    if (id) fetchReview();
-  }, [id]);
+    if (slug || id) fetchReview();
+  }, [slug, id]);
 
   const fetchReview = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         // @ts-ignore - Supabase types are auto-generated
         .from("reviews")
-        .select("*")
-        .eq("id", id)
-        .single();
+        .select("*");
+      
+      // Fetch by slug or id
+      if (slug) {
+        query = query.eq("slug", slug);
+      } else if (id) {
+        query = query.eq("id", id);
+      }
+      
+      const { data, error } = await query.maybeSingle();
+
+      if (error) throw error;
+      
+      if (!data) {
+        setError("Review tidak ditemukan");
+        setLoading(false);
+        return;
+      }
+
+      // Redirect from /review/:id to /reviews/:slug if slug exists
+      if (id && data.slug && !slug) {
+        navigate(`/reviews/${data.slug}`, { replace: true });
+        return;
+      }
 
       if (error) throw error;
 
@@ -234,8 +261,22 @@ const ReviewDetail = () => {
 
   const priceCategory = getPriceCategory(review.price);
 
+  // Generate canonical URL
+  const canonicalUrl = review.slug 
+    ? `${window.location.origin}/reviews/${review.slug}` 
+    : `${window.location.origin}/review/${review.id}`;
+
   return (
     <div className="min-h-screen bg-gradient-subtle">
+      <SEOHead
+        title={`${review.outlet_name} - Review Mie Ayam | Mie Ayam Ranger`}
+        description={`Review ${review.outlet_name} di ${review.city}. Score: ${Math.min(10, review.overall_score || 0).toFixed(1)}/10. ${review.notes?.substring(0, 120) || 'Lihat review lengkap di Mie Ayam Ranger.'}`}
+        keywords={`${review.outlet_name}, mie ayam ${review.city}, review mie ayam, ${review.product_type === 'kuah' ? 'mie ayam kuah' : 'mie ayam goreng'}`}
+        ogImage={review.image_urls?.[0] || review.image_url || "/og-image.png"}
+        ogUrl={canonicalUrl}
+        type="article"
+        publishedTime={review.created_at}
+      />
       <Navbar />
       
       <div className="container py-6 md:py-10 max-w-7xl mx-auto px-4 md:px-6">

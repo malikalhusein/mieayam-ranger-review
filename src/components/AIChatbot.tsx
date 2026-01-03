@@ -35,6 +35,10 @@ const renderMessageContent = (content: string) => {
     if (rawUrl.startsWith('ID:')) {
       linkUrl = `/review/${rawUrl.slice(3)}`;
     }
+    // Handle SLUG:xxx format -> /reviews/xxx
+    else if (rawUrl.startsWith('SLUG:')) {
+      linkUrl = `/reviews/${rawUrl.slice(5)}`;
+    }
     // Handle bare UUID format -> /review/uuid
     else if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawUrl)) {
       linkUrl = `/review/${rawUrl}`;
