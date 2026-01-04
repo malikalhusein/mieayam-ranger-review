@@ -12,39 +12,96 @@ interface PerceptualMapProps {
   showDescription?: boolean;
 }
 
+// Regional style definitions for reference
+export const MIE_AYAM_STYLES = {
+  rumahan: {
+    description: "Mie ayam rumahan khas Indonesia dengan ciri kaldu ayam bening yang hangat, topping ayam cincang tumis sederhana dengan bawang putih, dan mie kuning kenyal. Rasanya gurih natural dari kaldu tulang ayam yang direbus lama, tanpa bumbu berlebihan. Comfort food yang familiar dan tidak berlebihan.",
+    typicalCoords: { sweetness: 0, complexity: 0 }
+  },
+  wonogirian: {
+    description: "Mie ayam Wonogiri/Solo dengan karakter manis yang kuat dari gula Jawa dan bumbu tumis yang legit. Kuahnya lebih pekat dan berbumbu, ayamnya dimasak dengan bumbu manis gurih yang kental. Mie-nya cenderung lebih tebal dan kenyal. Ciri khas Jawa Tengah yang comfort dan hangat.",
+    typicalCoords: { sweetness: 3, complexity: 2 }
+  },
+  bangka: {
+    description: "Mie ayam Bangka/Pangkalpinang dengan karakter asin yang tegas dari kaldu ikan teri dan kecap asin. Kuahnya jernih tapi gurih kuat, sering disajikan dengan pangsit goreng kering. Rasanya lebih 'nendang' dan straightforward tanpa manis berlebihan.",
+    typicalCoords: { sweetness: -3, complexity: 1 }
+  },
+  yamin: {
+    description: "Mie Yamin Jakarta dengan bumbu kering yang kompleks — campuran minyak wijen, saus tiram, bawang goreng, dan kadang cabai. Tidak berkuah atau kuah dipisah. Karakternya lebih 'Chinese-influenced' dengan lapisan rasa yang berlapis dari berbagai condiment dan topping.",
+    typicalCoords: { sweetness: 1, complexity: 4 }
+  }
+};
+
+// Detailed coordinate-based flavor descriptions
+// X-axis (sweetness): -5 to 5 → Salty ← Savory → Sweet
+// Y-axis (complexity): -5 to 5 → Simple ← Subtle → Complex
 const getFlavorDescription = (sweetness: number, complexity: number): string => {
-  // Determine taste category (X-axis: horizontal)
-  let tasteCategory: 'salty' | 'savory' | 'sweet';
-  if (sweetness >= -5 && sweetness <= -2) tasteCategory = 'salty';
-  else if (sweetness >= -1 && sweetness <= 1) tasteCategory = 'savory';
-  else tasteCategory = 'sweet';
-
-  // Determine complexity category (Y-axis: vertical)
-  let complexityCategory: 'simple' | 'subtle' | 'complex';
-  if (complexity >= -5 && complexity <= -2) complexityCategory = 'simple';
-  else if (complexity >= -1 && complexity <= 1) complexityCategory = 'subtle';
-  else complexityCategory = 'complex';
-
-  // Return description based on matrix
-  const descriptions = {
-    simple: {
-      salty: "Rasa asin-gurih yang langsung nendang tanpa banyak lapisan rasa; mirip mie ayam pinggir jalan yang kuahnya kuat tapi sederhana.",
-      savory: "Gurih ringan tanpa aftertaste panjang, rasanya bersih dan simple.",
-      sweet: "Manis langsung terasa dari kecap atau bumbu dasar, cenderung simple dan mudah dikenali."
-    },
-    subtle: {
-      salty: "Asin yang pas dan gurih lembut, kaldu ayam terasa tapi nggak berlebihan.",
-      savory: "Gurih seimbang — kombinasi kaldu ayam, bawang, dan minyak yang harmonis banget, khas mie ayam rumahan.",
-      sweet: "Manis-gurih yang lembut, rasa kecap berpadu halus sama kaldu ayam — khas mie ayam Jawa."
-    },
-    complex: {
-      salty: "Asin berlapis dengan sentuhan kecap asin dan aroma rempah; mirip mie ayam oriental yang lebih berkarakter.",
-      savory: "Gurihnya berlapis dan dalem; ada aroma minyak wijen, jamur, dan rempah yang bikin rasanya makin kaya.",
-      sweet: "Rasa manis yang kompleks dan kaya — ada kecap manis, kaldu pekat, bawang goreng, dan rempah yang muncul bergantian di setiap suapan."
+  // More granular coordinate system for precise descriptions
+  
+  // Extreme Salty (-5 to -4)
+  if (sweetness <= -4) {
+    if (complexity <= -3) {
+      return "Asin kuat dan langsung terasa tanpa banyak lapisan — kaldu ikan teri atau garam yang dominan. Mirip mie ayam Bangka versi paling straightforward.";
+    } else if (complexity <= 0) {
+      return "Asin gurih yang tegas dengan sedikit depth dari bawang goreng dan minyak ayam. Karakter Bangka yang lebih seimbang.";
+    } else if (complexity <= 3) {
+      return "Asin berlapis dengan aroma wijen dan bumbu oriental. Ada sentuhan umami yang dalam dari fermentasi.";
+    } else {
+      return "Asin kompleks dengan banyak dimensi — fermentasi, rempah, dan aroma panggang yang menyatu dalam harmoni yang intens.";
     }
-  };
-
-  return descriptions[complexityCategory][tasteCategory];
+  }
+  
+  // Moderately Salty (-3 to -2)
+  if (sweetness <= -2) {
+    if (complexity <= -3) {
+      return "Gurih dengan kecenderungan asin yang jelas. Kaldu ayam sederhana dengan garam yang pas — mie ayam pinggir jalan yang jujur.";
+    } else if (complexity <= 0) {
+      return "Asin-gurih seimbang dengan kaldu yang sudah lebih berbumbu. Ada bawang putih dan sedikit lada yang menambah dimensi.";
+    } else if (complexity <= 3) {
+      return "Gurih-asin dengan kompleksitas menengah — ada minyak wijen, bawang merah goreng, dan hint rempah yang subtle.";
+    } else {
+      return "Asin elegan dengan banyak layer — kaldu pekat, minyak aromatik, dan bumbu yang terintegrasi dengan baik.";
+    }
+  }
+  
+  // Savory Center (-1 to 1)
+  if (sweetness <= 1) {
+    if (complexity <= -3) {
+      return "Gurih bersih dan sederhana — kaldu ayam natural tanpa bumbu berlebihan. Comfort food yang tidak complicated.";
+    } else if (complexity <= -1) {
+      return "Gurih ringan dengan aftertaste yang clean. Kaldu tulang ayam yang direbus lama dengan bawang putih — esensi mie ayam rumahan.";
+    } else if (complexity <= 1) {
+      return "Gurih seimbang — harmoni kaldu ayam, bawang, dan minyak ayam yang pas. Khas mie ayam rumahan Indonesia yang familiar dan comforting.";
+    } else if (complexity <= 3) {
+      return "Gurih berlapis dengan depth yang menarik — ada jamur, minyak wijen, dan bumbu tumis yang well-integrated.";
+    } else {
+      return "Gurih yang sangat kompleks — multiple layers dari kaldu, rempah, dan aromatics yang saling melengkapi. Mendekati karakter mie Yamin.";
+    }
+  }
+  
+  // Slightly Sweet (2 to 3)
+  if (sweetness <= 3) {
+    if (complexity <= -3) {
+      return "Manis ringan yang straightforward — sentuhan gula dalam bumbu tumis yang sederhana. Approachable dan tidak overwhelming.";
+    } else if (complexity <= 0) {
+      return "Manis-gurih lembut dengan karakter Jawa yang subtle. Gula aren atau gula Jawa yang menyatu dengan kaldu ayam.";
+    } else if (complexity <= 3) {
+      return "Manis-gurih berlapis khas Wonogirian — gula Jawa, bawang goreng, dan bumbu tumis yang legit. Comfort food Jawa Tengah.";
+    } else {
+      return "Manis kompleks dengan banyak dimensi — karamelisasi bawang, gula Jawa, dan rempah yang membentuk profil rasa yang kaya.";
+    }
+  }
+  
+  // Very Sweet (4 to 5)
+  if (complexity <= -3) {
+    return "Manis yang dominan dan langsung terasa — bumbu gula yang straightforward. Cocok untuk yang suka rasa manis yang jelas.";
+  } else if (complexity <= 0) {
+    return "Manis-legit dengan karakter bumbu Jawa yang kental. Gula aren yang menonjol dengan base kaldu yang supportive.";
+  } else if (complexity <= 3) {
+    return "Manis berlapis dengan karamelisasi yang dalam — bawang yang dimasak lama, gula Jawa, dan rempah manis seperti kayu manis atau bunga lawang.";
+  } else {
+    return "Profil manis yang sangat kompleks — multiple sources of sweetness yang terintegrasi dengan bumbu aromatik. Dekaden dan kaya.";
+  }
 };
 
 const PerceptualMap = ({ data, showDescription = false }: PerceptualMapProps) => {
