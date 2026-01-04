@@ -7,6 +7,7 @@ import RadarChart from "@/components/RadarChart";
 import PerceptualMap from "@/components/PerceptualMap";
 import ImageLightbox from "@/components/ImageLightbox";
 import SEOHead from "@/components/SEOHead";
+import ReviewBreadcrumb from "@/components/ReviewBreadcrumb";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -355,6 +356,9 @@ const ReviewDetail = () => {
       <Navbar />
       
       <div className="container py-6 md:py-10 max-w-7xl mx-auto px-4 md:px-6">
+        {/* Visual Breadcrumb Navigation */}
+        <ReviewBreadcrumb outletName={review.outlet_name} city={review.city} />
+        
         {/* Header with Back Button & Share */}
         <div className="mb-6 flex items-center justify-between">
           <Link to="/">
