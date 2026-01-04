@@ -15,20 +15,34 @@ interface PerceptualMapProps {
 // Regional style definitions for reference
 export const MIE_AYAM_STYLES = {
   rumahan: {
+    name: "Mie Ayam Rumahan",
     description: "Mie ayam rumahan khas Indonesia dengan ciri kaldu ayam bening yang hangat, topping ayam cincang tumis sederhana dengan bawang putih, dan mie kuning kenyal. Rasanya gurih natural dari kaldu tulang ayam yang direbus lama, tanpa bumbu berlebihan. Comfort food yang familiar dan tidak berlebihan.",
-    typicalCoords: { sweetness: 0, complexity: 0 }
+    typicalCoords: { sweetness: 0, complexity: 0 },
+    color: "hsl(var(--chart-1))"
   },
   wonogirian: {
+    name: "Mie Ayam Wonogirian",
     description: "Mie ayam Wonogiri/Solo dengan karakter manis yang kuat dari gula Jawa dan bumbu tumis yang legit. Kuahnya lebih pekat dan berbumbu, ayamnya dimasak dengan bumbu manis gurih yang kental. Mie-nya cenderung lebih tebal dan kenyal. Ciri khas Jawa Tengah yang comfort dan hangat.",
-    typicalCoords: { sweetness: 3, complexity: 2 }
+    typicalCoords: { sweetness: 3, complexity: 2 },
+    color: "hsl(var(--chart-2))"
   },
   bangka: {
-    description: "Mie ayam Bangka/Pangkalpinang dengan karakter asin yang tegas dari kaldu ikan teri dan kecap asin. Kuahnya jernih tapi gurih kuat, sering disajikan dengan pangsit goreng kering. Rasanya lebih 'nendang' dan straightforward tanpa manis berlebihan.",
-    typicalCoords: { sweetness: -3, complexity: 1 }
+    name: "Mie Ayam Bangka",
+    description: "Mie ayam Bangka/Pangkalpinang dengan karakter asin yang tegas dari kaldu ikan teri dan kecap asin. Kuahnya jernih dan encer tapi gurih kuat, sering disajikan dengan pangsit goreng kering. Rasanya lebih 'nendang' dan straightforward tanpa manis berlebihan.",
+    typicalCoords: { sweetness: -3, complexity: 1 },
+    color: "hsl(var(--chart-3))"
   },
   yamin: {
-    description: "Mie Yamin Jakarta dengan bumbu kering yang kompleks — campuran minyak wijen, saus tiram, bawang goreng, dan kadang cabai. Tidak berkuah atau kuah dipisah. Karakternya lebih 'Chinese-influenced' dengan lapisan rasa yang berlapis dari berbagai condiment dan topping.",
-    typicalCoords: { sweetness: 1, complexity: 4 }
+    name: "Mie Yamin Jakarta",
+    description: "Mie Yamin Jakarta dengan bumbu kering yang kaya — campuran minyak wijen, saus tiram, bawang goreng, dan cabai. Kuahnya disajikan terpisah, encer, dan cenderung asin. Karakternya 'Chinese-influenced' dengan mie yang dibalut bumbu dan condiment berlapis.",
+    typicalCoords: { sweetness: -1, complexity: 3 },
+    color: "hsl(var(--chart-4))"
+  },
+  oriental: {
+    name: "Mie Ayam Oriental",
+    description: "Mie ayam dengan pengaruh Chinese yang kental — kuah bening dengan wijen, jamur, dan sayuran oriental. Rasa gurih-asin yang clean dengan aroma wijen yang khas. Berbeda dengan Yamin yang kering, ini tetap berkuah penuh.",
+    typicalCoords: { sweetness: -2, complexity: 2 },
+    color: "hsl(var(--chart-5))"
   }
 };
 
@@ -45,7 +59,7 @@ const getFlavorDescription = (sweetness: number, complexity: number): string => 
     } else if (complexity <= 0) {
       return "Asin gurih yang tegas dengan sedikit depth dari bawang goreng dan minyak ayam. Karakter Bangka yang lebih seimbang.";
     } else if (complexity <= 3) {
-      return "Asin berlapis dengan aroma wijen dan bumbu oriental. Ada sentuhan umami yang dalam dari fermentasi.";
+      return "Asin berlapis dengan aroma wijen dan bumbu oriental. Ada sentuhan umami yang dalam dari fermentasi — karakter Chinese-influenced.";
     } else {
       return "Asin kompleks dengan banyak dimensi — fermentasi, rempah, dan aroma panggang yang menyatu dalam harmoni yang intens.";
     }
@@ -58,9 +72,9 @@ const getFlavorDescription = (sweetness: number, complexity: number): string => 
     } else if (complexity <= 0) {
       return "Asin-gurih seimbang dengan kaldu yang sudah lebih berbumbu. Ada bawang putih dan sedikit lada yang menambah dimensi.";
     } else if (complexity <= 3) {
-      return "Gurih-asin dengan kompleksitas menengah — ada minyak wijen, bawang merah goreng, dan hint rempah yang subtle.";
+      return "Gurih-asin dengan kompleksitas menengah — ada minyak wijen, bawang merah goreng, dan hint rempah yang subtle. Mendekati karakter mie ayam oriental.";
     } else {
-      return "Asin elegan dengan banyak layer — kaldu pekat, minyak aromatik, dan bumbu yang terintegrasi dengan baik.";
+      return "Asin elegan dengan banyak layer — kaldu pekat, minyak aromatik, dan bumbu yang terintegrasi dengan baik. Sophisticated dan berkarakter.";
     }
   }
   
@@ -73,9 +87,9 @@ const getFlavorDescription = (sweetness: number, complexity: number): string => 
     } else if (complexity <= 1) {
       return "Gurih seimbang — harmoni kaldu ayam, bawang, dan minyak ayam yang pas. Khas mie ayam rumahan Indonesia yang familiar dan comforting.";
     } else if (complexity <= 3) {
-      return "Gurih berlapis dengan depth yang menarik — ada jamur, minyak wijen, dan bumbu tumis yang well-integrated.";
+      return "Gurih berlapis dengan depth yang menarik — ada jamur, minyak wijen, dan bumbu tumis yang well-integrated. Lebih refined dari rumahan biasa.";
     } else {
-      return "Gurih yang sangat kompleks — multiple layers dari kaldu, rempah, dan aromatics yang saling melengkapi. Mendekati karakter mie Yamin.";
+      return "Gurih yang sangat kompleks — multiple layers dari kaldu pekat, rempah, dan aromatics yang saling melengkapi. Kuah kental dan berbumbu dalam.";
     }
   }
   
@@ -88,7 +102,7 @@ const getFlavorDescription = (sweetness: number, complexity: number): string => 
     } else if (complexity <= 3) {
       return "Manis-gurih berlapis khas Wonogirian — gula Jawa, bawang goreng, dan bumbu tumis yang legit. Comfort food Jawa Tengah.";
     } else {
-      return "Manis kompleks dengan banyak dimensi — karamelisasi bawang, gula Jawa, dan rempah yang membentuk profil rasa yang kaya.";
+      return "Manis kompleks dengan banyak dimensi — karamelisasi bawang, gula Jawa, dan rempah yang membentuk profil rasa yang kaya dan pekat.";
     }
   }
   
