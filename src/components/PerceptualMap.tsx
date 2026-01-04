@@ -12,18 +12,18 @@ interface PerceptualMapProps {
   showDescription?: boolean;
 }
 
-const getFlavorDescription = (complexity: number, sweetness: number): string => {
-  // Determine complexity category
-  let complexityCategory: 'simple' | 'subtle' | 'complex';
-  if (complexity >= -5 && complexity <= -2) complexityCategory = 'simple';
-  else if (complexity >= -1 && complexity <= 1) complexityCategory = 'subtle';
-  else complexityCategory = 'complex';
-
-  // Determine taste category
+const getFlavorDescription = (sweetness: number, complexity: number): string => {
+  // Determine taste category (X-axis: horizontal)
   let tasteCategory: 'salty' | 'savory' | 'sweet';
   if (sweetness >= -5 && sweetness <= -2) tasteCategory = 'salty';
   else if (sweetness >= -1 && sweetness <= 1) tasteCategory = 'savory';
   else tasteCategory = 'sweet';
+
+  // Determine complexity category (Y-axis: vertical)
+  let complexityCategory: 'simple' | 'subtle' | 'complex';
+  if (complexity >= -5 && complexity <= -2) complexityCategory = 'simple';
+  else if (complexity >= -1 && complexity <= 1) complexityCategory = 'subtle';
+  else complexityCategory = 'complex';
 
   // Return description based on matrix
   const descriptions = {
@@ -60,20 +60,20 @@ const PerceptualMap = ({ data, showDescription = false }: PerceptualMapProps) =>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis 
             type="number" 
-            dataKey="complexity" 
-            name="Complexity" 
-            domain={[-5, 5]}
-            ticks={[-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]}
-            label={{ value: 'Simple ← Subtle → Complex', position: 'insideBottom', offset: -10, fill: "hsl(var(--foreground))", fontSize: 12 }}
-            tick={{ fill: "hsl(var(--foreground))", fontSize: 11 }}
-          />
-          <YAxis 
-            type="number" 
             dataKey="sweetness" 
             name="Sweetness" 
             domain={[-5, 5]}
             ticks={[-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]}
-            label={{ value: 'Salty ← Savory → Sweet', angle: -90, position: 'insideLeft', offset: -5, fill: "hsl(var(--foreground))", fontSize: 12 }}
+            label={{ value: 'Salty ← Savory → Sweet', position: 'insideBottom', offset: -10, fill: "hsl(var(--foreground))", fontSize: 12 }}
+            tick={{ fill: "hsl(var(--foreground))", fontSize: 11 }}
+          />
+          <YAxis 
+            type="number" 
+            dataKey="complexity" 
+            name="Complexity" 
+            domain={[-5, 5]}
+            ticks={[-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]}
+            label={{ value: 'Simple ← Subtle → Complex', angle: -90, position: 'insideLeft', offset: -5, fill: "hsl(var(--foreground))", fontSize: 12 }}
             tick={{ fill: "hsl(var(--foreground))", fontSize: 11 }}
           />
           <Tooltip 
@@ -81,7 +81,7 @@ const PerceptualMap = ({ data, showDescription = false }: PerceptualMapProps) =>
             content={({ active, payload }) => {
               if (active && payload && payload.length) {
                 const data = payload[0].payload;
-                const description = getFlavorDescription(data.complexity, data.sweetness);
+                const description = getFlavorDescription(data.sweetness, data.complexity);
                 return (
                   <div className="bg-card p-3 border rounded-lg shadow-lg max-w-xs">
                     <p className="font-semibold mb-1">{data.name}</p>
@@ -117,7 +117,7 @@ const PerceptualMap = ({ data, showDescription = false }: PerceptualMapProps) =>
         <div className="mt-6 p-4 bg-muted/50 rounded-lg">
           <h4 className="font-semibold mb-2">Karakteristik Rasa</h4>
           <p className="text-sm text-muted-foreground italic">
-            {getFlavorDescription(data[0].complexity, data[0].sweetness)}
+            {getFlavorDescription(data[0].sweetness, data[0].complexity)}
           </p>
         </div>
       )}

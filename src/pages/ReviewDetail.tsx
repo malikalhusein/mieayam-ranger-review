@@ -305,12 +305,43 @@ const ReviewDetail = () => {
     "url": canonicalUrl
   };
 
+  // Breadcrumb Structured Data for Google Search
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://mieayamranger.web.id"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Reviews",
+        "item": "https://mieayamranger.web.id/#reviews"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": review.outlet_name,
+        "item": canonicalUrl
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-gradient-subtle">
       {/* JSON-LD Structured Data */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      {/* Breadcrumb Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <SEOHead
         title={`${review.outlet_name} - Review Mie Ayam | Mie Ayam Ranger`}
