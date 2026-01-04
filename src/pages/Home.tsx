@@ -6,7 +6,8 @@ import Footer from "@/components/Footer";
 import ReviewCard from "@/components/ReviewCard";
 import HallOfFameCard from "@/components/HallOfFameCard";
 import HallOfFameSkeleton from "@/components/HallOfFameSkeleton";
-import PerceptualMap from "@/components/PerceptualMap";
+import PerceptualMap, { MIE_AYAM_STYLES } from "@/components/PerceptualMap";
+import StyleLegend from "@/components/StyleLegend";
 import LoadingScreen from "@/components/LoadingScreen";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,8 +22,10 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Slider } from "@/components/ui/slider";
 import { calculateScore, calculateLegacyScore, type ReviewData } from "@/lib/scoring";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
+
 const INITIAL_REVIEWS_COUNT = 9;
 const REVIEWS_PER_LOAD = 6;
+
 const Home = () => {
   const [reviews, setReviews] = useState<any[]>([]);
   const [topReviews, setTopReviews] = useState<any[]>([]);
@@ -33,6 +36,7 @@ const Home = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [cityFilter, setCityFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [styleFilter, setStyleFilter] = useState<string>("all");
   const [complexityFilter, setComplexityFilter] = useState<number>(-6);
   const [sweetnessFilter, setSweetnessFilter] = useState<number>(-6);
   const [wizardOpen, setWizardOpen] = useState(false);
@@ -142,6 +146,26 @@ const Home = () => {
     const avgRasa = (scores.kuah + scores.mie + scores.ayam) / 3;
     return (avgRasa + scores.fasilitas) / review.price * 1000;
   };
+  // Helper function to determine closest style based on coordinates
+  const getClosestStyle = (sweetness: number, complexity: number): string | null => {
+    let closestStyle: string | null = null;
+    let minDistance = Infinity;
+    
+    Object.entries(MIE_AYAM_STYLES).forEach(([key, style]) => {
+      const distance = Math.sqrt(
+        Math.pow(sweetness - style.typicalCoords.sweetness, 2) + 
+        Math.pow(complexity - style.typicalCoords.complexity, 2)
+      );
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestStyle = key;
+      }
+    });
+    
+    // Only return style if within reasonable distance (3 units)
+    return minDistance <= 3 ? closestStyle : null;
+  };
+
   useEffect(() => {
     let filtered = reviews;
 
@@ -158,6 +182,23 @@ const Home = () => {
     // Filter by type
     if (typeFilter !== "all") {
       filtered = filtered.filter(r => r.product_type === typeFilter);
+    }
+
+    // Filter by regional style
+    if (styleFilter !== "all") {
+      const targetStyle = MIE_AYAM_STYLES[styleFilter as keyof typeof MIE_AYAM_STYLES];
+      if (targetStyle) {
+        filtered = filtered.filter(r => {
+          const sweetness = r.sweetness ?? 0;
+          const complexity = r.complexity ?? 0;
+          // Calculate distance to target style coordinates
+          const distance = Math.sqrt(
+            Math.pow(sweetness - targetStyle.typicalCoords.sweetness, 2) + 
+            Math.pow(complexity - targetStyle.typicalCoords.complexity, 2)
+          );
+          return distance <= 2.5; // Within 2.5 units of target style
+        });
+      }
     }
 
     // Filter by complexity (skip if Off state -6 is selected)
@@ -178,7 +219,7 @@ const Home = () => {
       });
     }
     setFilteredReviews(filtered);
-  }, [searchTerm, cityFilter, typeFilter, complexityFilter, sweetnessFilter, reviews]);
+  }, [searchTerm, cityFilter, typeFilter, styleFilter, complexityFilter, sweetnessFilter, reviews]);
   const cities = Array.from(new Set(reviews.map(r => r.city)));
   const perceptualData = reviews.map(r => ({
     name: r.outlet_name,
@@ -277,11 +318,16 @@ const Home = () => {
           </div>
         </section>}
 
-      {/* Perceptual Map */}
+      {/* Perceptual Map with Style Legend */}
       {perceptualData.length > 0 && <section className="container py-16" aria-labelledby="perceptual-map-heading">
-          <div className="bg-card rounded-xl p-6 md:p-8 shadow-card">
-            <h2 id="perceptual-map-heading" className="sr-only">Perceptual Mapping</h2>
-            <PerceptualMap data={perceptualData} />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 bg-card rounded-xl p-6 md:p-8 shadow-card">
+              <h2 id="perceptual-map-heading" className="sr-only">Perceptual Mapping</h2>
+              <PerceptualMap data={perceptualData} />
+            </div>
+            <div className="lg:col-span-1">
+              <StyleLegend showCoords />
+            </div>
           </div>
         </section>}
 
@@ -291,7 +337,7 @@ const Home = () => {
         
         {/* Filters */}
         <div className="mb-8 border border-border rounded-lg p-6 bg-card" role="search" aria-label="Filter reviews">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
               <Input placeholder="Cari nama outlet, alamat, kota..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" aria-label="Search reviews by name, address, or city" />
@@ -317,6 +363,18 @@ const Home = () => {
                 <SelectItem value="goreng">Goreng</SelectItem>
               </SelectContent>
             </Select>
+
+            <Select value={styleFilter} onValueChange={setStyleFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter Style" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Style</SelectItem>
+                {Object.entries(MIE_AYAM_STYLES).map(([key, style]) => (
+                  <SelectItem key={key} value={key}>{style.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Advanced Filter - Perceptual Mapping */}
@@ -325,7 +383,7 @@ const Home = () => {
               <AccordionTrigger className="py-2 hover:no-underline">
                 <div className="flex items-center gap-2">
                   <SlidersHorizontal className="h-4 w-4" />
-                  <span className="font-medium">Filter Preferensi Rasa</span>
+                  <span className="font-medium">Filter Preferensi Rasa Lanjutan</span>
                 </div>
               </AccordionTrigger>
               <AccordionContent className="pt-4 space-y-6">
@@ -365,10 +423,11 @@ const Home = () => {
 
                 {/* Reset Button */}
                 <Button variant="outline" size="sm" onClick={() => {
-                setComplexityFilter(-6);
-                setSweetnessFilter(-6);
-              }} className="w-full">
-                  Reset Filter Preferensi
+                  setComplexityFilter(-6);
+                  setSweetnessFilter(-6);
+                  setStyleFilter("all");
+                }} className="w-full">
+                  Reset Semua Filter Rasa
                 </Button>
               </AccordionContent>
             </AccordionItem>
