@@ -22,6 +22,7 @@ export type Database = {
           city: string
           complexity: number | null
           created_at: string
+          exclude_from_best: boolean | null
           fasilitas_alat_makan: number | null
           fasilitas_kebersihan: number | null
           fasilitas_tempat: number | null
@@ -58,6 +59,7 @@ export type Database = {
           city: string
           complexity?: number | null
           created_at?: string
+          exclude_from_best?: boolean | null
           fasilitas_alat_makan?: number | null
           fasilitas_kebersihan?: number | null
           fasilitas_tempat?: number | null
@@ -94,6 +96,7 @@ export type Database = {
           city?: string
           complexity?: number | null
           created_at?: string
+          exclude_from_best?: boolean | null
           fasilitas_alat_makan?: number | null
           fasilitas_kebersihan?: number | null
           fasilitas_tempat?: number | null
