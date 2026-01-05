@@ -115,14 +115,14 @@ const Home = () => {
 
       // Get top 5 based on overall_score (excluding budget-friendly and excluded reviews)
       const eligibleForBest = [...uniqueOutletReviews].filter(
-        r => r.price >= 10000 && !r.exclude_from_best
+        r => r.price >= 11000 && !r.exclude_from_best
       );
       const sorted = eligibleForBest.sort((a, b) => (b.overall_score || 0) - (a.overall_score || 0));
       setTopReviews(sorted.slice(0, 5));
 
-      // Get top 5 budget-friendly (price < 10000)
+      // Get top 5 budget-friendly (price <= 11000)
       const budgetFriendly = [...uniqueOutletReviews]
-        .filter(r => r.price < 10000)
+        .filter(r => r.price <= 11000)
         .sort((a, b) => (b.overall_score || 0) - (a.overall_score || 0));
       setBudgetReviews(budgetFriendly.slice(0, 5));
       setError(null);

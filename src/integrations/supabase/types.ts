@@ -49,6 +49,14 @@ export type Database = {
           service_durasi: number | null
           slug: string | null
           sweetness: number | null
+          topping_bakso: boolean | null
+          topping_balungan: boolean | null
+          topping_ceker: boolean | null
+          topping_ekstra_ayam: boolean | null
+          topping_ekstra_sawi: boolean | null
+          topping_jenis_mie: boolean | null
+          topping_mie_jumbo: boolean | null
+          topping_tetelan: boolean | null
           updated_at: string
           visit_date: string
         }
@@ -86,6 +94,14 @@ export type Database = {
           service_durasi?: number | null
           slug?: string | null
           sweetness?: number | null
+          topping_bakso?: boolean | null
+          topping_balungan?: boolean | null
+          topping_ceker?: boolean | null
+          topping_ekstra_ayam?: boolean | null
+          topping_ekstra_sawi?: boolean | null
+          topping_jenis_mie?: boolean | null
+          topping_mie_jumbo?: boolean | null
+          topping_tetelan?: boolean | null
           updated_at?: string
           visit_date: string
         }
@@ -123,6 +139,14 @@ export type Database = {
           service_durasi?: number | null
           slug?: string | null
           sweetness?: number | null
+          topping_bakso?: boolean | null
+          topping_balungan?: boolean | null
+          topping_ceker?: boolean | null
+          topping_ekstra_ayam?: boolean | null
+          topping_ekstra_sawi?: boolean | null
+          topping_jenis_mie?: boolean | null
+          topping_mie_jumbo?: boolean | null
+          topping_tetelan?: boolean | null
           updated_at?: string
           visit_date?: string
         }

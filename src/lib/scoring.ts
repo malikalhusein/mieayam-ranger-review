@@ -36,6 +36,16 @@ export interface ReviewScores {
   
   // Other factors
   service_durasi?: number; // in minutes
+  
+  // Topping availability (bonus points)
+  topping_ceker?: boolean;
+  topping_bakso?: boolean;
+  topping_ekstra_ayam?: boolean;
+  topping_ekstra_sawi?: boolean;
+  topping_balungan?: boolean;
+  topping_tetelan?: boolean;
+  topping_mie_jumbo?: boolean;
+  topping_jenis_mie?: boolean;
 }
 
 export interface ReviewData extends ReviewScores {
@@ -127,6 +137,26 @@ function calculateTimeScore(serviceDuration: number): number {
 }
 
 /**
+ * Calculate TOPPING_BONUS
+ * Each available topping adds 0.5 points (max 4 points for 8 toppings)
+ */
+function calculateToppingBonus(review: ReviewScores): number {
+  const toppings = [
+    review.topping_ceker,
+    review.topping_bakso,
+    review.topping_ekstra_ayam,
+    review.topping_ekstra_sawi,
+    review.topping_balungan,
+    review.topping_tetelan,
+    review.topping_mie_jumbo,
+    review.topping_jenis_mie,
+  ];
+  
+  const availableCount = toppings.filter(Boolean).length;
+  return availableCount * 0.5; // 0.5 points per topping
+}
+
+/**
  * Calculate VALUE_FACTOR
  * Standard price: Rp 17,000
  * Factor = 17000 / price
@@ -159,11 +189,14 @@ export function calculateScore(review: ReviewData): ScoringResult {
     ? calculateTimeScore(review.service_durasi)
     : 0;
   
-  // 5. Calculate VALUE_FACTOR
+  // 5. Calculate TOPPING_BONUS
+  const toppingBonus = calculateToppingBonus(review);
+  
+  // 6. Calculate VALUE_FACTOR
   const valueFactor = calculateValueFactor(review.price);
   
-  // 6. Calculate FINAL_SCORE
-  let finalScore100 = (baseScore + timeScore) * valueFactor;
+  // 7. Calculate FINAL_SCORE (including topping bonus)
+  let finalScore100 = (baseScore + timeScore + toppingBonus) * valueFactor;
   
   // Clamp between 0 and 100
   finalScore100 = Math.max(0, Math.min(100, finalScore100));
