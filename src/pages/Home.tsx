@@ -7,13 +7,12 @@ import ReviewCard from "@/components/ReviewCard";
 import HallOfFameCard from "@/components/HallOfFameCard";
 import HallOfFameSkeleton from "@/components/HallOfFameSkeleton";
 import PerceptualMap, { MIE_AYAM_STYLES } from "@/components/PerceptualMap";
-import StyleLegend from "@/components/StyleLegend";
 import LoadingScreen from "@/components/LoadingScreen";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trophy, TrendingUp, Search, AlertCircle, SlidersHorizontal, Loader2 } from "lucide-react";
+import { Trophy, TrendingUp, Search, AlertCircle, SlidersHorizontal, Loader2, Coins } from "lucide-react";
 import AIChatbot from "@/components/AIChatbot";
 import PreferenceWizard from "@/components/PreferenceWizard";
 import { useToast } from "@/hooks/use-toast";
@@ -29,6 +28,7 @@ const REVIEWS_PER_LOAD = 6;
 const Home = () => {
   const [reviews, setReviews] = useState<any[]>([]);
   const [topReviews, setTopReviews] = useState<any[]>([]);
+  const [budgetReviews, setBudgetReviews] = useState<any[]>([]);
   const [filteredReviews, setFilteredReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showLoadingScreen, setShowLoadingScreen] = useState(true);
@@ -113,9 +113,18 @@ const Home = () => {
       setReviews(uniqueOutletReviews);
       setFilteredReviews(uniqueOutletReviews);
 
-      // Get top 5 based on overall_score
-      const sorted = [...uniqueOutletReviews].sort((a, b) => (b.overall_score || 0) - (a.overall_score || 0));
+      // Get top 5 based on overall_score (excluding budget-friendly and excluded reviews)
+      const eligibleForBest = [...uniqueOutletReviews].filter(
+        r => r.price >= 10000 && !r.exclude_from_best
+      );
+      const sorted = eligibleForBest.sort((a, b) => (b.overall_score || 0) - (a.overall_score || 0));
       setTopReviews(sorted.slice(0, 5));
+
+      // Get top 5 budget-friendly (price < 10000)
+      const budgetFriendly = [...uniqueOutletReviews]
+        .filter(r => r.price < 10000)
+        .sort((a, b) => (b.overall_score || 0) - (a.overall_score || 0));
+      setBudgetReviews(budgetFriendly.slice(0, 5));
       setError(null);
     } catch (error: any) {
       const errorMessage = error.message || "Gagal memuat data review";
@@ -294,15 +303,15 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Hall of Fame - Top 5 Section */}
-      {topReviews.length > 0 && <section className="container py-16" aria-labelledby="top-5-heading">
+      {/* Hall of Fame - Best of the Best Section */}
+      {topReviews.length > 0 && <section className="container py-16" aria-labelledby="best-of-best-heading">
           <div className="text-center mb-10">
             <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-4">
               <Trophy className="h-5 w-5 text-primary" aria-hidden="true" />
               <span className="text-sm font-medium text-primary">Hall of Fame</span>
             </div>
-            <h2 id="top-5-heading" className="text-3xl md:text-4xl font-bold text-foreground">
-              Top 5 Rekomendasi
+            <h2 id="best-of-best-heading" className="text-3xl md:text-4xl font-bold text-foreground">
+              The 5 Best of the Best
             </h2>
             <p className="text-muted-foreground mt-2">Warung mie ayam dengan skor tertinggi</p>
           </div>
@@ -318,16 +327,35 @@ const Home = () => {
           </div>
         </section>}
 
-      {/* Perceptual Map with Style Legend */}
+      {/* Hall of Fame - Budget Friendly Section */}
+      {budgetReviews.length > 0 && <section className="container py-16 bg-muted/30" aria-labelledby="budget-friendly-heading">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 bg-green-500/10 px-4 py-2 rounded-full mb-4">
+              <Coins className="h-5 w-5 text-green-600" aria-hidden="true" />
+              <span className="text-sm font-medium text-green-600">Budget Friendly</span>
+            </div>
+            <h2 id="budget-friendly-heading" className="text-3xl md:text-4xl font-bold text-foreground">
+              Top 5 Budget Friendly
+            </h2>
+            <p className="text-muted-foreground mt-2">Mie ayam paling worth-it untuk kaum budget friendly</p>
+          </div>
+          
+          {/* Desktop: Grid tile layout */}
+          <div className="hidden lg:grid grid-cols-5 gap-4">
+            {budgetReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} />)}
+          </div>
+          
+          {/* Tablet & Mobile: Stacked list layout */}
+          <div className="lg:hidden max-w-2xl mx-auto space-y-3">
+            {budgetReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} />)}
+          </div>
+        </section>}
+
+      {/* Perceptual Map */}
       {perceptualData.length > 0 && <section className="container py-16" aria-labelledby="perceptual-map-heading">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-card rounded-xl p-6 md:p-8 shadow-card">
-              <h2 id="perceptual-map-heading" className="sr-only">Perceptual Mapping</h2>
-              <PerceptualMap data={perceptualData} />
-            </div>
-            <div className="lg:col-span-1">
-              <StyleLegend showCoords />
-            </div>
+          <div className="bg-card rounded-xl p-6 md:p-8 shadow-card max-w-4xl mx-auto">
+            <h2 id="perceptual-map-heading" className="sr-only">Perceptual Mapping</h2>
+            <PerceptualMap data={perceptualData} />
           </div>
         </section>}
 
