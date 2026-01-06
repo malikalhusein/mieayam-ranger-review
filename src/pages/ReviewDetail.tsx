@@ -401,6 +401,16 @@ const ReviewDetail = () => {
                 <Badge variant="outline" className="text-sm">
                   {priceCategory.label}
                 </Badge>
+                {review.editor_choice && (
+                  <Badge className="bg-gradient-to-r from-yellow-400 to-amber-500 text-white border-0 text-sm">
+                    ⭐ Editor's Choice
+                  </Badge>
+                )}
+                {review.take_it_or_leave_it && (
+                  <Badge variant="destructive" className="text-sm">
+                    ⚠️ Take It or Leave It
+                  </Badge>
+                )}
               </div>
             </div>
             

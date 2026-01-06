@@ -203,6 +203,41 @@ const About = () => {
               </div>
 
               <div>
+                <h2 className="text-2xl font-bold mb-3">Editor Badges</h2>
+                <p className="text-muted-foreground mb-4">
+                  Selain skor objektif, kami juga memberikan badge khusus dari editor untuk membantu Anda memahami karakteristik unik setiap warung mie ayam:
+                </p>
+                
+                <div className="space-y-4">
+                  <div className="bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-950 dark:to-amber-950 border border-yellow-200 dark:border-yellow-800 p-4 rounded-lg">
+                    <h3 className="font-bold text-foreground mb-2 flex items-center gap-2">
+                      ⭐ Editor's Choice
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Rekomendasi khusus dari editor. Mie ayam dengan badge ini adalah yang <strong>wajib dicoba</strong>. 
+                      Warung ini memiliki sesuatu yang istimewa - bisa dari segi rasa yang luar biasa, pengalaman unik, 
+                      atau kombinasi nilai yang sangat baik. Meskipun mungkin bukan skor tertinggi secara numerik, 
+                      editor merasa warung ini memberikan pengalaman makan mie ayam yang memorable.
+                    </p>
+                  </div>
+                  
+                  <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 p-4 rounded-lg">
+                    <h3 className="font-bold text-foreground mb-2 flex items-center gap-2">
+                      ⚠️ Take It or Leave It
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Mie ayam dengan pengalaman yang <strong>sangat subjektif</strong>. Warung ini memiliki karakteristik 
+                      yang polarizing - ada yang sangat menyukainya, ada juga yang kecewa. Badge ini diberikan untuk 
+                      warung dengan ciri khas unik yang mungkin tidak cocok untuk semua orang, seperti: rasa yang sangat 
+                      non-konvensional, porsi yang tidak standar, atau suasana tempat yang sangat kasual. 
+                      Jika Anda suka eksplorasi dan siap dengan kejutan, silakan dicoba. Tapi jika Anda mencari 
+                      mie ayam yang "safe", mungkin lewati dulu.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
                 <h2 className="text-2xl font-bold mb-3">Tim Kami</h2>
                 <p className="text-muted-foreground">
                   Mie Ayam Ranger dijalankan oleh food enthusiast yang passionate terhadap kuliner lokal Indonesia, 
