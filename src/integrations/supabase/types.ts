@@ -22,6 +22,7 @@ export type Database = {
           city: string
           complexity: number | null
           created_at: string
+          editor_choice: boolean | null
           exclude_from_best: boolean | null
           fasilitas_alat_makan: number | null
           fasilitas_kebersihan: number | null
@@ -49,14 +50,19 @@ export type Database = {
           service_durasi: number | null
           slug: string | null
           sweetness: number | null
+          take_it_or_leave_it: boolean | null
           topping_bakso: boolean | null
           topping_balungan: boolean | null
           topping_ceker: boolean | null
+          topping_dimsum: boolean | null
           topping_ekstra_ayam: boolean | null
           topping_ekstra_sawi: boolean | null
           topping_jenis_mie: boolean | null
           topping_mie_jumbo: boolean | null
+          topping_pangsit_basah: boolean | null
+          topping_pangsit_kering: boolean | null
           topping_tetelan: boolean | null
+          topping_variasi_bumbu: boolean | null
           updated_at: string
           visit_date: string
         }
@@ -67,6 +73,7 @@ export type Database = {
           city: string
           complexity?: number | null
           created_at?: string
+          editor_choice?: boolean | null
           exclude_from_best?: boolean | null
           fasilitas_alat_makan?: number | null
           fasilitas_kebersihan?: number | null
@@ -94,14 +101,19 @@ export type Database = {
           service_durasi?: number | null
           slug?: string | null
           sweetness?: number | null
+          take_it_or_leave_it?: boolean | null
           topping_bakso?: boolean | null
           topping_balungan?: boolean | null
           topping_ceker?: boolean | null
+          topping_dimsum?: boolean | null
           topping_ekstra_ayam?: boolean | null
           topping_ekstra_sawi?: boolean | null
           topping_jenis_mie?: boolean | null
           topping_mie_jumbo?: boolean | null
+          topping_pangsit_basah?: boolean | null
+          topping_pangsit_kering?: boolean | null
           topping_tetelan?: boolean | null
+          topping_variasi_bumbu?: boolean | null
           updated_at?: string
           visit_date: string
         }
@@ -112,6 +124,7 @@ export type Database = {
           city?: string
           complexity?: number | null
           created_at?: string
+          editor_choice?: boolean | null
           exclude_from_best?: boolean | null
           fasilitas_alat_makan?: number | null
           fasilitas_kebersihan?: number | null
@@ -139,14 +152,19 @@ export type Database = {
           service_durasi?: number | null
           slug?: string | null
           sweetness?: number | null
+          take_it_or_leave_it?: boolean | null
           topping_bakso?: boolean | null
           topping_balungan?: boolean | null
           topping_ceker?: boolean | null
+          topping_dimsum?: boolean | null
           topping_ekstra_ayam?: boolean | null
           topping_ekstra_sawi?: boolean | null
           topping_jenis_mie?: boolean | null
           topping_mie_jumbo?: boolean | null
+          topping_pangsit_basah?: boolean | null
+          topping_pangsit_kering?: boolean | null
           topping_tetelan?: boolean | null
+          topping_variasi_bumbu?: boolean | null
           updated_at?: string
           visit_date?: string
         }
