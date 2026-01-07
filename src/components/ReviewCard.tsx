@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Calendar, DollarSign, Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { MapPin, Calendar, DollarSign, Star, ChevronLeft, ChevronRight, Award, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
 import { Badge } from "./ui/badge";
 import RadarChart from "./RadarChart";
@@ -19,6 +19,8 @@ interface ReviewCardProps {
   image_url?: string;
   image_urls?: string[];
   overall_score?: number;
+  editor_choice?: boolean;
+  take_it_or_leave_it?: boolean;
   scores: {
     kuah: number;
     mie: number;
@@ -53,7 +55,9 @@ const ReviewCard = ({
   notes, 
   image_url, 
   image_urls, 
-  overall_score, 
+  overall_score,
+  editor_choice,
+  take_it_or_leave_it,
   scores,
   kuah_kekentalan,
   kuah_kaldu,
@@ -144,13 +148,27 @@ const ReviewCard = ({
               </>
             )}
             
-            <div className="absolute top-2 right-2 flex gap-2 z-10">
-              <Badge variant={product_type === "kuah" ? "default" : "secondary"} className="shadow-md">
-                {product_type === "kuah" ? "Kuah" : "Goreng"}
-              </Badge>
-              <Badge variant="outline" className="bg-background/90 backdrop-blur-sm shadow-md">
-                {priceCategory.label}
-              </Badge>
+            <div className="absolute top-2 right-2 flex flex-col gap-1.5 z-10">
+              <div className="flex gap-2">
+                <Badge variant={product_type === "kuah" ? "default" : "secondary"} className="shadow-md">
+                  {product_type === "kuah" ? "Kuah" : "Goreng"}
+                </Badge>
+                <Badge variant="outline" className="bg-background/90 backdrop-blur-sm shadow-md">
+                  {priceCategory.label}
+                </Badge>
+              </div>
+              {editor_choice && (
+                <Badge className="bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-md flex items-center gap-1">
+                  <Award className="h-3 w-3" />
+                  Editor's Choice
+                </Badge>
+              )}
+              {take_it_or_leave_it && (
+                <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-300 shadow-md flex items-center gap-1 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-700">
+                  <AlertTriangle className="h-3 w-3" />
+                  Take It or Leave It
+                </Badge>
+              )}
             </div>
             {overall_score && (
               <div className="absolute top-2 left-2 flex items-center gap-1 bg-primary/90 text-primary-foreground px-2 py-1 rounded-full shadow-md z-10">

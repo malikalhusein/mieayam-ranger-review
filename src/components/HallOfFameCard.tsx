@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Star, MapPin } from "lucide-react";
+import { Star, MapPin, Award, AlertTriangle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 interface HallOfFameCardProps {
@@ -14,6 +14,8 @@ interface HallOfFameCardProps {
   image_urls: string[] | null;
   product_type: string;
   price: number;
+  editor_choice?: boolean;
+  take_it_or_leave_it?: boolean;
 }
 
 const HallOfFameCard = ({
@@ -28,6 +30,8 @@ const HallOfFameCard = ({
   image_urls,
   product_type,
   price,
+  editor_choice,
+  take_it_or_leave_it,
 }: HallOfFameCardProps) => {
   const displayImage = image_urls?.[0] || image_url || "/placeholder.svg";
   const score = Math.min(10, overall_score || 0);
@@ -106,9 +110,23 @@ const HallOfFameCard = ({
           <div className={`absolute top-3 left-3 w-10 h-10 rounded-lg bg-gradient-to-br ${getRankBadgeStyle(rank)} flex items-center justify-center font-bold text-lg shadow-lg`}>
             {rank}
           </div>
-          {/* Product type badge */}
-          <div className="absolute top-3 right-3 bg-background/90 backdrop-blur-sm text-foreground text-xs px-2.5 py-1 rounded-full font-medium">
-            {product_type === "kuah" ? "🍜 Kuah" : "🍝 Goreng"}
+          {/* Product type and editor badges */}
+          <div className="absolute top-3 right-3 flex flex-col gap-1.5 items-end">
+            <div className="bg-background/90 backdrop-blur-sm text-foreground text-xs px-2.5 py-1 rounded-full font-medium">
+              {product_type === "kuah" ? "🍜 Kuah" : "🍝 Goreng"}
+            </div>
+            {editor_choice && (
+              <div className="bg-gradient-to-r from-yellow-500 to-amber-500 text-white text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1 shadow-md">
+                <Award className="h-3 w-3" />
+                Editor's Choice
+              </div>
+            )}
+            {take_it_or_leave_it && (
+              <div className="bg-orange-100 text-orange-700 text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1 shadow-md dark:bg-orange-950 dark:text-orange-300">
+                <AlertTriangle className="h-3 w-3" />
+                Take It or Leave It
+              </div>
+            )}
           </div>
           {/* Score overlay at bottom */}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-8">
@@ -149,8 +167,22 @@ const HallOfFameCard = ({
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             loading="lazy"
           />
-          <div className="absolute bottom-1 right-1 bg-black/70 text-white text-[11px] px-1.5 py-0.5 rounded">
-            {product_type === "kuah" ? "🍜 Kuah" : "🍝 Goreng"}
+          <div className="absolute bottom-1 right-1 flex flex-col gap-1 items-end">
+            <div className="bg-black/70 text-white text-[11px] px-1.5 py-0.5 rounded">
+              {product_type === "kuah" ? "🍜 Kuah" : "🍝 Goreng"}
+            </div>
+            {editor_choice && (
+              <div className="bg-yellow-500 text-white text-[10px] px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                <Award className="h-2.5 w-2.5" />
+                EC
+              </div>
+            )}
+            {take_it_or_leave_it && (
+              <div className="bg-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                <AlertTriangle className="h-2.5 w-2.5" />
+                TILI
+              </div>
+            )}
           </div>
         </div>
 
@@ -201,11 +233,23 @@ const HallOfFameCard = ({
               <MapPin className="h-3 w-3 shrink-0" />
               <span className="truncate">{city}</span>
             </div>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
               <span className="text-xs text-muted-foreground">Rp{price.toLocaleString("id-ID")}</span>
               <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded">
                 {product_type === "kuah" ? "🍜 Kuah" : "🍝 Goreng"}
               </span>
+              {editor_choice && (
+                <span className="text-[10px] bg-gradient-to-r from-yellow-500 to-amber-500 text-white px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                  <Award className="h-2.5 w-2.5" />
+                  EC
+                </span>
+              )}
+              {take_it_or_leave_it && (
+                <span className="text-[10px] bg-orange-500 text-white px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                  <AlertTriangle className="h-2.5 w-2.5" />
+                  TILI
+                </span>
+              )}
             </div>
           </div>
           

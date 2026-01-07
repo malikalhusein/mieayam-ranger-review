@@ -91,7 +91,19 @@ const Home = () => {
           fasilitas_kebersihan: review.fasilitas_kebersihan,
           fasilitas_alat_makan: review.fasilitas_alat_makan,
           fasilitas_tempat: review.fasilitas_tempat,
-          service_durasi: review.service_durasi
+          service_durasi: review.service_durasi,
+          topping_ceker: review.topping_ceker,
+          topping_bakso: review.topping_bakso,
+          topping_ekstra_ayam: review.topping_ekstra_ayam,
+          topping_ekstra_sawi: review.topping_ekstra_sawi,
+          topping_balungan: review.topping_balungan,
+          topping_tetelan: review.topping_tetelan,
+          topping_mie_jumbo: review.topping_mie_jumbo,
+          topping_jenis_mie: review.topping_jenis_mie,
+          topping_pangsit_basah: review.topping_pangsit_basah,
+          topping_pangsit_kering: review.topping_pangsit_kering,
+          topping_dimsum: review.topping_dimsum,
+          topping_variasi_bumbu: review.topping_variasi_bumbu,
         };
         const totalScore = hasNewFields ? calculateScore(reviewData).final_score_10 : review.overall_score || calculateLegacyScore(reviewData);
         return {
@@ -318,12 +330,12 @@ const Home = () => {
           
           {/* Desktop: Grid tile layout */}
           <div className="hidden lg:grid grid-cols-5 gap-4">
-            {topReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} />)}
+            {topReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} editor_choice={review.editor_choice} take_it_or_leave_it={review.take_it_or_leave_it} />)}
           </div>
           
           {/* Tablet & Mobile: Stacked list layout */}
           <div className="lg:hidden max-w-2xl mx-auto space-y-3">
-            {topReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} />)}
+            {topReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} editor_choice={review.editor_choice} take_it_or_leave_it={review.take_it_or_leave_it} />)}
           </div>
         </section>}
 
@@ -342,12 +354,12 @@ const Home = () => {
           
           {/* Desktop: Grid tile layout */}
           <div className="hidden lg:grid grid-cols-5 gap-4">
-            {budgetReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} />)}
+            {budgetReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} editor_choice={review.editor_choice} take_it_or_leave_it={review.take_it_or_leave_it} />)}
           </div>
           
           {/* Tablet & Mobile: Stacked list layout */}
           <div className="lg:hidden max-w-2xl mx-auto space-y-3">
-            {budgetReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} />)}
+            {budgetReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} editor_choice={review.editor_choice} take_it_or_leave_it={review.take_it_or_leave_it} />)}
           </div>
         </section>}
 
@@ -468,7 +480,7 @@ const Home = () => {
             </p>
           </div> : <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-              {displayedReviews.map(review => <ReviewCard key={review.id} id={review.id} slug={review.slug} outlet_name={review.outlet_name} address={review.address} city={review.city} visit_date={review.visit_date} price={review.price} product_type={review.product_type} notes={review.notes} image_url={review.image_url} image_urls={review.image_urls} overall_score={review.overall_score} scores={review.scores} kuah_kekentalan={review.kuah_kekentalan} kuah_kaldu={review.kuah_kaldu} kuah_keseimbangan={review.kuah_keseimbangan} mie_tekstur={review.mie_tekstur} ayam_bumbu={review.ayam_bumbu} />)}
+              {displayedReviews.map(review => <ReviewCard key={review.id} id={review.id} slug={review.slug} outlet_name={review.outlet_name} address={review.address} city={review.city} visit_date={review.visit_date} price={review.price} product_type={review.product_type} notes={review.notes} image_url={review.image_url} image_urls={review.image_urls} overall_score={review.overall_score} editor_choice={review.editor_choice} take_it_or_leave_it={review.take_it_or_leave_it} scores={review.scores} kuah_kekentalan={review.kuah_kekentalan} kuah_kaldu={review.kuah_kaldu} kuah_keseimbangan={review.kuah_keseimbangan} mie_tekstur={review.mie_tekstur} ayam_bumbu={review.ayam_bumbu} />)}
             </div>
             
             {/* Infinite scroll loader */}
