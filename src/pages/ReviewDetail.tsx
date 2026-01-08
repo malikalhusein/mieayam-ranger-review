@@ -8,6 +8,7 @@ import PerceptualMap from "@/components/PerceptualMap";
 import ImageLightbox from "@/components/ImageLightbox";
 import SEOHead from "@/components/SEOHead";
 import ReviewBreadcrumb from "@/components/ReviewBreadcrumb";
+import RelatedReviews from "@/components/RelatedReviews";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -919,6 +920,15 @@ const ReviewDetail = () => {
                 </CardContent>
               </Card>
             )}
+
+            {/* Related Recommendations */}
+            <RelatedReviews
+              currentReviewId={review.id}
+              productType={review.product_type}
+              city={review.city}
+              priceRange={review.price}
+              overallScore={review.overall_score}
+            />
           </div>
         </div>
       </div>

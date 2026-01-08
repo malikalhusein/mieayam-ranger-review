@@ -62,38 +62,50 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 20 14% 8%;
-    --foreground: 42 45% 95%;
+    /* Dark Mode: Rich warm dark with better contrast */
+    --background: 25 20% 7%;
+    --foreground: 40 30% 92%;
 
-    --card: 20 14% 12%;
-    --card-foreground: 42 45% 95%;
+    --card: 25 18% 11%;
+    --card-foreground: 40 30% 92%;
 
-    --popover: 20 14% 12%;
-    --popover-foreground: 42 45% 95%;
+    --popover: 25 18% 13%;
+    --popover-foreground: 40 30% 92%;
 
-    --primary: 32 95% 44%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 32 100% 60%;
+    /* Primary: Brighter amber for dark mode */
+    --primary: 35 95% 50%;
+    --primary-foreground: 25 20% 7%;
+    --primary-glow: 35 100% 65%;
 
-    --secondary: 0 72% 51%;
+    /* Secondary: Warmer red */
+    --secondary: 8 80% 56%;
     --secondary-foreground: 0 0% 100%;
 
-    --accent: 142 71% 45%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent: Brighter green */
+    --accent: 145 70% 50%;
+    --accent-foreground: 25 20% 7%;
 
-    --muted: 20 14% 18%;
-    --muted-foreground: 42 30% 60%;
+    --muted: 25 15% 16%;
+    --muted-foreground: 40 20% 65%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 42 45% 95%;
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 20 14% 18%;
-    --input: 20 14% 18%;
-    --ring: 32 95% 44%;
+    --border: 25 15% 20%;
+    --input: 25 15% 18%;
+    --ring: 35 95% 50%;
 
-    --shadow-card: 0 4px 20px -4px hsl(0 0% 0% / 0.4);
-    --shadow-hover: 0 8px 30px -6px hsl(0 0% 0% / 0.5);
-    --shadow-glow: 0 0 40px hsl(32 100% 60% / 0.3);
+    /* Chart colors for dark mode */
+    --chart-1: 35 95% 50%;
+    --chart-2: 8 80% 56%;
+    --chart-3: 145 70% 50%;
+    --chart-4: 265 85% 65%;
+    --chart-5: 200 95% 55%;
+
+    /* Shadows for dark mode */
+    --shadow-card: 0 4px 20px -4px hsl(0 0% 0% / 0.5);
+    --shadow-hover: 0 8px 30px -6px hsl(0 0% 0% / 0.6);
+    --shadow-glow: 0 0 40px hsl(35 100% 65% / 0.25);
   }
 }
 
