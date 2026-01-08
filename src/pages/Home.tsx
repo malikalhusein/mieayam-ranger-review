@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trophy, TrendingUp, Search, AlertCircle, SlidersHorizontal, Loader2, Coins } from "lucide-react";
+import { Trophy, TrendingUp, Search, AlertCircle, SlidersHorizontal, Loader2, Coins, Clock, ArrowUpDown } from "lucide-react";
 import AIChatbot from "@/components/AIChatbot";
 import PreferenceWizard from "@/components/PreferenceWizard";
 import { useToast } from "@/hooks/use-toast";
@@ -29,6 +29,7 @@ const Home = () => {
   const [reviews, setReviews] = useState<any[]>([]);
   const [topReviews, setTopReviews] = useState<any[]>([]);
   const [budgetReviews, setBudgetReviews] = useState<any[]>([]);
+  const [recentReviews, setRecentReviews] = useState<any[]>([]);
   const [filteredReviews, setFilteredReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showLoadingScreen, setShowLoadingScreen] = useState(true);
@@ -41,6 +42,7 @@ const Home = () => {
   const [sweetnessFilter, setSweetnessFilter] = useState<number>(-6);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [chatbotOpen, setChatbotOpen] = useState(false);
+  const [sortBy, setSortBy] = useState<string>("newest");
   const {
     toast
   } = useToast();
@@ -137,6 +139,12 @@ const Home = () => {
         .filter(r => r.price <= 11000)
         .sort((a, b) => (b.overall_score || 0) - (a.overall_score || 0));
       setBudgetReviews(budgetFriendly.slice(0, 5));
+
+      // Get recently added reviews (last 5 by created_at)
+      const recent = [...uniqueOutletReviews]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 5);
+      setRecentReviews(recent);
       setError(null);
     } catch (error: any) {
       const errorMessage = error.message || "Gagal memuat data review";
@@ -239,8 +247,31 @@ const Home = () => {
         return Math.abs(sweetness - sweetnessFilter) <= 1;
       });
     }
+
+    // Apply sorting
+    switch (sortBy) {
+      case "newest":
+        filtered = [...filtered].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        break;
+      case "oldest":
+        filtered = [...filtered].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+        break;
+      case "score-high":
+        filtered = [...filtered].sort((a, b) => (b.overall_score || 0) - (a.overall_score || 0));
+        break;
+      case "score-low":
+        filtered = [...filtered].sort((a, b) => (a.overall_score || 0) - (b.overall_score || 0));
+        break;
+      case "price-low":
+        filtered = [...filtered].sort((a, b) => (a.price || 0) - (b.price || 0));
+        break;
+      case "price-high":
+        filtered = [...filtered].sort((a, b) => (b.price || 0) - (a.price || 0));
+        break;
+    }
+
     setFilteredReviews(filtered);
-  }, [searchTerm, cityFilter, typeFilter, styleFilter, complexityFilter, sweetnessFilter, reviews]);
+  }, [searchTerm, cityFilter, typeFilter, styleFilter, complexityFilter, sweetnessFilter, sortBy, reviews]);
   const cities = Array.from(new Set(reviews.map(r => r.city)));
   const perceptualData = reviews.map(r => ({
     name: r.outlet_name,
@@ -363,7 +394,30 @@ const Home = () => {
           </div>
         </section>}
 
-      {/* Perceptual Map */}
+      {/* Recently Added Section */}
+      {recentReviews.length > 0 && <section className="container py-16" aria-labelledby="recently-added-heading">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 bg-blue-500/10 px-4 py-2 rounded-full mb-4">
+              <Clock className="h-5 w-5 text-blue-600" aria-hidden="true" />
+              <span className="text-sm font-medium text-blue-600">Baru Ditambahkan</span>
+            </div>
+            <h2 id="recently-added-heading" className="text-3xl md:text-4xl font-bold text-foreground">
+              Recently Added
+            </h2>
+            <p className="text-muted-foreground mt-2">Review terbaru yang baru saja ditambahkan</p>
+          </div>
+          
+          {/* Desktop: Grid tile layout */}
+          <div className="hidden lg:grid grid-cols-5 gap-4">
+            {recentReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} editor_choice={review.editor_choice} take_it_or_leave_it={review.take_it_or_leave_it} />)}
+          </div>
+          
+          {/* Tablet & Mobile: Stacked list layout */}
+          <div className="lg:hidden max-w-2xl mx-auto space-y-3">
+            {recentReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} editor_choice={review.editor_choice} take_it_or_leave_it={review.take_it_or_leave_it} />)}
+          </div>
+        </section>}
+
       {perceptualData.length > 0 && <section className="container py-16" aria-labelledby="perceptual-map-heading">
           <div className="bg-card rounded-xl p-6 md:p-8 shadow-card max-w-4xl mx-auto">
             <h2 id="perceptual-map-heading" className="sr-only">Perceptual Mapping</h2>
@@ -413,6 +467,27 @@ const Home = () => {
                 {Object.entries(MIE_AYAM_STYLES).map(([key, style]) => (
                   <SelectItem key={key} value={key}>{style.name}</SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Sort Options */}
+          <div className="flex items-center gap-3 mb-4 pb-4 border-b">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <ArrowUpDown className="h-4 w-4" />
+              <span>Urutkan:</span>
+            </div>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Urutkan" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Terbaru</SelectItem>
+                <SelectItem value="oldest">Terlama</SelectItem>
+                <SelectItem value="score-high">Skor Tertinggi</SelectItem>
+                <SelectItem value="score-low">Skor Terendah</SelectItem>
+                <SelectItem value="price-low">Harga Termurah</SelectItem>
+                <SelectItem value="price-high">Harga Termahal</SelectItem>
               </SelectContent>
             </Select>
           </div>

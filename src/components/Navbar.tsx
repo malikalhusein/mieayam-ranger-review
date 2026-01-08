@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { UtensilsCrossed, Menu, X } from "lucide-react";
+import { UtensilsCrossed, Menu } from "lucide-react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import ThemeToggle from "./ThemeToggle";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -55,6 +56,7 @@ const Navbar = () => {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-6">
           <NavLinks />
+          <ThemeToggle />
         </div>
 
         {/* Mobile Navigation */}
@@ -67,6 +69,10 @@ const Navbar = () => {
           <SheetContent side="right" className="w-[250px] sm:w-[300px]">
             <div className="flex flex-col space-y-4 mt-6">
               <NavLinks mobile onLinkClick={() => setOpen(false)} />
+              <div className="flex items-center gap-2 pt-4 border-t">
+                <span className="text-sm text-muted-foreground">Tema:</span>
+                <ThemeToggle />
+              </div>
             </div>
           </SheetContent>
         </Sheet>
