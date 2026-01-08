@@ -12,7 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, Upload, X, Home, TrendingUp, BarChart3, Award, Loader2, Download, FileUp } from "lucide-react";
+import { LogOut, Upload, X, Home, TrendingUp, BarChart3, Award, Loader2, Download, FileUp, ChartBar } from "lucide-react";
+import AdminStatsDashboard from "@/components/AdminStatsDashboard";
 import { SemanticDifferential } from "@/components/ui/semantic-differential";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { calculateScore, type ReviewData } from "@/lib/scoring";
@@ -772,84 +773,17 @@ const Admin = () => {
           </div>
         </div>
 
-        {/* Statistics Dashboard */}
+        {/* Statistics Dashboard - Enhanced */}
         {!showCreateForm && !editingReview && (
           <>
-            <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Rata-rata Overall Score</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{avgOverallScore.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">Dari {reviews.length} review</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Distribusi Tipe</CardTitle>
-                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-sm">
-                      <span>Kuah:</span>
-                      <span className="font-bold">{typeDistribution.kuah || 0}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Goreng:</span>
-                      <span className="font-bold">{typeDistribution.goreng || 0}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Top Outlet</CardTitle>
-                  <Award className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  {topOutlets.length > 0 ? (
-                    <div className="space-y-1">
-                      <div className="font-bold text-sm">{topOutlets[0].name}</div>
-                      <div className="text-2xl font-bold">{topOutlets[0].avgScore.toFixed(2)}</div>
-                      <p className="text-xs text-muted-foreground">{topOutlets[0].reviewCount} review</p>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">Belum ada data</p>
-                  )}
-                </CardContent>
-              </Card>
+            <div className="mb-8">
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <ChartBar className="h-5 w-5 text-primary" />
+                Dashboard Statistik
+              </h2>
+              <AdminStatsDashboard reviews={reviews} />
             </div>
 
-            {topOutlets.length > 1 && (
-              <Card className="mb-8">
-                <CardHeader>
-                  <CardTitle>Top 5 Outlet Terbaik</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {topOutlets.map((outlet, index) => (
-                      <div key={outlet.name} className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
-                            {index + 1}
-                          </div>
-                          <div>
-                            <div className="font-medium">{outlet.name}</div>
-                            <div className="text-sm text-muted-foreground">{outlet.reviewCount} review</div>
-                          </div>
-                        </div>
-                        <div className="text-xl font-bold">{outlet.avgScore.toFixed(2)}</div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
 
             {/* Backup Section */}
             <Card className="mb-8">

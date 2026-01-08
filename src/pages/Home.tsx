@@ -471,25 +471,36 @@ const Home = () => {
             </Select>
           </div>
 
-          {/* Sort Options */}
-          <div className="flex items-center gap-3 mb-4 pb-4 border-b">
+          {/* Sort Options - Compact Icon Popover */}
+          <div className="flex items-center justify-between mb-4 pb-4 border-b">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <ArrowUpDown className="h-4 w-4" />
-              <span>Urutkan:</span>
+              <span>{filteredReviews.length} hasil ditemukan</span>
             </div>
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Urutkan" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest">Terbaru</SelectItem>
-                <SelectItem value="oldest">Terlama</SelectItem>
-                <SelectItem value="score-high">Skor Tertinggi</SelectItem>
-                <SelectItem value="score-low">Skor Terendah</SelectItem>
-                <SelectItem value="price-low">Harga Termurah</SelectItem>
-                <SelectItem value="price-high">Harga Termahal</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2">
+              {[
+                { value: "newest", label: "Terbaru", icon: "🕐" },
+                { value: "score-high", label: "Skor ↑", icon: "⭐" },
+                { value: "score-low", label: "Skor ↓", icon: "📉" },
+                { value: "price-low", label: "Murah", icon: "💰" },
+                { value: "price-high", label: "Mahal", icon: "💎" },
+              ].map((option) => (
+                <Button
+                  key={option.value}
+                  variant={sortBy === option.value ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSortBy(option.value)}
+                  className={`text-xs px-3 py-1.5 h-8 ${
+                    sortBy === option.value 
+                      ? "bg-primary text-primary-foreground shadow-md" 
+                      : "hover:bg-muted"
+                  }`}
+                  title={option.label}
+                >
+                  <span className="mr-1">{option.icon}</span>
+                  <span className="hidden sm:inline">{option.label}</span>
+                </Button>
+              ))}
+            </div>
           </div>
 
           {/* Advanced Filter - Perceptual Mapping */}

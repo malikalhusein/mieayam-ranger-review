@@ -110,24 +110,27 @@ const HallOfFameCard = ({
           <div className={`absolute top-3 left-3 w-10 h-10 rounded-lg bg-gradient-to-br ${getRankBadgeStyle(rank)} flex items-center justify-center font-bold text-lg shadow-lg`}>
             {rank}
           </div>
-          {/* Product type and editor badges */}
-          <div className="absolute top-3 right-3 flex flex-col gap-1.5 items-end">
-            <div className="bg-background/90 backdrop-blur-sm text-foreground text-xs px-2.5 py-1 rounded-full font-medium">
-              {product_type === "kuah" ? "🍜 Kuah" : "🍝 Goreng"}
-            </div>
-            {editor_choice && (
-              <div className="bg-gradient-to-r from-yellow-500 to-amber-500 text-white text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1 shadow-md">
-                <Award className="h-3 w-3" />
-                Editor's Choice
-              </div>
-            )}
-            {take_it_or_leave_it && (
-              <div className="bg-orange-100 text-orange-700 text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1 shadow-md dark:bg-orange-950 dark:text-orange-300">
-                <AlertTriangle className="h-3 w-3" />
-                Take It or Leave It
-              </div>
-            )}
+          {/* Product type badge */}
+          <div className="absolute top-3 right-3 bg-background/90 backdrop-blur-sm text-foreground text-xs px-2.5 py-1 rounded-full font-medium">
+            {product_type === "kuah" ? "🍜 Kuah" : "🍝 Goreng"}
           </div>
+          {/* Editor badges - prominent bottom overlay */}
+          {(editor_choice || take_it_or_leave_it) && (
+            <div className="absolute bottom-16 left-0 right-0 flex justify-center gap-2 px-3">
+              {editor_choice && (
+                <div className="bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-500 text-white text-sm px-4 py-2 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-yellow-500/40 animate-pulse border border-yellow-300/50">
+                  <Award className="h-4 w-4" />
+                  ⭐ Editor's Choice
+                </div>
+              )}
+              {take_it_or_leave_it && (
+                <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-sm px-4 py-2 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-orange-500/40 border border-orange-300/50">
+                  <AlertTriangle className="h-4 w-4" />
+                  ⚠️ Take It or Leave It
+                </div>
+              )}
+            </div>
+          )}
           {/* Score overlay at bottom */}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-8">
             <div className="flex items-center justify-between">
@@ -167,24 +170,28 @@ const HallOfFameCard = ({
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             loading="lazy"
           />
-          <div className="absolute bottom-1 right-1 flex flex-col gap-1 items-end">
-            <div className="bg-black/70 text-white text-[11px] px-1.5 py-0.5 rounded">
-              {product_type === "kuah" ? "🍜 Kuah" : "🍝 Goreng"}
-            </div>
+          <div className="absolute bottom-1 right-1 bg-black/70 text-white text-[11px] px-1.5 py-0.5 rounded">
+            {product_type === "kuah" ? "🍜 Kuah" : "🍝 Goreng"}
+          </div>
+        </div>
+
+        {/* Editor badges for tablet */}
+        {(editor_choice || take_it_or_leave_it) && (
+          <div className="flex flex-col gap-1 shrink-0">
             {editor_choice && (
-              <div className="bg-yellow-500 text-white text-[10px] px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                <Award className="h-2.5 w-2.5" />
-                EC
+              <div className="bg-gradient-to-r from-yellow-400 to-amber-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 shadow-lg shadow-yellow-500/30">
+                <Award className="h-3.5 w-3.5" />
+                ⭐ EC
               </div>
             )}
             {take_it_or_leave_it && (
-              <div className="bg-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                <AlertTriangle className="h-2.5 w-2.5" />
-                TILI
+              <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 shadow-lg shadow-orange-500/30">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                ⚠️ TILI
               </div>
             )}
           </div>
-        </div>
+        )}
 
         {/* Content */}
         <div className="flex-1 min-w-0 overflow-hidden">
@@ -239,15 +246,15 @@ const HallOfFameCard = ({
                 {product_type === "kuah" ? "🍜 Kuah" : "🍝 Goreng"}
               </span>
               {editor_choice && (
-                <span className="text-[10px] bg-gradient-to-r from-yellow-500 to-amber-500 text-white px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                  <Award className="h-2.5 w-2.5" />
-                  EC
+                <span className="text-[11px] bg-gradient-to-r from-yellow-400 to-amber-500 text-white px-2 py-0.5 rounded-md font-bold flex items-center gap-1 shadow-md shadow-yellow-500/30">
+                  <Award className="h-3 w-3" />
+                  ⭐ EC
                 </span>
               )}
               {take_it_or_leave_it && (
-                <span className="text-[10px] bg-orange-500 text-white px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                  <AlertTriangle className="h-2.5 w-2.5" />
-                  TILI
+                <span className="text-[11px] bg-gradient-to-r from-orange-500 to-red-500 text-white px-2 py-0.5 rounded-md font-bold flex items-center gap-1 shadow-md shadow-orange-500/30">
+                  <AlertTriangle className="h-3 w-3" />
+                  ⚠️ TILI
                 </span>
               )}
             </div>
