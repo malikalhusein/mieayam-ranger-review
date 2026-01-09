@@ -8,11 +8,12 @@ import HallOfFameCard from "@/components/HallOfFameCard";
 import HallOfFameSkeleton from "@/components/HallOfFameSkeleton";
 import PerceptualMap, { MIE_AYAM_STYLES } from "@/components/PerceptualMap";
 import LoadingScreen from "@/components/LoadingScreen";
+import MapView from "@/components/MapView";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trophy, TrendingUp, Search, AlertCircle, SlidersHorizontal, Loader2, Coins, Clock, ArrowUpDown } from "lucide-react";
+import { Trophy, TrendingUp, Search, AlertCircle, SlidersHorizontal, Loader2, Coins, Clock, ArrowUpDown, Map } from "lucide-react";
 import AIChatbot from "@/components/AIChatbot";
 import PreferenceWizard from "@/components/PreferenceWizard";
 import { useToast } from "@/hooks/use-toast";
@@ -42,6 +43,7 @@ const Home = () => {
   const [sweetnessFilter, setSweetnessFilter] = useState<number>(-6);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [chatbotOpen, setChatbotOpen] = useState(false);
+  const [mapViewOpen, setMapViewOpen] = useState(false);
   const [sortBy, setSortBy] = useState<string>("newest");
   const {
     toast
@@ -427,7 +429,18 @@ const Home = () => {
 
       {/* All Reviews Grid */}
       <section className="container py-16" aria-labelledby="all-reviews-heading">
-        <h2 id="all-reviews-heading" className="text-2xl md:text-3xl font-bold mb-8 text-center">Semua Review</h2>
+        <div className="flex items-center justify-between mb-8">
+          <h2 id="all-reviews-heading" className="text-2xl md:text-3xl font-bold text-center flex-1">Semua Review</h2>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setMapViewOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Map className="h-4 w-4" />
+            <span className="hidden sm:inline">Peta</span>
+          </Button>
+        </div>
         
         {/* Filters */}
         <div className="mb-8 border border-border rounded-lg p-6 bg-card" role="search" aria-label="Filter reviews">
@@ -471,34 +484,33 @@ const Home = () => {
             </Select>
           </div>
 
-          {/* Sort Options - Compact Icon Popover */}
-          <div className="flex items-center justify-between mb-4 pb-4 border-b">
+          {/* Sort Options - Mobile-friendly compact design */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 pb-4 border-b">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>{filteredReviews.length} hasil ditemukan</span>
+              <ArrowUpDown className="h-4 w-4" />
+              <span>{filteredReviews.length} hasil</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
               {[
-                { value: "newest", label: "Terbaru", icon: "🕐" },
-                { value: "score-high", label: "Skor ↑", icon: "⭐" },
-                { value: "score-low", label: "Skor ↓", icon: "📉" },
-                { value: "price-low", label: "Murah", icon: "💰" },
-                { value: "price-high", label: "Mahal", icon: "💎" },
+                { value: "newest", label: "Baru", icon: "🕐" },
+                { value: "score-high", label: "Top", icon: "⭐" },
+                { value: "score-low", label: "Low", icon: "📉" },
+                { value: "price-low", label: "💰", icon: null },
+                { value: "price-high", label: "💎", icon: null },
               ].map((option) => (
-                <Button
+                <button
                   key={option.value}
-                  variant={sortBy === option.value ? "default" : "outline"}
-                  size="sm"
                   onClick={() => setSortBy(option.value)}
-                  className={`text-xs px-3 py-1.5 h-8 ${
+                  className={`text-xs px-2.5 py-1.5 rounded-full transition-all ${
                     sortBy === option.value 
-                      ? "bg-primary text-primary-foreground shadow-md" 
-                      : "hover:bg-muted"
+                      ? "bg-primary text-primary-foreground shadow-md font-medium" 
+                      : "bg-muted hover:bg-muted/80 text-muted-foreground"
                   }`}
                   title={option.label}
                 >
-                  <span className="mr-1">{option.icon}</span>
-                  <span className="hidden sm:inline">{option.label}</span>
-                </Button>
+                  {option.icon && <span className="mr-0.5">{option.icon}</span>}
+                  {option.label}
+                </button>
               ))}
             </div>
           </div>
@@ -590,6 +602,13 @@ const Home = () => {
 
       {/* Preference Wizard */}
       <PreferenceWizard isOpen={wizardOpen} onClose={() => setWizardOpen(false)} onOpenChatbot={() => setChatbotOpen(true)} />
+
+      {/* Map View */}
+      <MapView 
+        reviews={filteredReviews} 
+        isOpen={mapViewOpen} 
+        onClose={() => setMapViewOpen(false)} 
+      />
 
       {/* AI Chatbot */}
       <AIChatbot isOpen={chatbotOpen} onOpenChange={setChatbotOpen} />

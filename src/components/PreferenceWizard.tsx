@@ -4,7 +4,7 @@ import { X, HelpCircle, MapPin, MessageSquare, RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 
-type WizardStep = "welcome" | "type" | "taste" | "complexity" | "result";
+type WizardStep = "welcome" | "type" | "taste" | "complexity" | "price" | "result";
 
 interface Review {
   id: string;
@@ -28,6 +28,8 @@ interface PreferenceWizardProps {
   onOpenChatbot: () => void;
 }
 
+type PriceRange = "budget" | "normal" | "premium" | null;
+
 const PreferenceWizard = ({ isOpen, onClose, onOpenChatbot }: PreferenceWizardProps) => {
   const [step, setStep] = useState<WizardStep>("welcome");
   const [prevStep, setPrevStep] = useState<WizardStep>("welcome");
@@ -35,6 +37,7 @@ const PreferenceWizard = ({ isOpen, onClose, onOpenChatbot }: PreferenceWizardPr
   const [selectedType, setSelectedType] = useState<"kuah" | "goreng" | null>(null);
   const [selectedTaste, setSelectedTaste] = useState<"salty" | "savory" | "sweet" | null>(null);
   const [selectedComplexity, setSelectedComplexity] = useState<"simple" | "subtle" | "complex" | null>(null);
+  const [selectedPrice, setSelectedPrice] = useState<PriceRange>(null);
   const [matchedReview, setMatchedReview] = useState<Review | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -55,6 +58,7 @@ const PreferenceWizard = ({ isOpen, onClose, onOpenChatbot }: PreferenceWizardPr
         setSelectedType(null);
         setSelectedTaste(null);
         setSelectedComplexity(null);
+        setSelectedPrice(null);
         setMatchedReview(null);
       }, 300);
     }
@@ -66,6 +70,7 @@ const PreferenceWizard = ({ isOpen, onClose, onOpenChatbot }: PreferenceWizardPr
       // Convert selections to numeric ranges
       let sweetnessMin = -5, sweetnessMax = 5;
       let complexityMin = -5, complexityMax = 5;
+      let priceMin = 0, priceMax = 100000;
 
       if (selectedTaste === "salty") {
         sweetnessMin = -5; sweetnessMax = -2;
@@ -83,14 +88,30 @@ const PreferenceWizard = ({ isOpen, onClose, onOpenChatbot }: PreferenceWizardPr
         complexityMin = 2; complexityMax = 5;
       }
 
-      const { data, error } = await supabase
+      // Set price range
+      if (selectedPrice === "budget") {
+        priceMin = 0; priceMax = 10000;
+      } else if (selectedPrice === "normal") {
+        priceMin = 10000; priceMax = 15000;
+      } else if (selectedPrice === "premium") {
+        priceMin = 15000; priceMax = 100000;
+      }
+
+      let query = supabase
         .from("reviews")
         .select("*")
         .eq("product_type", selectedType)
         .gte("sweetness", sweetnessMin)
         .lte("sweetness", sweetnessMax)
         .gte("complexity", complexityMin)
-        .lte("complexity", complexityMax)
+        .lte("complexity", complexityMax);
+
+      // Add price filter if selected
+      if (selectedPrice) {
+        query = query.gte("price", priceMin).lte("price", priceMax);
+      }
+
+      const { data, error } = await query
         .order("overall_score", { ascending: false })
         .limit(1);
 
@@ -99,11 +120,17 @@ const PreferenceWizard = ({ isOpen, onClose, onOpenChatbot }: PreferenceWizardPr
       if (data && data.length > 0) {
         setMatchedReview(data[0]);
       } else {
-        // Fallback: get best match by type only
-        const { data: fallbackData } = await supabase
+        // Fallback: get best match by type and price only
+        let fallbackQuery = supabase
           .from("reviews")
           .select("*")
-          .eq("product_type", selectedType)
+          .eq("product_type", selectedType);
+        
+        if (selectedPrice) {
+          fallbackQuery = fallbackQuery.gte("price", priceMin).lte("price", priceMax);
+        }
+
+        const { data: fallbackData } = await fallbackQuery
           .order("overall_score", { ascending: false })
           .limit(1);
         
@@ -126,6 +153,11 @@ const PreferenceWizard = ({ isOpen, onClose, onOpenChatbot }: PreferenceWizardPr
 
   const handleComplexitySelect = (complexity: "simple" | "subtle" | "complex") => {
     setSelectedComplexity(complexity);
+    goToStep("price");
+  };
+
+  const handlePriceSelect = (price: PriceRange) => {
+    setSelectedPrice(price);
     findBestMatch();
   };
 
@@ -139,6 +171,7 @@ const PreferenceWizard = ({ isOpen, onClose, onOpenChatbot }: PreferenceWizardPr
     setSelectedType(null);
     setSelectedTaste(null);
     setSelectedComplexity(null);
+    setSelectedPrice(null);
     setMatchedReview(null);
   };
 
@@ -173,7 +206,7 @@ const PreferenceWizard = ({ isOpen, onClose, onOpenChatbot }: PreferenceWizardPr
   if (!isOpen) return null;
 
   // Progress bar
-  const progressSteps = ["welcome", "type", "taste", "complexity", "result"];
+  const progressSteps = ["welcome", "type", "taste", "complexity", "price", "result"];
   const currentProgress = progressSteps.indexOf(step);
   const progressPercent = (currentProgress / (progressSteps.length - 1)) * 100;
 
@@ -357,6 +390,80 @@ const PreferenceWizard = ({ isOpen, onClose, onOpenChatbot }: PreferenceWizardPr
               >
                 <HelpCircle className="h-4 w-4" />
                 Bingung pilih mana? Tanya Ranger Bot
+              </button>
+            </div>
+          )}
+
+          {/* Price Selection */}
+          {step === "price" && (
+            <div className="text-center py-4">
+              <h2 className="text-2xl font-bold text-foreground mb-2">Budget Kamu?</h2>
+              <p className="text-muted-foreground mb-6">Berapa ekspektasi harga yang pas buat kantong?</p>
+              
+              <div className="space-y-3 mb-6">
+                <button
+                  onClick={() => handlePriceSelect("budget")}
+                  className="w-full p-4 rounded-xl border-2 border-border transition-all hover:border-primary hover:bg-primary/5 flex items-center gap-4"
+                >
+                  <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0">
+                    <span className="text-2xl">💰</span>
+                  </div>
+                  <div className="text-left flex-1">
+                    <h3 className="font-bold text-foreground">Hemat Banget</h3>
+                    <p className="text-xs text-muted-foreground">Di bawah Rp10.000 - Kantong pelajar friendly!</p>
+                  </div>
+                  <span className="text-xs font-medium text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">
+                    &lt; 10rb
+                  </span>
+                </button>
+                <button
+                  onClick={() => handlePriceSelect("normal")}
+                  className="w-full p-4 rounded-xl border-2 border-border transition-all hover:border-primary hover:bg-primary/5 flex items-center gap-4"
+                >
+                  <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
+                    <span className="text-2xl">💵</span>
+                  </div>
+                  <div className="text-left flex-1">
+                    <h3 className="font-bold text-foreground">Standar</h3>
+                    <p className="text-xs text-muted-foreground">Rp10.000 - Rp15.000 - Harga pasaran normal</p>
+                  </div>
+                  <span className="text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded-full">
+                    10-15rb
+                  </span>
+                </button>
+                <button
+                  onClick={() => handlePriceSelect("premium")}
+                  className="w-full p-4 rounded-xl border-2 border-border transition-all hover:border-primary hover:bg-primary/5 flex items-center gap-4"
+                >
+                  <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
+                    <span className="text-2xl">💎</span>
+                  </div>
+                  <div className="text-left flex-1">
+                    <h3 className="font-bold text-foreground">Premium</h3>
+                    <p className="text-xs text-muted-foreground">Di atas Rp15.000 - Worth it buat pengalaman!</p>
+                  </div>
+                  <span className="text-xs font-medium text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 px-2 py-1 rounded-full">
+                    &gt; 15rb
+                  </span>
+                </button>
+              </div>
+
+              <button 
+                onClick={() => {
+                  setSelectedPrice(null);
+                  findBestMatch();
+                }}
+                className="flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground mx-auto text-sm mb-2"
+              >
+                Skip - Tampilkan semua harga
+              </button>
+
+              <button 
+                onClick={handleAskBot}
+                className="flex items-center justify-center gap-2 text-primary hover:underline mx-auto text-sm"
+              >
+                <HelpCircle className="h-4 w-4" />
+                Bingung? Tanya Ranger Bot
               </button>
             </div>
           )}
