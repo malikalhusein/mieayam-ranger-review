@@ -148,25 +148,27 @@ const ReviewCard = ({
               </>
             )}
             
-            <div className="absolute top-2 right-2 flex flex-col gap-1.5 z-10">
-              <div className="flex gap-2">
-                <Badge variant={product_type === "kuah" ? "default" : "secondary"} className="shadow-md">
-                  {product_type === "kuah" ? "Kuah" : "Goreng"}
+            <div className="absolute top-2 right-2 flex flex-col gap-1 z-10 max-w-[60%]">
+              <div className="flex flex-wrap gap-1 justify-end">
+                <Badge variant={product_type === "kuah" ? "default" : "secondary"} className="shadow-md text-[10px] md:text-xs px-1.5 py-0.5">
+                  {product_type === "kuah" ? "🍜" : "🍝"}
                 </Badge>
-                <Badge variant="outline" className="bg-background/90 backdrop-blur-sm shadow-md">
+                <Badge variant="outline" className="bg-background/90 backdrop-blur-sm shadow-md text-[10px] md:text-xs px-1.5 py-0.5 truncate max-w-[80px] md:max-w-none">
                   {priceCategory.label}
                 </Badge>
               </div>
               {editor_choice && (
-                <Badge className="bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-md flex items-center gap-1">
-                  <Award className="h-3 w-3" />
-                  Editor's Choice
+                <Badge className="bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-md flex items-center gap-1 text-[10px] md:text-xs px-1.5 py-0.5 justify-end">
+                  <Award className="h-2.5 w-2.5 md:h-3 md:w-3 shrink-0" />
+                  <span className="hidden sm:inline">Editor's Choice</span>
+                  <span className="sm:hidden">EC</span>
                 </Badge>
               )}
               {take_it_or_leave_it && (
-                <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-300 shadow-md flex items-center gap-1 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-700">
-                  <AlertTriangle className="h-3 w-3" />
-                  Take It or Leave It
+                <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-300 shadow-md flex items-center gap-1 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-700 text-[10px] md:text-xs px-1.5 py-0.5 justify-end">
+                  <AlertTriangle className="h-2.5 w-2.5 md:h-3 md:w-3 shrink-0" />
+                  <span className="hidden sm:inline">Take It or Leave It</span>
+                  <span className="sm:hidden">TILI</span>
                 </Badge>
               )}
             </div>

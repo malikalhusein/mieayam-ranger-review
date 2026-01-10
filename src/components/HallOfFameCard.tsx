@@ -116,17 +116,17 @@ const HallOfFameCard = ({
           </div>
           {/* Editor badges - prominent bottom overlay */}
           {(editor_choice || take_it_or_leave_it) && (
-            <div className="absolute bottom-16 left-0 right-0 flex justify-center gap-2 px-3">
+            <div className="absolute bottom-16 left-0 right-0 flex justify-center gap-1.5 px-2">
               {editor_choice && (
-                <div className="bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-500 text-white text-sm px-4 py-2 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-yellow-500/40 animate-pulse border border-yellow-300/50">
-                  <Award className="h-4 w-4" />
-                  ⭐ Editor's Choice
+                <div className="bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-500 text-white text-xs xl:text-sm px-2 xl:px-3 py-1.5 rounded-md font-bold flex items-center gap-1 shadow-lg shadow-yellow-500/40 border border-yellow-300/50">
+                  <Award className="h-3 w-3 xl:h-4 xl:w-4 shrink-0" />
+                  <span className="whitespace-nowrap">⭐ EC</span>
                 </div>
               )}
               {take_it_or_leave_it && (
-                <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-sm px-4 py-2 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-orange-500/40 border border-orange-300/50">
-                  <AlertTriangle className="h-4 w-4" />
-                  ⚠️ Take It or Leave It
+                <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs xl:text-sm px-2 xl:px-3 py-1.5 rounded-md font-bold flex items-center gap-1 shadow-lg shadow-orange-500/40 border border-orange-300/50">
+                  <AlertTriangle className="h-3 w-3 xl:h-4 xl:w-4 shrink-0" />
+                  <span className="whitespace-nowrap">⚠️ TILI</span>
                 </div>
               )}
             </div>
