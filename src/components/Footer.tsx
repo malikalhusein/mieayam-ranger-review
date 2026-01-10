@@ -43,7 +43,8 @@ const Footer = () => {
                 <Mail className="h-4 w-4" />
                 hello@mieayamranger.web.id
               </a>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">Daerah Istimewa Yogyakarta<MapPin className="h-4 w-4" />
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <MapPin className="h-4 w-4" />
                 Solo, Jawa Tengah
               </div>
             </div>
