@@ -1,0 +1,436 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
+import RadarChart from "@/components/RadarChart";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Scale, X, Plus, Trophy, Check, X as XIcon } from "lucide-react";
+import { Link } from "react-router-dom";
+
+interface Review {
+  id: string;
+  slug?: string;
+  outlet_name: string;
+  address: string;
+  city: string;
+  overall_score: number | null;
+  image_url: string | null;
+  image_urls: string[] | null;
+  product_type: string;
+  price: number;
+  editor_choice?: boolean;
+  mie_tekstur: number | null;
+  ayam_bumbu: number | null;
+  ayam_potongan: number | null;
+  kuah_kekentalan: number | null;
+  kuah_kaldu: number | null;
+  kuah_keseimbangan: number | null;
+  kuah_aroma: number | null;
+  goreng_aroma_tumisan: number | null;
+  goreng_bumbu_tumisan: number | null;
+  goreng_keseimbangan_minyak: number | null;
+  fasilitas_kebersihan: number | null;
+  fasilitas_alat_makan: number | null;
+  fasilitas_tempat: number | null;
+  topping_ceker: boolean | null;
+  topping_bakso: boolean | null;
+  topping_ekstra_ayam: boolean | null;
+  topping_ekstra_sawi: boolean | null;
+  topping_balungan: boolean | null;
+  topping_tetelan: boolean | null;
+  topping_mie_jumbo: boolean | null;
+  topping_jenis_mie: boolean | null;
+  topping_pangsit_basah: boolean | null;
+  topping_pangsit_kering: boolean | null;
+  topping_dimsum: boolean | null;
+  topping_variasi_bumbu: boolean | null;
+  scores?: {
+    kuah: number;
+    mie: number;
+    ayam: number;
+    fasilitas: number;
+  };
+}
+
+const Compare = () => {
+  const { t } = useLanguage();
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedReviews, setSelectedReviews] = useState<Review[]>([]);
+
+  useEffect(() => {
+    fetchReviews();
+  }, []);
+
+  const fetchReviews = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("reviews")
+        .select("*")
+        .order("overall_score", { ascending: false });
+
+      if (error) throw error;
+
+      const processedReviews = (data || []).map((review) => ({
+        ...review,
+        scores: calculateScores(review),
+      }));
+
+      // Group by outlet
+      const groupedByOutlet = processedReviews.reduce((acc, review) => {
+        const outletKey = `${review.outlet_name}-${review.address}`;
+        if (!acc[outletKey] || (review.overall_score || 0) > (acc[outletKey].overall_score || 0)) {
+          acc[outletKey] = review;
+        }
+        return acc;
+      }, {} as Record<string, Review>);
+
+      setReviews(Object.values(groupedByOutlet));
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const calculateScores = (review: any) => {
+    const kuahScore =
+      review.product_type === "kuah"
+        ? ((review.kuah_kekentalan || 0) + (review.kuah_kaldu || 0) + (review.kuah_keseimbangan || 0) + (review.kuah_aroma || 0)) / 4
+        : ((review.goreng_aroma_tumisan || 0) + (review.goreng_bumbu_tumisan || 0) + (review.goreng_keseimbangan_minyak || 0)) / 3;
+    const mieScore = review.mie_tekstur || 0;
+    const ayamScore = ((review.ayam_bumbu || 0) + (review.ayam_potongan || 0)) / 2;
+    const fasilitasScore = ((review.fasilitas_kebersihan || 0) + (review.fasilitas_alat_makan || 0) + (review.fasilitas_tempat || 0)) / 3;
+
+    return {
+      kuah: parseFloat(kuahScore.toFixed(1)),
+      mie: parseFloat(mieScore.toFixed(1)),
+      ayam: parseFloat(ayamScore.toFixed(1)),
+      fasilitas: parseFloat(fasilitasScore.toFixed(1)),
+    };
+  };
+
+  const addToCompare = (reviewId: string) => {
+    if (selectedReviews.length >= 3) return;
+    const review = reviews.find((r) => r.id === reviewId);
+    if (review && !selectedReviews.find((r) => r.id === reviewId)) {
+      setSelectedReviews([...selectedReviews, review]);
+    }
+  };
+
+  const removeFromCompare = (reviewId: string) => {
+    setSelectedReviews(selectedReviews.filter((r) => r.id !== reviewId));
+  };
+
+  const clearAll = () => {
+    setSelectedReviews([]);
+  };
+
+  const availableReviews = reviews.filter((r) => !selectedReviews.find((s) => s.id === r.id));
+
+  const toppingKeys = [
+    { key: "topping_ceker", label: t.toppingCeker },
+    { key: "topping_bakso", label: t.toppingBakso },
+    { key: "topping_ekstra_ayam", label: t.toppingEkstraAyam },
+    { key: "topping_ekstra_sawi", label: t.toppingEkstraSawi },
+    { key: "topping_balungan", label: t.toppingBalungan },
+    { key: "topping_tetelan", label: t.toppingTetelan },
+    { key: "topping_mie_jumbo", label: t.toppingMieJumbo },
+    { key: "topping_jenis_mie", label: t.toppingJenisMie },
+    { key: "topping_pangsit_basah", label: t.toppingPangsitBasah },
+    { key: "topping_pangsit_kering", label: t.toppingPangsitKering },
+    { key: "topping_dimsum", label: t.toppingDimsum },
+    { key: "topping_variasi_bumbu", label: t.toppingVariasiBumbu },
+  ];
+
+  const getHighestValue = (key: string) => {
+    const values = selectedReviews.map((r) => {
+      if (key.startsWith("scores.")) {
+        const scoreKey = key.replace("scores.", "") as keyof Review["scores"];
+        return r.scores?.[scoreKey] || 0;
+      }
+      return (r as any)[key] || 0;
+    });
+    return Math.max(...values);
+  };
+
+  const isHighest = (review: Review, key: string) => {
+    let value: number;
+    if (key.startsWith("scores.")) {
+      const scoreKey = key.replace("scores.", "") as keyof Review["scores"];
+      value = review.scores?.[scoreKey] || 0;
+    } else {
+      value = (review as any)[key] || 0;
+    }
+    return value === getHighestValue(key) && value > 0;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-subtle">
+        <Navbar />
+        <div className="container py-10 max-w-7xl mx-auto px-4">
+          <Skeleton className="h-12 w-64 mx-auto mb-4" />
+          <Skeleton className="h-6 w-96 mx-auto mb-8" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-96 w-full" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-subtle">
+      <SEOHead
+        title={`${t.compareTitle} | Mie Ayam Ranger`}
+        description={t.compareSubtitle}
+      />
+      <Navbar />
+
+      <div className="container py-10 max-w-7xl mx-auto px-4">
+        {/* Header */}
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-4">
+            <Scale className="h-5 w-5 text-primary" />
+            <span className="text-sm font-medium text-primary">{t.comparison}</span>
+          </div>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">{t.compareTitle}</h1>
+          <p className="text-muted-foreground">{t.compareSubtitle}</p>
+        </div>
+
+        {/* Selection Area */}
+        <div className="mb-8">
+          <div className="flex flex-wrap items-center gap-4 justify-center">
+            {selectedReviews.length < 3 && (
+              <Select onValueChange={addToCompare}>
+                <SelectTrigger className="w-[280px]">
+                  <SelectValue placeholder={t.selectWarung} />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableReviews.map((review) => (
+                    <SelectItem key={review.id} value={review.id}>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{review.outlet_name}</span>
+                        <Badge variant="outline" className="text-xs">
+                          {(review.overall_score || 0).toFixed(1)}
+                        </Badge>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            {selectedReviews.length > 0 && (
+              <Button variant="outline" size="sm" onClick={clearAll}>
+                <X className="h-4 w-4 mr-1" />
+                {t.clearAll}
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Comparison Cards */}
+        {selectedReviews.length === 0 ? (
+          <Card className="max-w-md mx-auto">
+            <CardContent className="py-12 text-center">
+              <Scale className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">{t.noWarungSelected}</p>
+              <p className="text-sm text-muted-foreground mt-2">{t.selectAtLeast2}</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-8">
+            {/* Cards Grid */}
+            <div className={`grid gap-6 ${selectedReviews.length === 1 ? "grid-cols-1 max-w-md mx-auto" : selectedReviews.length === 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 md:grid-cols-3"}`}>
+              {selectedReviews.map((review, index) => (
+                <Card key={review.id} className="relative overflow-hidden">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 z-10 h-8 w-8 bg-background/80"
+                    onClick={() => removeFromCompare(review.id)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+
+                  {/* Image */}
+                  <div className="aspect-video relative bg-muted">
+                    {(review.image_urls?.[0] || review.image_url) && (
+                      <img
+                        src={review.image_urls?.[0] || review.image_url || ""}
+                        alt={review.outlet_name}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                    {review.editor_choice && (
+                      <Badge className="absolute top-2 left-2 bg-gradient-to-r from-yellow-400 to-amber-500 text-white border-0">
+                        <Trophy className="h-3 w-3 mr-1" />
+                        {t.editorsChoice}
+                      </Badge>
+                    )}
+                  </div>
+
+                  <CardContent className="p-4">
+                    <Link to={review.slug ? `/reviews/${review.slug}` : `/review/${review.id}`}>
+                      <h3 className="font-bold text-lg hover:text-primary transition-colors">
+                        {review.outlet_name}
+                      </h3>
+                    </Link>
+                    <p className="text-sm text-muted-foreground mb-3">{review.city}</p>
+
+                    {/* Score */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="text-3xl font-bold text-primary">
+                        {(review.overall_score || 0).toFixed(1)}
+                        <span className="text-sm text-muted-foreground font-normal">/10</span>
+                      </div>
+                      <Badge variant={review.product_type === "kuah" ? "default" : "secondary"}>
+                        {review.product_type === "kuah" ? "🍜 " + t.kuah : "🍝 " + t.goreng}
+                      </Badge>
+                    </div>
+
+                    {/* Radar Chart */}
+                    {review.scores && (
+                      <div className="bg-muted/30 rounded-lg p-4">
+                        <RadarChart data={review.scores} size="small" />
+                      </div>
+                    )}
+
+                    {/* Price */}
+                    <div className={`mt-4 text-center py-2 rounded-lg ${isHighest(review, "price") ? "bg-destructive/10 text-destructive" : "bg-accent/10"}`}>
+                      <span className="font-semibold">Rp {review.price.toLocaleString("id-ID")}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+
+              {/* Add More Slot */}
+              {selectedReviews.length < 3 && (
+                <Card className="border-dashed flex items-center justify-center min-h-[400px]">
+                  <CardContent className="text-center py-12">
+                    <Plus className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">{t.addToCompare}</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {/* Detailed Comparison Table */}
+            {selectedReviews.length >= 2 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t.detailScoring}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left py-3 px-2 font-medium text-muted-foreground">Aspek</th>
+                          {selectedReviews.map((review) => (
+                            <th key={review.id} className="text-center py-3 px-2 font-medium">
+                              {review.outlet_name}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {/* Scores */}
+                        <tr className="border-b">
+                          <td className="py-3 px-2 font-medium">{t.broth}/{t.friedSeasoning}</td>
+                          {selectedReviews.map((review) => (
+                            <td key={review.id} className={`text-center py-3 px-2 ${isHighest(review, "scores.kuah") ? "text-primary font-bold" : ""}`}>
+                              {review.scores?.kuah}
+                            </td>
+                          ))}
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-3 px-2 font-medium">{t.noodle}</td>
+                          {selectedReviews.map((review) => (
+                            <td key={review.id} className={`text-center py-3 px-2 ${isHighest(review, "scores.mie") ? "text-primary font-bold" : ""}`}>
+                              {review.scores?.mie}
+                            </td>
+                          ))}
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-3 px-2 font-medium">{t.chicken}</td>
+                          {selectedReviews.map((review) => (
+                            <td key={review.id} className={`text-center py-3 px-2 ${isHighest(review, "scores.ayam") ? "text-primary font-bold" : ""}`}>
+                              {review.scores?.ayam}
+                            </td>
+                          ))}
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-3 px-2 font-medium">{t.facilities}</td>
+                          {selectedReviews.map((review) => (
+                            <td key={review.id} className={`text-center py-3 px-2 ${isHighest(review, "scores.fasilitas") ? "text-primary font-bold" : ""}`}>
+                              {review.scores?.fasilitas}
+                            </td>
+                          ))}
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Toppings Comparison */}
+            {selectedReviews.length >= 2 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t.toppings}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left py-3 px-2 font-medium text-muted-foreground">Topping</th>
+                          {selectedReviews.map((review) => (
+                            <th key={review.id} className="text-center py-3 px-2 font-medium">
+                              {review.outlet_name}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {toppingKeys.map(({ key, label }) => (
+                          <tr key={key} className="border-b">
+                            <td className="py-3 px-2">{label}</td>
+                            {selectedReviews.map((review) => (
+                              <td key={review.id} className="text-center py-3 px-2">
+                                {(review as any)[key] ? (
+                                  <Check className="h-5 w-5 text-accent mx-auto" />
+                                ) : (
+                                  <XIcon className="h-5 w-5 text-muted-foreground/30 mx-auto" />
+                                )}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+      </div>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default Compare;
