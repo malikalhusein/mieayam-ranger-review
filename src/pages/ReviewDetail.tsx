@@ -635,7 +635,7 @@ const ReviewDetail = () => {
                   </div>
                 </div>
 
-                <div className={`${(review.complexity || review.sweetness) ? 'mb-6 pb-6 border-b' : ''}`}>
+                <div className="mb-6 pb-6 border-b">
                   <h3 className="font-semibold mb-3 text-base md:text-lg flex items-center">
                     🏠 Fasilitas
                   </h3>
@@ -646,8 +646,29 @@ const ReviewDetail = () => {
                   </div>
                 </div>
 
+                {/* Topping Options */}
+                <div className={`${(review.complexity || review.sweetness) ? 'mb-6 pb-6 border-b' : ''}`}>
+                  <h3 className="font-semibold mb-3 text-base md:text-lg flex items-center">
+                    🍱 Pilihan Topping
+                  </h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    <ToppingItem label="Ceker" available={review.topping_ceker} />
+                    <ToppingItem label="Bakso" available={review.topping_bakso} />
+                    <ToppingItem label="Ekstra Ayam" available={review.topping_ekstra_ayam} />
+                    <ToppingItem label="Ekstra Sawi" available={review.topping_ekstra_sawi} />
+                    <ToppingItem label="Balungan" available={review.topping_balungan} />
+                    <ToppingItem label="Tetelan" available={review.topping_tetelan} />
+                    <ToppingItem label="Mie Jumbo" available={review.topping_mie_jumbo} />
+                    <ToppingItem label="Pilihan Mie" available={review.topping_jenis_mie} />
+                    <ToppingItem label="Pangsit Basah" available={review.topping_pangsit_basah} />
+                    <ToppingItem label="Pangsit Kering" available={review.topping_pangsit_kering} />
+                    <ToppingItem label="Dimsum" available={review.topping_dimsum} />
+                    <ToppingItem label="Variasi Bumbu" available={review.topping_variasi_bumbu} />
+                  </div>
+                </div>
+
                 {(review.complexity !== null && review.complexity !== undefined) || 
-                 (review.sweetness !== null && review.sweetness !== undefined) && (
+                 (review.sweetness !== null && review.sweetness !== undefined) ? (
                   <div>
                     <h3 className="font-semibold mb-3 text-base md:text-lg flex items-center">
                       📈 Perceptual Mapping
@@ -667,7 +688,7 @@ const ReviewDetail = () => {
                       )}
                     </div>
                   </div>
-                )}
+                ) : null}
               </CardContent>
             </Card>
           </div>
@@ -974,6 +995,15 @@ const ScoreBar = ({ label, score }: { label: string; score: number }) => {
           style={{ width: `${percentage}%` }}
         />
       </div>
+    </div>
+  );
+};
+
+const ToppingItem = ({ label, available }: { label: string; available: boolean | null }) => {
+  return (
+    <div className={`flex items-center gap-2 p-2 rounded-lg text-sm ${available ? 'bg-accent/10 text-accent' : 'bg-muted/50 text-muted-foreground'}`}>
+      <span className="text-base">{available ? '✓' : '✗'}</span>
+      <span className={available ? 'font-medium' : ''}>{label}</span>
     </div>
   );
 };

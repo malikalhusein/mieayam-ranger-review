@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { UtensilsCrossed, Menu } from "lucide-react";
+import { UtensilsCrossed, Menu, Scale } from "lucide-react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import ThemeToggle from "./ThemeToggle";
+import LanguageToggle from "./LanguageToggle";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
+  const { t } = useLanguage();
 
   const NavLinks = ({ mobile = false, onLinkClick }: { mobile?: boolean; onLinkClick?: () => void }) => (
     <>
@@ -15,25 +18,33 @@ const Navbar = () => {
         className={`${mobile ? 'block py-2' : ''} text-sm font-medium transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-4`}
         onClick={onLinkClick}
       >
-        Home
+        {t.home}
+      </Link>
+      <Link 
+        to="/compare" 
+        className={`${mobile ? 'block py-2' : ''} text-sm font-medium transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-4 flex items-center gap-1`}
+        onClick={onLinkClick}
+      >
+        <Scale className="h-4 w-4" />
+        {t.compare}
       </Link>
       <Link 
         to="/about" 
         className={`${mobile ? 'block py-2' : ''} text-sm font-medium transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-4`}
         onClick={onLinkClick}
       >
-        About
+        {t.about}
       </Link>
       <Link 
         to="/donation" 
         className={`${mobile ? 'block py-2' : ''} text-sm font-medium transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-4`}
         onClick={onLinkClick}
       >
-        Dukung Kami
+        {t.supportUs}
       </Link>
       <Link to="/login" onClick={onLinkClick}>
         <Button variant="outline" size="sm" className="w-full sm:w-auto">
-          Admin
+          {t.admin}
         </Button>
       </Link>
     </>
@@ -56,6 +67,7 @@ const Navbar = () => {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-6">
           <NavLinks />
+          <LanguageToggle />
           <ThemeToggle />
         </div>
 
@@ -70,8 +82,9 @@ const Navbar = () => {
             <div className="flex flex-col space-y-4 mt-6">
               <NavLinks mobile onLinkClick={() => setOpen(false)} />
               <div className="flex items-center gap-2 pt-4 border-t">
-                <span className="text-sm text-muted-foreground">Tema:</span>
+                <span className="text-sm text-muted-foreground">{t.theme}:</span>
                 <ThemeToggle />
+                <LanguageToggle />
               </div>
             </div>
           </SheetContent>

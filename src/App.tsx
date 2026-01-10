@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { Skeleton } from "./components/ui/skeleton";
+import { LanguageProvider } from "./contexts/LanguageContext";
 import Home from "./pages/Home";
 
 // Lazy load pages for better performance
@@ -14,6 +15,7 @@ const Login = lazy(() => import("./pages/Login"));
 const Admin = lazy(() => import("./pages/Admin"));
 const About = lazy(() => import("./pages/About"));
 const Donation = lazy(() => import("./pages/Donation"));
+const Compare = lazy(() => import("./pages/Compare"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -31,25 +33,27 @@ const LoadingFallback = () => (
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Suspense fallback={<LoadingFallback />}>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/reviews/:slug" element={<ReviewDetail />} />
-              <Route path="/review/:id" element={<ReviewDetail />} />
-              <Route path="/review/:id" element={<ReviewDetail />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/admin" element={<Admin />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/donation" element={<Donation />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-      </TooltipProvider>
+      <LanguageProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Suspense fallback={<LoadingFallback />}>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/compare" element={<Compare />} />
+                <Route path="/reviews/:slug" element={<ReviewDetail />} />
+                <Route path="/review/:id" element={<ReviewDetail />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/admin" element={<Admin />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/donation" element={<Donation />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+        </TooltipProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   </ErrorBoundary>
 );
