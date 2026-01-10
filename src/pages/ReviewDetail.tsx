@@ -604,6 +604,19 @@ const ReviewDetail = () => {
                   </div>
                 )}
 
+                {review.product_type === "goreng" && (
+                  <div className="mb-6 pb-6 border-b">
+                    <h3 className="font-semibold mb-3 text-base md:text-lg flex items-center">
+                      🍳 Tumisan Goreng
+                    </h3>
+                    <div className="space-y-3">
+                      <ScoreBar label="Aroma Tumisan" score={review.goreng_aroma_tumisan} />
+                      <ScoreBar label="Bumbu Tumisan" score={review.goreng_bumbu_tumisan} />
+                      <ScoreBar label="Keseimbangan Minyak" score={review.goreng_keseimbangan_minyak} />
+                    </div>
+                  </div>
+                )}
+
                 <div className="mb-6 pb-6 border-b">
                   <h3 className="font-semibold mb-3 text-base md:text-lg flex items-center">
                     🍝 Mie
