@@ -1,11 +1,8 @@
 import { Link } from "react-router-dom";
 import { UtensilsCrossed, Instagram, Mail, MapPin } from "lucide-react";
-
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-
-  return (
-    <footer className="bg-card border-t border-border">
+  return <footer className="bg-card border-t border-border">
       <div className="container py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Brand Section */}
@@ -39,24 +36,14 @@ const Footer = () => {
           <div className="space-y-4">
             <h4 className="font-semibold text-foreground">Kontak</h4>
             <div className="space-y-3">
-              <a 
-                href="https://instagram.com/mieayamranger" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
-                <Instagram className="h-4 w-4" />
+              <a href="https://instagram.com/mieayamranger" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">@mieayamranger.id<Instagram className="h-4 w-4" />
                 @mieayamranger
               </a>
-              <a 
-                href="mailto:hello@mieayamranger.web.id"
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
+              <a href="mailto:hello@mieayamranger.web.id" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
                 <Mail className="h-4 w-4" />
                 hello@mieayamranger.web.id
               </a>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <MapPin className="h-4 w-4" />
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">Daerah Istimewa Yogyakarta<MapPin className="h-4 w-4" />
                 Solo, Jawa Tengah
               </div>
             </div>
@@ -70,8 +57,6 @@ const Footer = () => {
           </p>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default Footer;
