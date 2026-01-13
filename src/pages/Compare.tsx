@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import RadarChart from "@/components/RadarChart";
+import PerceptualMap from "@/components/PerceptualMap";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,12 +33,15 @@ interface Review {
   kuah_kaldu: number | null;
   kuah_keseimbangan: number | null;
   kuah_aroma: number | null;
+  kuah_kejernihan: number | null;
   goreng_aroma_tumisan: number | null;
   goreng_bumbu_tumisan: number | null;
   goreng_keseimbangan_minyak: number | null;
   fasilitas_kebersihan: number | null;
   fasilitas_alat_makan: number | null;
   fasilitas_tempat: number | null;
+  complexity: number | null;
+  sweetness: number | null;
   topping_ceker: boolean | null;
   topping_bakso: boolean | null;
   topping_ekstra_ayam: boolean | null;
@@ -398,7 +402,7 @@ const Compare = () => {
               )}
             </div>
 
-            {/* Detailed Comparison Table */}
+            {/* Detailed Parameters Comparison Table */}
             {selectedReviews.length >= 2 && (
               <Card>
                 <CardHeader className="pb-3">
@@ -408,51 +412,203 @@ const Compare = () => {
                   <div className="overflow-x-auto -mx-4 md:mx-0">
                     <table className="w-full min-w-[400px]">
                       <thead>
-                        <tr className="border-b">
+                        <tr className="border-b bg-muted/30">
                           <th className="text-left py-3 px-3 font-medium text-muted-foreground text-sm">{t.aspect}</th>
                           {selectedReviews.map((review) => (
                             <th key={review.id} className="text-center py-3 px-2 font-medium text-sm">
-                              <span className="line-clamp-1">{review.outlet_name}</span>
+                              <div className="flex flex-col items-center gap-1">
+                                <span className="line-clamp-1">{review.outlet_name}</span>
+                                <Badge variant={review.product_type === "kuah" ? "default" : "secondary"} className="text-xs">
+                                  {review.product_type === "kuah" ? "🍜 Kuah" : "🍝 Goreng"}
+                                </Badge>
+                              </div>
                             </th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
-                        <tr className="border-b">
-                          <td className="py-3 px-3 font-medium text-sm">{t.broth}/{t.friedSeasoning}</td>
+                        {/* Overall Score */}
+                        <tr className="border-b bg-primary/5">
+                          <td className="py-3 px-3 font-bold text-sm">{t.overallScore}</td>
                           {selectedReviews.map((review) => (
-                            <td key={review.id} className={`text-center py-3 px-2 text-sm ${isHighest(review, "scores.kuah") ? "text-primary font-bold" : ""}`}>
-                              {review.scores?.kuah}
+                            <td key={review.id} className={`text-center py-3 px-2 font-bold text-lg ${isHighest(review, "overall_score") ? "text-primary" : ""}`}>
+                              {(review.overall_score || 0).toFixed(1)}
+                            </td>
+                          ))}
+                        </tr>
+
+                        {/* Section: Kuah (for kuah type) */}
+                        <tr className="border-b bg-muted/50">
+                          <td colSpan={selectedReviews.length + 1} className="py-2 px-3 font-semibold text-sm text-primary">
+                            🍜 {t.broth} (Kuah)
+                          </td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2 px-3 text-sm pl-6">Kekentalan</td>
+                          {selectedReviews.map((review) => (
+                            <td key={review.id} className={`text-center py-2 px-2 text-sm ${review.product_type === "kuah" && isHighest(review, "kuah_kekentalan") ? "text-primary font-bold" : ""}`}>
+                              {review.product_type === "kuah" ? (review.kuah_kekentalan || "-") : <span className="text-muted-foreground">-</span>}
                             </td>
                           ))}
                         </tr>
                         <tr className="border-b">
-                          <td className="py-3 px-3 font-medium text-sm">{t.noodle}</td>
+                          <td className="py-2 px-3 text-sm pl-6">Kaldu/Umami</td>
                           {selectedReviews.map((review) => (
-                            <td key={review.id} className={`text-center py-3 px-2 text-sm ${isHighest(review, "scores.mie") ? "text-primary font-bold" : ""}`}>
-                              {review.scores?.mie}
+                            <td key={review.id} className={`text-center py-2 px-2 text-sm ${review.product_type === "kuah" && isHighest(review, "kuah_kaldu") ? "text-primary font-bold" : ""}`}>
+                              {review.product_type === "kuah" ? (review.kuah_kaldu || "-") : <span className="text-muted-foreground">-</span>}
                             </td>
                           ))}
                         </tr>
                         <tr className="border-b">
-                          <td className="py-3 px-3 font-medium text-sm">{t.chicken}</td>
+                          <td className="py-2 px-3 text-sm pl-6">Keseimbangan Rasa</td>
                           {selectedReviews.map((review) => (
-                            <td key={review.id} className={`text-center py-3 px-2 text-sm ${isHighest(review, "scores.ayam") ? "text-primary font-bold" : ""}`}>
-                              {review.scores?.ayam}
+                            <td key={review.id} className={`text-center py-2 px-2 text-sm ${review.product_type === "kuah" && isHighest(review, "kuah_keseimbangan") ? "text-primary font-bold" : ""}`}>
+                              {review.product_type === "kuah" ? (review.kuah_keseimbangan || "-") : <span className="text-muted-foreground">-</span>}
                             </td>
                           ))}
                         </tr>
                         <tr className="border-b">
-                          <td className="py-3 px-3 font-medium text-sm">{t.facilities}</td>
+                          <td className="py-2 px-3 text-sm pl-6">Aroma Kuah</td>
                           {selectedReviews.map((review) => (
-                            <td key={review.id} className={`text-center py-3 px-2 text-sm ${isHighest(review, "scores.fasilitas") ? "text-primary font-bold" : ""}`}>
-                              {review.scores?.fasilitas}
+                            <td key={review.id} className={`text-center py-2 px-2 text-sm ${review.product_type === "kuah" && isHighest(review, "kuah_aroma") ? "text-primary font-bold" : ""}`}>
+                              {review.product_type === "kuah" ? (review.kuah_aroma || "-") : <span className="text-muted-foreground">-</span>}
+                            </td>
+                          ))}
+                        </tr>
+
+                        {/* Section: Goreng (for goreng type) */}
+                        <tr className="border-b bg-muted/50">
+                          <td colSpan={selectedReviews.length + 1} className="py-2 px-3 font-semibold text-sm text-secondary-foreground">
+                            🍝 {t.friedSeasoning} (Goreng)
+                          </td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2 px-3 text-sm pl-6">Aroma Tumisan</td>
+                          {selectedReviews.map((review) => (
+                            <td key={review.id} className={`text-center py-2 px-2 text-sm ${review.product_type === "goreng" && isHighest(review, "goreng_aroma_tumisan") ? "text-primary font-bold" : ""}`}>
+                              {review.product_type === "goreng" ? (review.goreng_aroma_tumisan || "-") : <span className="text-muted-foreground">-</span>}
+                            </td>
+                          ))}
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2 px-3 text-sm pl-6">Bumbu Tumisan</td>
+                          {selectedReviews.map((review) => (
+                            <td key={review.id} className={`text-center py-2 px-2 text-sm ${review.product_type === "goreng" && isHighest(review, "goreng_bumbu_tumisan") ? "text-primary font-bold" : ""}`}>
+                              {review.product_type === "goreng" ? (review.goreng_bumbu_tumisan || "-") : <span className="text-muted-foreground">-</span>}
+                            </td>
+                          ))}
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2 px-3 text-sm pl-6">Keseimbangan Minyak</td>
+                          {selectedReviews.map((review) => (
+                            <td key={review.id} className={`text-center py-2 px-2 text-sm ${review.product_type === "goreng" && isHighest(review, "goreng_keseimbangan_minyak") ? "text-primary font-bold" : ""}`}>
+                              {review.product_type === "goreng" ? (review.goreng_keseimbangan_minyak || "-") : <span className="text-muted-foreground">-</span>}
+                            </td>
+                          ))}
+                        </tr>
+
+                        {/* Section: Mie */}
+                        <tr className="border-b bg-muted/50">
+                          <td colSpan={selectedReviews.length + 1} className="py-2 px-3 font-semibold text-sm">
+                            🍜 {t.noodle}
+                          </td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2 px-3 text-sm pl-6">Tekstur Mie</td>
+                          {selectedReviews.map((review) => (
+                            <td key={review.id} className={`text-center py-2 px-2 text-sm ${isHighest(review, "mie_tekstur") ? "text-primary font-bold" : ""}`}>
+                              {review.mie_tekstur || "-"}
+                            </td>
+                          ))}
+                        </tr>
+
+                        {/* Section: Ayam */}
+                        <tr className="border-b bg-muted/50">
+                          <td colSpan={selectedReviews.length + 1} className="py-2 px-3 font-semibold text-sm">
+                            🍗 {t.chicken}
+                          </td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2 px-3 text-sm pl-6">Bumbu Ayam</td>
+                          {selectedReviews.map((review) => (
+                            <td key={review.id} className={`text-center py-2 px-2 text-sm ${isHighest(review, "ayam_bumbu") ? "text-primary font-bold" : ""}`}>
+                              {review.ayam_bumbu || "-"}
+                            </td>
+                          ))}
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2 px-3 text-sm pl-6">Potongan Ayam</td>
+                          {selectedReviews.map((review) => (
+                            <td key={review.id} className={`text-center py-2 px-2 text-sm ${isHighest(review, "ayam_potongan") ? "text-primary font-bold" : ""}`}>
+                              {review.ayam_potongan || "-"}
+                            </td>
+                          ))}
+                        </tr>
+
+                        {/* Section: Fasilitas */}
+                        <tr className="border-b bg-muted/50">
+                          <td colSpan={selectedReviews.length + 1} className="py-2 px-3 font-semibold text-sm">
+                            🏠 {t.facilities}
+                          </td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2 px-3 text-sm pl-6">Kebersihan</td>
+                          {selectedReviews.map((review) => (
+                            <td key={review.id} className={`text-center py-2 px-2 text-sm ${isHighest(review, "fasilitas_kebersihan") ? "text-primary font-bold" : ""}`}>
+                              {review.fasilitas_kebersihan || "-"}
+                            </td>
+                          ))}
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2 px-3 text-sm pl-6">Alat Makan</td>
+                          {selectedReviews.map((review) => (
+                            <td key={review.id} className={`text-center py-2 px-2 text-sm ${isHighest(review, "fasilitas_alat_makan") ? "text-primary font-bold" : ""}`}>
+                              {review.fasilitas_alat_makan || "-"}
+                            </td>
+                          ))}
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2 px-3 text-sm pl-6">Tempat</td>
+                          {selectedReviews.map((review) => (
+                            <td key={review.id} className={`text-center py-2 px-2 text-sm ${isHighest(review, "fasilitas_tempat") ? "text-primary font-bold" : ""}`}>
+                              {review.fasilitas_tempat || "-"}
+                            </td>
+                          ))}
+                        </tr>
+
+                        {/* Price */}
+                        <tr className="border-b bg-accent/10">
+                          <td className="py-3 px-3 font-medium text-sm">{t.price}</td>
+                          {selectedReviews.map((review) => (
+                            <td key={review.id} className="text-center py-3 px-2 text-sm font-semibold">
+                              Rp {review.price.toLocaleString("id-ID")}
                             </td>
                           ))}
                         </tr>
                       </tbody>
                     </table>
                   </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Perceptual Map */}
+            {selectedReviews.length >= 2 && selectedReviews.some(r => r.complexity !== null && r.sweetness !== null) && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg md:text-xl">Perceptual Mapping</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <PerceptualMap 
+                    data={selectedReviews
+                      .filter(r => r.complexity !== null && r.sweetness !== null)
+                      .map(r => ({
+                        name: r.outlet_name,
+                        complexity: r.complexity || 0,
+                        sweetness: r.sweetness || 0,
+                        type: r.product_type as "kuah" | "goreng"
+                      }))} 
+                  />
                 </CardContent>
               </Card>
             )}
