@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Scale, X, Plus, Trophy, Check, X as XIcon } from "lucide-react";
+import { Scale, X, Plus, Trophy, Check, X as XIcon, Filter } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface Review {
@@ -63,6 +63,8 @@ const Compare = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedReviews, setSelectedReviews] = useState<Review[]>([]);
+  const [cityFilter, setCityFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
 
   useEffect(() => {
     fetchReviews();
@@ -116,9 +118,23 @@ const Compare = () => {
     };
   };
 
+  // Get unique cities from reviews
+  const cities = useMemo(() => {
+    return Array.from(new Set(reviews.map((r) => r.city))).sort();
+  }, [reviews]);
+
+  // Filter reviews based on city and type
+  const filteredReviews = useMemo(() => {
+    return reviews.filter((r) => {
+      const matchCity = cityFilter === "all" || r.city === cityFilter;
+      const matchType = typeFilter === "all" || r.product_type === typeFilter;
+      return matchCity && matchType;
+    });
+  }, [reviews, cityFilter, typeFilter]);
+
   const addToCompare = (reviewId: string) => {
     if (selectedReviews.length >= 3) return;
-    const review = reviews.find((r) => r.id === reviewId);
+    const review = filteredReviews.find((r) => r.id === reviewId);
     if (review && !selectedReviews.find((r) => r.id === reviewId)) {
       setSelectedReviews([...selectedReviews, review]);
     }
@@ -132,7 +148,7 @@ const Compare = () => {
     setSelectedReviews([]);
   };
 
-  const availableReviews = reviews.filter((r) => !selectedReviews.find((s) => s.id === r.id));
+  const availableReviews = filteredReviews.filter((r) => !selectedReviews.find((s) => s.id === r.id));
 
   const toppingKeys = [
     { key: "topping_ceker", label: t.toppingCeker },
@@ -196,41 +212,87 @@ const Compare = () => {
       />
       <Navbar />
 
-      <div className="container py-10 max-w-7xl mx-auto px-4">
+      <div className="container py-8 md:py-10 max-w-7xl mx-auto px-4">
         {/* Header */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-4">
             <Scale className="h-5 w-5 text-primary" />
             <span className="text-sm font-medium text-primary">{t.comparison}</span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">{t.compareTitle}</h1>
-          <p className="text-muted-foreground">{t.compareSubtitle}</p>
+          <h1 className="text-2xl md:text-4xl font-bold mb-2">{t.compareTitle}</h1>
+          <p className="text-muted-foreground text-sm md:text-base">{t.compareSubtitle}</p>
         </div>
 
+        {/* Filters */}
+        <Card className="mb-6">
+          <CardContent className="py-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Filter className="h-4 w-4" />
+                <span className="text-sm font-medium">Filter:</span>
+              </div>
+              <div className="flex flex-wrap gap-3 w-full sm:w-auto">
+                <Select value={cityFilter} onValueChange={setCityFilter}>
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder={t.filterByCity} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t.allCities}</SelectItem>
+                    {cities.map((city) => (
+                      <SelectItem key={city} value={city}>
+                        {city}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                  <SelectTrigger className="w-full sm:w-[150px]">
+                    <SelectValue placeholder={t.filterByType} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t.allTypes}</SelectItem>
+                    <SelectItem value="kuah">🍜 {t.kuah}</SelectItem>
+                    <SelectItem value="goreng">🍝 {t.goreng}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Selection Area */}
-        <div className="mb-8">
-          <div className="flex flex-wrap items-center gap-4 justify-center">
+        <div className="mb-6">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 justify-center">
             {selectedReviews.length < 3 && (
               <Select onValueChange={addToCompare}>
-                <SelectTrigger className="w-[280px]">
+                <SelectTrigger className="w-full sm:w-[300px]">
                   <SelectValue placeholder={t.selectWarung} />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableReviews.map((review) => (
-                    <SelectItem key={review.id} value={review.id}>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{review.outlet_name}</span>
-                        <Badge variant="outline" className="text-xs">
-                          {(review.overall_score || 0).toFixed(1)}
-                        </Badge>
-                      </div>
+                  {availableReviews.length === 0 ? (
+                    <SelectItem value="none" disabled>
+                      {t.noReviewsFound}
                     </SelectItem>
-                  ))}
+                  ) : (
+                    availableReviews.map((review) => (
+                      <SelectItem key={review.id} value={review.id}>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium truncate">{review.outlet_name}</span>
+                          <Badge variant="outline" className="text-xs shrink-0">
+                            {(review.overall_score || 0).toFixed(1)}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground truncate">
+                            {review.city}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             )}
             {selectedReviews.length > 0 && (
-              <Button variant="outline" size="sm" onClick={clearAll}>
+              <Button variant="outline" size="sm" onClick={clearAll} className="w-full sm:w-auto">
                 <X className="h-4 w-4 mr-1" />
                 {t.clearAll}
               </Button>
@@ -243,20 +305,26 @@ const Compare = () => {
           <Card className="max-w-md mx-auto">
             <CardContent className="py-12 text-center">
               <Scale className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">{t.noWarungSelected}</p>
+              <p className="text-muted-foreground font-medium">{t.noWarungSelected}</p>
               <p className="text-sm text-muted-foreground mt-2">{t.selectAtLeast2}</p>
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-6">
             {/* Cards Grid */}
-            <div className={`grid gap-6 ${selectedReviews.length === 1 ? "grid-cols-1 max-w-md mx-auto" : selectedReviews.length === 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 md:grid-cols-3"}`}>
-              {selectedReviews.map((review, index) => (
+            <div className={`grid gap-4 md:gap-6 ${
+              selectedReviews.length === 1 
+                ? "grid-cols-1 max-w-sm mx-auto" 
+                : selectedReviews.length === 2 
+                ? "grid-cols-1 sm:grid-cols-2 max-w-3xl mx-auto" 
+                : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+            }`}>
+              {selectedReviews.map((review) => (
                 <Card key={review.id} className="relative overflow-hidden">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="absolute top-2 right-2 z-10 h-8 w-8 bg-background/80"
+                    className="absolute top-2 right-2 z-10 h-8 w-8 bg-background/80 hover:bg-destructive hover:text-destructive-foreground"
                     onClick={() => removeFromCompare(review.id)}
                   >
                     <X className="h-4 w-4" />
@@ -264,15 +332,19 @@ const Compare = () => {
 
                   {/* Image */}
                   <div className="aspect-video relative bg-muted">
-                    {(review.image_urls?.[0] || review.image_url) && (
+                    {(review.image_urls?.[0] || review.image_url) ? (
                       <img
                         src={review.image_urls?.[0] || review.image_url || ""}
                         alt={review.outlet_name}
                         className="w-full h-full object-cover"
                       />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-4xl">🍜</span>
+                      </div>
                     )}
                     {review.editor_choice && (
-                      <Badge className="absolute top-2 left-2 bg-gradient-to-r from-yellow-400 to-amber-500 text-white border-0">
+                      <Badge className="absolute top-2 left-2 bg-gradient-to-r from-yellow-400 to-amber-500 text-white border-0 text-xs">
                         <Trophy className="h-3 w-3 mr-1" />
                         {t.editorsChoice}
                       </Badge>
@@ -281,7 +353,7 @@ const Compare = () => {
 
                   <CardContent className="p-4">
                     <Link to={review.slug ? `/reviews/${review.slug}` : `/review/${review.id}`}>
-                      <h3 className="font-bold text-lg hover:text-primary transition-colors">
+                      <h3 className="font-bold text-base md:text-lg hover:text-primary transition-colors line-clamp-1">
                         {review.outlet_name}
                       </h3>
                     </Link>
@@ -289,25 +361,27 @@ const Compare = () => {
 
                     {/* Score */}
                     <div className="flex items-center justify-between mb-4">
-                      <div className="text-3xl font-bold text-primary">
+                      <div className="text-2xl md:text-3xl font-bold text-primary">
                         {(review.overall_score || 0).toFixed(1)}
-                        <span className="text-sm text-muted-foreground font-normal">/10</span>
+                        <span className="text-xs md:text-sm text-muted-foreground font-normal">/10</span>
                       </div>
-                      <Badge variant={review.product_type === "kuah" ? "default" : "secondary"}>
+                      <Badge variant={review.product_type === "kuah" ? "default" : "secondary"} className="text-xs">
                         {review.product_type === "kuah" ? "🍜 " + t.kuah : "🍝 " + t.goreng}
                       </Badge>
                     </div>
 
                     {/* Radar Chart */}
                     {review.scores && (
-                      <div className="bg-muted/30 rounded-lg p-4">
+                      <div className="bg-muted/30 rounded-lg p-3">
                         <RadarChart data={review.scores} size="small" />
                       </div>
                     )}
 
                     {/* Price */}
-                    <div className={`mt-4 text-center py-2 rounded-lg ${isHighest(review, "price") ? "bg-destructive/10 text-destructive" : "bg-accent/10"}`}>
-                      <span className="font-semibold">Rp {review.price.toLocaleString("id-ID")}</span>
+                    <div className="mt-4 text-center py-2 rounded-lg bg-accent/10">
+                      <span className="font-semibold text-sm md:text-base">
+                        Rp {review.price.toLocaleString("id-ID")}
+                      </span>
                     </div>
                   </CardContent>
                 </Card>
@@ -315,10 +389,10 @@ const Compare = () => {
 
               {/* Add More Slot */}
               {selectedReviews.length < 3 && (
-                <Card className="border-dashed flex items-center justify-center min-h-[400px]">
-                  <CardContent className="text-center py-12">
-                    <Plus className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground">{t.addToCompare}</p>
+                <Card className="border-dashed flex items-center justify-center min-h-[300px] md:min-h-[400px]">
+                  <CardContent className="text-center py-8">
+                    <Plus className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground text-sm">{t.addToCompare}</p>
                   </CardContent>
                 </Card>
               )}
@@ -327,52 +401,51 @@ const Compare = () => {
             {/* Detailed Comparison Table */}
             {selectedReviews.length >= 2 && (
               <Card>
-                <CardHeader>
-                  <CardTitle>{t.detailScoring}</CardTitle>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg md:text-xl">{t.detailScoring}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
+                  <div className="overflow-x-auto -mx-4 md:mx-0">
+                    <table className="w-full min-w-[400px]">
                       <thead>
                         <tr className="border-b">
-                          <th className="text-left py-3 px-2 font-medium text-muted-foreground">Aspek</th>
+                          <th className="text-left py-3 px-3 font-medium text-muted-foreground text-sm">{t.aspect}</th>
                           {selectedReviews.map((review) => (
-                            <th key={review.id} className="text-center py-3 px-2 font-medium">
-                              {review.outlet_name}
+                            <th key={review.id} className="text-center py-3 px-2 font-medium text-sm">
+                              <span className="line-clamp-1">{review.outlet_name}</span>
                             </th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
-                        {/* Scores */}
                         <tr className="border-b">
-                          <td className="py-3 px-2 font-medium">{t.broth}/{t.friedSeasoning}</td>
+                          <td className="py-3 px-3 font-medium text-sm">{t.broth}/{t.friedSeasoning}</td>
                           {selectedReviews.map((review) => (
-                            <td key={review.id} className={`text-center py-3 px-2 ${isHighest(review, "scores.kuah") ? "text-primary font-bold" : ""}`}>
+                            <td key={review.id} className={`text-center py-3 px-2 text-sm ${isHighest(review, "scores.kuah") ? "text-primary font-bold" : ""}`}>
                               {review.scores?.kuah}
                             </td>
                           ))}
                         </tr>
                         <tr className="border-b">
-                          <td className="py-3 px-2 font-medium">{t.noodle}</td>
+                          <td className="py-3 px-3 font-medium text-sm">{t.noodle}</td>
                           {selectedReviews.map((review) => (
-                            <td key={review.id} className={`text-center py-3 px-2 ${isHighest(review, "scores.mie") ? "text-primary font-bold" : ""}`}>
+                            <td key={review.id} className={`text-center py-3 px-2 text-sm ${isHighest(review, "scores.mie") ? "text-primary font-bold" : ""}`}>
                               {review.scores?.mie}
                             </td>
                           ))}
                         </tr>
                         <tr className="border-b">
-                          <td className="py-3 px-2 font-medium">{t.chicken}</td>
+                          <td className="py-3 px-3 font-medium text-sm">{t.chicken}</td>
                           {selectedReviews.map((review) => (
-                            <td key={review.id} className={`text-center py-3 px-2 ${isHighest(review, "scores.ayam") ? "text-primary font-bold" : ""}`}>
+                            <td key={review.id} className={`text-center py-3 px-2 text-sm ${isHighest(review, "scores.ayam") ? "text-primary font-bold" : ""}`}>
                               {review.scores?.ayam}
                             </td>
                           ))}
                         </tr>
                         <tr className="border-b">
-                          <td className="py-3 px-2 font-medium">{t.facilities}</td>
+                          <td className="py-3 px-3 font-medium text-sm">{t.facilities}</td>
                           {selectedReviews.map((review) => (
-                            <td key={review.id} className={`text-center py-3 px-2 ${isHighest(review, "scores.fasilitas") ? "text-primary font-bold" : ""}`}>
+                            <td key={review.id} className={`text-center py-3 px-2 text-sm ${isHighest(review, "scores.fasilitas") ? "text-primary font-bold" : ""}`}>
                               {review.scores?.fasilitas}
                             </td>
                           ))}
@@ -387,18 +460,18 @@ const Compare = () => {
             {/* Toppings Comparison */}
             {selectedReviews.length >= 2 && (
               <Card>
-                <CardHeader>
-                  <CardTitle>{t.toppings}</CardTitle>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg md:text-xl">{t.toppings}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
+                  <div className="overflow-x-auto -mx-4 md:mx-0">
+                    <table className="w-full min-w-[400px]">
                       <thead>
                         <tr className="border-b">
-                          <th className="text-left py-3 px-2 font-medium text-muted-foreground">Topping</th>
+                          <th className="text-left py-3 px-3 font-medium text-muted-foreground text-sm">Topping</th>
                           {selectedReviews.map((review) => (
-                            <th key={review.id} className="text-center py-3 px-2 font-medium">
-                              {review.outlet_name}
+                            <th key={review.id} className="text-center py-3 px-2 font-medium text-sm">
+                              <span className="line-clamp-1">{review.outlet_name}</span>
                             </th>
                           ))}
                         </tr>
@@ -406,7 +479,7 @@ const Compare = () => {
                       <tbody>
                         {toppingKeys.map(({ key, label }) => (
                           <tr key={key} className="border-b">
-                            <td className="py-3 px-2">{label}</td>
+                            <td className="py-3 px-3 text-sm">{label}</td>
                             {selectedReviews.map((review) => (
                               <td key={review.id} className="text-center py-3 px-2">
                                 {(review as any)[key] ? (
