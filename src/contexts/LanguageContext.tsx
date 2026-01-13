@@ -10,6 +10,7 @@ interface Translations {
   compare: string;
   admin: string;
   theme: string;
+  language: string;
   
   // Home
   heroTitle: string;
@@ -45,6 +46,7 @@ interface Translations {
   loadMore: string;
   noReviewsFound: string;
   mapView: string;
+  reviews: string;
   
   // Review Detail
   back: string;
@@ -98,6 +100,9 @@ interface Translations {
   noWarungSelected: string;
   selectAtLeast2: string;
   comparison: string;
+  filterByCity: string;
+  filterByType: string;
+  aspect: string;
   
   // Topping names
   toppingCeker: string;
@@ -112,6 +117,28 @@ interface Translations {
   toppingPangsitKering: string;
   toppingDimsum: string;
   toppingVariasiBumbu: string;
+
+  // Footer
+  navigation: string;
+  contact: string;
+  directory: string;
+  directoryDesc: string;
+  madeWith: string;
+
+  // About
+  aboutTitle: string;
+  aboutDesc: string;
+
+  // Donation
+  donationTitle: string;
+  donationDesc: string;
+
+  // General
+  loading: string;
+  error: string;
+  tryAgain: string;
+  viewDetails: string;
+  seeAll: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -123,6 +150,7 @@ const translations: Record<Language, Translations> = {
     compare: "Bandingkan",
     admin: "Admin",
     theme: "Tema",
+    language: "Bahasa",
     
     // Home
     heroTitle: "Mie Ayam Ranger",
@@ -158,6 +186,7 @@ const translations: Record<Language, Translations> = {
     loadMore: "Memuat lebih banyak...",
     noReviewsFound: "Tidak ada review ditemukan",
     mapView: "Peta",
+    reviews: "review",
     
     // Review Detail
     back: "Kembali",
@@ -205,12 +234,15 @@ const translations: Record<Language, Translations> = {
     compareTitle: "Bandingkan Warung",
     compareSubtitle: "Pilih 2-3 warung untuk dibandingkan secara berdampingan",
     selectWarung: "Pilih Warung",
-    addToCompare: "Tambahkan",
+    addToCompare: "Tambahkan warung lain",
     removeFromCompare: "Hapus",
     clearAll: "Hapus Semua",
     noWarungSelected: "Belum ada warung dipilih",
     selectAtLeast2: "Pilih minimal 2 warung untuk membandingkan",
     comparison: "Perbandingan",
+    filterByCity: "Filter Kota",
+    filterByType: "Filter Tipe",
+    aspect: "Aspek",
     
     // Topping names
     toppingCeker: "Ceker",
@@ -225,6 +257,28 @@ const translations: Record<Language, Translations> = {
     toppingPangsitKering: "Pangsit Kering",
     toppingDimsum: "Dimsum",
     toppingVariasiBumbu: "Variasi Bumbu",
+
+    // Footer
+    navigation: "Navigasi",
+    contact: "Kontak",
+    directory: "Mie Ayam Ranger",
+    directoryDesc: "Direktori review warung mie ayam dengan sistem penilaian yang adil, transparan, dan objektif.",
+    madeWith: "Dibuat dengan ❤️ dan 🍜",
+
+    // About
+    aboutTitle: "Tentang Kami",
+    aboutDesc: "Mie Ayam Ranger adalah platform review mie ayam independen",
+
+    // Donation
+    donationTitle: "Dukung Kami",
+    donationDesc: "Bantu kami terus mereview warung mie ayam",
+
+    // General
+    loading: "Memuat...",
+    error: "Terjadi kesalahan",
+    tryAgain: "Coba lagi",
+    viewDetails: "Lihat Detail",
+    seeAll: "Lihat Semua",
   },
   en: {
     // Navbar
@@ -234,6 +288,7 @@ const translations: Record<Language, Translations> = {
     compare: "Compare",
     admin: "Admin",
     theme: "Theme",
+    language: "Language",
     
     // Home
     heroTitle: "Mie Ayam Ranger",
@@ -269,6 +324,7 @@ const translations: Record<Language, Translations> = {
     loadMore: "Loading more...",
     noReviewsFound: "No reviews found",
     mapView: "Map",
+    reviews: "reviews",
     
     // Review Detail
     back: "Back",
@@ -316,12 +372,15 @@ const translations: Record<Language, Translations> = {
     compareTitle: "Compare Stalls",
     compareSubtitle: "Select 2-3 stalls to compare side by side",
     selectWarung: "Select Stall",
-    addToCompare: "Add",
+    addToCompare: "Add another stall",
     removeFromCompare: "Remove",
     clearAll: "Clear All",
     noWarungSelected: "No stall selected",
     selectAtLeast2: "Select at least 2 stalls to compare",
     comparison: "Comparison",
+    filterByCity: "Filter by City",
+    filterByType: "Filter by Type",
+    aspect: "Aspect",
     
     // Topping names
     toppingCeker: "Chicken Feet",
@@ -336,6 +395,28 @@ const translations: Record<Language, Translations> = {
     toppingPangsitKering: "Fried Dumpling",
     toppingDimsum: "Dimsum",
     toppingVariasiBumbu: "Seasoning Varieties",
+
+    // Footer
+    navigation: "Navigation",
+    contact: "Contact",
+    directory: "Mie Ayam Ranger",
+    directoryDesc: "Directory of chicken noodle reviews with fair, transparent, and objective rating system.",
+    madeWith: "Made with ❤️ and 🍜",
+
+    // About
+    aboutTitle: "About Us",
+    aboutDesc: "Mie Ayam Ranger is an independent chicken noodle review platform",
+
+    // Donation
+    donationTitle: "Support Us",
+    donationDesc: "Help us continue reviewing chicken noodle stalls",
+
+    // General
+    loading: "Loading...",
+    error: "An error occurred",
+    tryAgain: "Try again",
+    viewDetails: "View Details",
+    seeAll: "See All",
   },
 };
 

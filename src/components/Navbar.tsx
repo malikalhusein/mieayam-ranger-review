@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { UtensilsCrossed, Menu, Scale } from "lucide-react";
+import { UtensilsCrossed, Menu } from "lucide-react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import ThemeToggle from "./ThemeToggle";
@@ -22,10 +22,9 @@ const Navbar = () => {
       </Link>
       <Link 
         to="/compare" 
-        className={`${mobile ? 'block py-2' : ''} text-sm font-medium transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-4 flex items-center gap-1`}
+        className={`${mobile ? 'block py-2' : ''} text-sm font-medium transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-4`}
         onClick={onLinkClick}
       >
-        <Scale className="h-4 w-4" />
         {t.compare}
       </Link>
       <Link 
