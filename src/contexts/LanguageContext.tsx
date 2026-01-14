@@ -117,6 +117,8 @@ interface Translations {
   toppingPangsitKering: string;
   toppingDimsum: string;
   toppingVariasiBumbu: string;
+  toppingBawangDaun: string;
+  wishlist: string;
 
   // Footer
   navigation: string;
@@ -257,6 +259,8 @@ const translations: Record<Language, Translations> = {
     toppingPangsitKering: "Pangsit Kering",
     toppingDimsum: "Dimsum",
     toppingVariasiBumbu: "Variasi Bumbu",
+    toppingBawangDaun: "Bawang Daun",
+    wishlist: "Wishlist",
 
     // Footer
     navigation: "Navigasi",
@@ -395,6 +399,8 @@ const translations: Record<Language, Translations> = {
     toppingPangsitKering: "Fried Dumpling",
     toppingDimsum: "Dimsum",
     toppingVariasiBumbu: "Seasoning Varieties",
+    toppingBawangDaun: "Green Onion",
+    wishlist: "Wishlist",
 
     // Footer
     navigation: "Navigation",
