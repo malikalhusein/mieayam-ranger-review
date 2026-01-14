@@ -67,6 +67,7 @@ const reviewSchema = z.object({
   topping_pangsit_kering: z.boolean().optional().default(false),
   topping_dimsum: z.boolean().optional().default(false),
   topping_variasi_bumbu: z.boolean().optional().default(false),
+  topping_bawang_daun: z.boolean().optional().default(false),
 });
 
 type ReviewFormData = z.infer<typeof reviewSchema>;
@@ -1238,6 +1239,15 @@ const Admin = () => {
                         onCheckedChange={(checked) => form.setValue("topping_variasi_bumbu", checked as boolean)}
                       />
                       <Label htmlFor="topping_variasi_bumbu" className="text-sm cursor-pointer">Variasi Bumbu</Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="topping_bawang_daun"
+                        checked={form.watch("topping_bawang_daun") || false}
+                        onCheckedChange={(checked) => form.setValue("topping_bawang_daun", checked as boolean)}
+                      />
+                      <Label htmlFor="topping_bawang_daun" className="text-sm cursor-pointer">Bawang Daun (Loncang)</Label>
                     </div>
                   </div>
                 </div>

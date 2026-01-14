@@ -53,6 +53,7 @@ export type Database = {
           take_it_or_leave_it: boolean | null
           topping_bakso: boolean | null
           topping_balungan: boolean | null
+          topping_bawang_daun: boolean | null
           topping_ceker: boolean | null
           topping_dimsum: boolean | null
           topping_ekstra_ayam: boolean | null
@@ -104,6 +105,7 @@ export type Database = {
           take_it_or_leave_it?: boolean | null
           topping_bakso?: boolean | null
           topping_balungan?: boolean | null
+          topping_bawang_daun?: boolean | null
           topping_ceker?: boolean | null
           topping_dimsum?: boolean | null
           topping_ekstra_ayam?: boolean | null
@@ -155,6 +157,7 @@ export type Database = {
           take_it_or_leave_it?: boolean | null
           topping_bakso?: boolean | null
           topping_balungan?: boolean | null
+          topping_bawang_daun?: boolean | null
           topping_ceker?: boolean | null
           topping_dimsum?: boolean | null
           topping_ekstra_ayam?: boolean | null
@@ -185,6 +188,36 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      wishlist_entries: {
+        Row: {
+          created_at: string
+          id: string
+          location: string
+          notes: string | null
+          place_name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location: string
+          notes?: string | null
+          place_name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location?: string
+          notes?: string | null
+          place_name?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }

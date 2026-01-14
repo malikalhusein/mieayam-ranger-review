@@ -1,48 +1,65 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { UtensilsCrossed, Menu } from "lucide-react";
+import { UtensilsCrossed, Menu, ChevronDown } from "lucide-react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 import ThemeToggle from "./ThemeToggle";
 import LanguageToggle from "./LanguageToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
-  const NavLinks = ({ mobile = false, onLinkClick }: { mobile?: boolean; onLinkClick?: () => void }) => (
+  const exploreLabel = language === "id" ? "Jelajahi" : "Explore";
+  const wishlistLabel = language === "id" ? "Wishlist" : "Wishlist";
+
+  // Mobile navigation with all items in a single list
+  const MobileNavLinks = ({ onLinkClick }: { onLinkClick?: () => void }) => (
     <>
       <Link 
         to="/" 
-        className={`${mobile ? 'block py-2' : ''} text-sm font-medium transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-4`}
+        className="block py-2 text-sm font-medium transition-colors hover:text-primary"
         onClick={onLinkClick}
       >
         {t.home}
       </Link>
       <Link 
-        to="/compare" 
-        className={`${mobile ? 'block py-2' : ''} text-sm font-medium transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-4`}
-        onClick={onLinkClick}
-      >
-        {t.compare}
-      </Link>
-      <Link 
         to="/about" 
-        className={`${mobile ? 'block py-2' : ''} text-sm font-medium transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-4`}
+        className="block py-2 text-sm font-medium transition-colors hover:text-primary"
         onClick={onLinkClick}
       >
         {t.about}
       </Link>
       <Link 
         to="/donation" 
-        className={`${mobile ? 'block py-2' : ''} text-sm font-medium transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-4`}
+        className="block py-2 text-sm font-medium transition-colors hover:text-primary"
         onClick={onLinkClick}
       >
         {t.supportUs}
       </Link>
+      <Link 
+        to="/compare" 
+        className="block py-2 text-sm font-medium transition-colors hover:text-primary"
+        onClick={onLinkClick}
+      >
+        {t.compare}
+      </Link>
+      <Link 
+        to="/wishlist" 
+        className="block py-2 text-sm font-medium transition-colors hover:text-primary"
+        onClick={onLinkClick}
+      >
+        {wishlistLabel}
+      </Link>
       <Link to="/login" onClick={onLinkClick}>
-        <Button variant="outline" size="sm" className="w-full sm:w-auto">
+        <Button variant="outline" size="sm" className="w-full">
           {t.admin}
         </Button>
       </Link>
@@ -65,7 +82,52 @@ const Navbar = () => {
         
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-6">
-          <NavLinks />
+          <Link 
+            to="/" 
+            className="text-sm font-medium transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-4"
+          >
+            {t.home}
+          </Link>
+          <Link 
+            to="/about" 
+            className="text-sm font-medium transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-4"
+          >
+            {t.about}
+          </Link>
+          <Link 
+            to="/donation" 
+            className="text-sm font-medium transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-4"
+          >
+            {t.supportUs}
+          </Link>
+          
+          {/* Explore Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-1 px-2">
+                {exploreLabel}
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem asChild>
+                <Link to="/compare" className="w-full cursor-pointer">
+                  {t.compare}
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/wishlist" className="w-full cursor-pointer">
+                  {wishlistLabel}
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/login" className="w-full cursor-pointer">
+                  {t.admin}
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <LanguageToggle />
           <ThemeToggle />
         </div>
@@ -79,7 +141,7 @@ const Navbar = () => {
           </SheetTrigger>
           <SheetContent side="right" className="w-[250px] sm:w-[300px]">
             <div className="flex flex-col space-y-4 mt-6">
-              <NavLinks mobile onLinkClick={() => setOpen(false)} />
+              <MobileNavLinks onLinkClick={() => setOpen(false)} />
               <div className="flex items-center gap-2 pt-4 border-t">
                 <span className="text-sm text-muted-foreground">{t.theme}:</span>
                 <ThemeToggle />
