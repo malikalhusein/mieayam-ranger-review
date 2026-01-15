@@ -2,3 +2,9 @@ project_id = "kqsqocrtaybbkpigvwjy"
 
 [functions.sitemap]
 verify_jwt = false
+
+[functions.mieayam-chat]
+verify_jwt = false
+
+[functions.send-wishlist-notification]
+verify_jwt = false
