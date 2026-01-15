@@ -12,8 +12,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, Upload, X, Home, TrendingUp, BarChart3, Award, Loader2, Download, FileUp, ChartBar } from "lucide-react";
+import { LogOut, Upload, X, Home, TrendingUp, BarChart3, Award, Loader2, Download, FileUp, ChartBar, Store } from "lucide-react";
 import AdminStatsDashboard from "@/components/AdminStatsDashboard";
+import WishlistAdmin from "@/components/WishlistAdmin";
 import { SemanticDifferential } from "@/components/ui/semantic-differential";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { calculateScore, type ReviewData } from "@/lib/scoring";
@@ -850,8 +851,11 @@ const Admin = () => {
                     </Button>
                   </div>
                 </div>
-              </CardContent>
+            </CardContent>
             </Card>
+
+            {/* Wishlist Management */}
+            <WishlistAdmin />
           </>
         )}
 
