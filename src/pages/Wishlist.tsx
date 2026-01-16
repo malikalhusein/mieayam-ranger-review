@@ -12,9 +12,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { MapPin, Send, Heart, Loader2, Store } from "lucide-react";
+import { MapPin, Send, Heart, Loader2, Store, TrendingUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import WishlistVoteButton from "@/components/WishlistVoteButton";
 
 const wishlistSchema = z.object({
   place_name: z.string().min(1, "Nama tempat wajib diisi"),
@@ -31,6 +33,7 @@ interface WishlistEntry {
   notes: string | null;
   status: string;
   created_at: string;
+  vote_count: number;
 }
 
 const Wishlist = () => {
@@ -39,6 +42,7 @@ const Wishlist = () => {
   const [entries, setEntries] = useState<WishlistEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [sortBy, setSortBy] = useState<"newest" | "popular">("popular");
 
   const form = useForm<WishlistFormData>({
     resolver: zodResolver(wishlistSchema),
@@ -51,20 +55,30 @@ const Wishlist = () => {
 
   useEffect(() => {
     fetchApprovedEntries();
-  }, []);
+  }, [sortBy]);
 
   const fetchApprovedEntries = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const query = supabase
       .from("wishlist_entries")
       .select("*")
-      .eq("status", "approved")
-      .order("created_at", { ascending: false });
+      .eq("status", "approved");
+
+    if (sortBy === "popular") {
+      query.order("vote_count", { ascending: false });
+    } else {
+      query.order("created_at", { ascending: false });
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error("Error fetching wishlist:", error);
     } else {
-      setEntries(data || []);
+      setEntries((data || []).map(e => ({
+        ...e,
+        vote_count: e.vote_count || 0
+      })));
     }
     setLoading(false);
   };
@@ -98,6 +112,12 @@ const Wishlist = () => {
     setSubmitting(false);
   };
 
+  const handleVoteChange = (entryId: string, newCount: number) => {
+    setEntries(prev => prev.map(e => 
+      e.id === entryId ? { ...e, vote_count: newCount } : e
+    ));
+  };
+
   const translations = {
     id: {
       pageTitle: "Wishlist Mie Ayam",
@@ -115,9 +135,12 @@ const Wishlist = () => {
       submitting: "Mengirim...",
       pendingNotice: "Catatan: Rekomendasi akan muncul setelah disetujui admin.",
       communityPicks: "Pilihan Komunitas",
-      communityPicksDesc: "Tempat-tempat yang direkomendasikan oleh komunitas dan sudah diverifikasi",
+      communityPicksDesc: "Tempat-tempat yang direkomendasikan oleh komunitas. Vote untuk tempat favoritmu!",
       noEntries: "Belum ada rekomendasi yang disetujui",
       beFirst: "Jadilah yang pertama merekomendasikan tempat favorit Anda!",
+      sortNewest: "Terbaru",
+      sortPopular: "Terpopuler",
+      votes: "suara",
     },
     en: {
       pageTitle: "Mie Ayam Wishlist",
@@ -135,9 +158,12 @@ const Wishlist = () => {
       submitting: "Submitting...",
       pendingNotice: "Note: Recommendations will appear after admin approval.",
       communityPicks: "Community Picks",
-      communityPicksDesc: "Places recommended by the community and verified",
+      communityPicksDesc: "Places recommended by the community. Vote for your favorites!",
       noEntries: "No approved recommendations yet",
       beFirst: "Be the first to recommend your favorite spot!",
+      sortNewest: "Newest",
+      sortPopular: "Most Popular",
+      votes: "votes",
     },
   };
 
@@ -241,12 +267,28 @@ const Wishlist = () => {
 
           {/* Approved Entries */}
           <div className="space-y-4">
-            <div>
-              <h2 className="text-2xl font-bold flex items-center gap-2">
-                <Store className="h-6 w-6" />
-                {txt.communityPicks}
-              </h2>
-              <p className="text-muted-foreground">{txt.communityPicksDesc}</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                  <Store className="h-6 w-6" />
+                  {txt.communityPicks}
+                </h2>
+                <p className="text-muted-foreground text-sm">{txt.communityPicksDesc}</p>
+              </div>
+              <Select value={sortBy} onValueChange={(v) => setSortBy(v as "newest" | "popular")}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="popular">
+                    <span className="flex items-center gap-1">
+                      <TrendingUp className="h-4 w-4" />
+                      {txt.sortPopular}
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="newest">{txt.sortNewest}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
@@ -272,27 +314,36 @@ const Wishlist = () => {
                 entries.map((entry) => (
                   <Card key={entry.id} className="hover:shadow-md transition-shadow">
                     <CardContent className="pt-4">
-                      <h3 className="font-semibold text-lg">{entry.place_name}</h3>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-                        <MapPin className="h-3 w-3" />
-                        {entry.location.startsWith("http") ? (
-                          <a 
-                            href={entry.location} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline"
-                          >
-                            {language === "id" ? "Lihat di Maps" : "View on Maps"}
-                          </a>
-                        ) : (
-                          <span>{entry.location}</span>
-                        )}
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-lg">{entry.place_name}</h3>
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+                            <MapPin className="h-3 w-3 flex-shrink-0" />
+                            {entry.location.startsWith("http") ? (
+                              <a 
+                                href={entry.location} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-primary hover:underline truncate"
+                              >
+                                {language === "id" ? "Lihat di Maps" : "View on Maps"}
+                              </a>
+                            ) : (
+                              <span className="truncate">{entry.location}</span>
+                            )}
+                          </div>
+                          {entry.notes && (
+                            <p className="text-sm mt-2 italic text-muted-foreground line-clamp-2">
+                              "{entry.notes}"
+                            </p>
+                          )}
+                        </div>
+                        <WishlistVoteButton 
+                          entryId={entry.id}
+                          initialVoteCount={entry.vote_count}
+                          onVoteChange={(newCount) => handleVoteChange(entry.id, newCount)}
+                        />
                       </div>
-                      {entry.notes && (
-                        <p className="text-sm mt-2 italic text-muted-foreground">
-                          "{entry.notes}"
-                        </p>
-                      )}
                     </CardContent>
                   </Card>
                 ))

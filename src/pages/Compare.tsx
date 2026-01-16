@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -11,8 +11,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Scale, X, Plus, Trophy, Check, X as XIcon, Filter } from "lucide-react";
+import { Scale, X, Plus, Trophy, Check, X as XIcon, Filter, Download, Share2, Save, FolderOpen, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import html2canvas from "html2canvas";
 
 interface Review {
   id: string;
@@ -62,16 +64,25 @@ interface Review {
   };
 }
 
+const COMPARE_STORAGE_KEY = "mieayam-saved-comparison";
+
 const Compare = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const { toast } = useToast();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedReviews, setSelectedReviews] = useState<Review[]>([]);
   const [cityFilter, setCityFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [exporting, setExporting] = useState(false);
+  const [hasSavedComparison, setHasSavedComparison] = useState(false);
+  const comparisonRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchReviews();
+    // Check if there's a saved comparison
+    const saved = localStorage.getItem(COMPARE_STORAGE_KEY);
+    setHasSavedComparison(!!saved);
   }, []);
 
   const fetchReviews = async () => {
@@ -136,11 +147,29 @@ const Compare = () => {
     });
   }, [reviews, cityFilter, typeFilter]);
 
-  const addToCompare = (reviewId: string) => {
+  const addToCompare = async (reviewId: string) => {
     if (selectedReviews.length >= 3) return;
     const review = filteredReviews.find((r) => r.id === reviewId);
     if (review && !selectedReviews.find((r) => r.id === reviewId)) {
       setSelectedReviews([...selectedReviews, review]);
+      
+      // Increment compare count for this review
+      try {
+        const { data } = await supabase
+          .from("reviews")
+          .select("compare_count")
+          .eq("id", reviewId)
+          .single();
+        
+        if (data) {
+          await supabase
+            .from("reviews")
+            .update({ compare_count: (data.compare_count || 0) + 1 })
+            .eq("id", reviewId);
+        }
+      } catch (error) {
+        console.error("Failed to update compare count:", error);
+      }
     }
   };
 
@@ -150,6 +179,99 @@ const Compare = () => {
 
   const clearAll = () => {
     setSelectedReviews([]);
+  };
+
+  // Save comparison to localStorage
+  const saveComparison = () => {
+    const ids = selectedReviews.map(r => r.id);
+    localStorage.setItem(COMPARE_STORAGE_KEY, JSON.stringify(ids));
+    setHasSavedComparison(true);
+    toast({
+      title: language === "id" ? "Tersimpan!" : "Saved!",
+      description: language === "id" ? "Perbandingan disimpan" : "Comparison saved",
+    });
+  };
+
+  // Load saved comparison
+  const loadSavedComparison = () => {
+    try {
+      const saved = localStorage.getItem(COMPARE_STORAGE_KEY);
+      if (saved) {
+        const ids = JSON.parse(saved);
+        const savedReviews = reviews.filter(r => ids.includes(r.id));
+        setSelectedReviews(savedReviews);
+        toast({
+          title: language === "id" ? "Dimuat!" : "Loaded!",
+          description: language === "id" ? "Perbandingan tersimpan dimuat" : "Saved comparison loaded",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to load comparison:", error);
+    }
+  };
+
+  // Export comparison to image
+  const exportToImage = async () => {
+    if (!comparisonRef.current || selectedReviews.length < 2) return;
+    
+    setExporting(true);
+    try {
+      const canvas = await html2canvas(comparisonRef.current, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        logging: false,
+        useCORS: true,
+      });
+      
+      const link = document.createElement('a');
+      link.download = `mieayam-comparison-${Date.now()}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      
+      toast({
+        title: language === "id" ? "Berhasil!" : "Success!",
+        description: language === "id" ? "Gambar telah diunduh" : "Image downloaded",
+      });
+    } catch (error) {
+      console.error("Failed to export:", error);
+      toast({
+        title: language === "id" ? "Gagal" : "Failed",
+        description: language === "id" ? "Gagal mengunduh gambar" : "Failed to download image",
+        variant: "destructive",
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  // Share to WhatsApp
+  const shareToWhatsApp = () => {
+    const names = selectedReviews.map(r => r.outlet_name).join(" vs ");
+    const scores = selectedReviews.map(r => `${r.outlet_name}: ${(r.overall_score || 0).toFixed(1)}/10`).join("\n");
+    const text = `🍜 Perbandingan Mie Ayam\n\n${names}\n\n${scores}\n\nLihat detail di Mie Ayam Ranger!`;
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+  };
+
+  // Share to Twitter
+  const shareToTwitter = () => {
+    const names = selectedReviews.map(r => r.outlet_name).join(" vs ");
+    const text = `🍜 Perbandingan Mie Ayam: ${names} - Mana yang lebih enak? Cek di Mie Ayam Ranger!`;
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+  };
+
+  // Copy link
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: language === "id" ? "Tersalin!" : "Copied!",
+        description: language === "id" ? "Link telah disalin" : "Link copied to clipboard",
+      });
+    } catch (error) {
+      console.error("Failed to copy:", error);
+    }
   };
 
   const availableReviews = filteredReviews.filter((r) => !selectedReviews.find((s) => s.id === r.id));
@@ -296,9 +418,39 @@ const Compare = () => {
               </Select>
             )}
             {selectedReviews.length > 0 && (
-              <Button variant="outline" size="sm" onClick={clearAll} className="w-full sm:w-auto">
-                <X className="h-4 w-4 mr-1" />
-                {t.clearAll}
+              <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                <Button variant="outline" size="sm" onClick={clearAll}>
+                  <X className="h-4 w-4 mr-1" />
+                  {t.clearAll}
+                </Button>
+                {selectedReviews.length >= 2 && (
+                  <>
+                    <Button variant="outline" size="sm" onClick={saveComparison}>
+                      <Save className="h-4 w-4 mr-1" />
+                      {language === "id" ? "Simpan" : "Save"}
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={exportToImage} disabled={exporting}>
+                      {exporting ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Download className="h-4 w-4 mr-1" />}
+                      {language === "id" ? "Unduh" : "Export"}
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={shareToWhatsApp}>
+                      <Share2 className="h-4 w-4 mr-1" />
+                      WhatsApp
+                    </Button>
+                  </>
+                )}
+                {hasSavedComparison && selectedReviews.length === 0 && (
+                  <Button variant="outline" size="sm" onClick={loadSavedComparison}>
+                    <FolderOpen className="h-4 w-4 mr-1" />
+                    {language === "id" ? "Muat Tersimpan" : "Load Saved"}
+                  </Button>
+                )}
+              </div>
+            )}
+            {hasSavedComparison && selectedReviews.length === 0 && (
+              <Button variant="outline" size="sm" onClick={loadSavedComparison}>
+                <FolderOpen className="h-4 w-4 mr-1" />
+                {language === "id" ? "Muat Tersimpan" : "Load Saved"}
               </Button>
             )}
           </div>
@@ -314,7 +466,7 @@ const Compare = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-6" ref={comparisonRef}>
             {/* Cards Grid */}
             <div className={`grid gap-4 md:gap-6 ${
               selectedReviews.length === 1 

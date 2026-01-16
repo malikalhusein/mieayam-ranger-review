@@ -3,14 +3,19 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageCircle, X, Send, Loader2, Sparkles } from "lucide-react";
+import { MessageCircle, X, Send, Loader2, Sparkles, Trash2, Copy, Check, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 type Message = {
   role: "user" | "assistant";
   content: string;
+  timestamp?: number;
 };
+
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mieayam-chat`;
+const STORAGE_KEY = "mieayam-chat-history";
+const MAX_MESSAGES = 50;
 
 // Parse markdown links and render as clickable links
 const renderMessageContent = (content: string) => {
@@ -77,14 +82,25 @@ const renderMessageContent = (content: string) => {
   }
   return parts.length > 0 ? parts : content;
 };
+
+// Format timestamp
+const formatTime = (timestamp: number) => {
+  return new Date(timestamp).toLocaleTimeString('id-ID', { 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  });
+};
+
 interface AIChatbotProps {
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
+
 const AIChatbot = ({
   isOpen: controlledIsOpen,
   onOpenChange
 }: AIChatbotProps = {}) => {
+  const { toast } = useToast();
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
   const setIsOpen = (open: boolean) => {
@@ -94,15 +110,44 @@ const AIChatbot = ({
       setInternalIsOpen(open);
     }
   };
-  const [messages, setMessages] = useState<Message[]>([{
-    role: "assistant",
-    content: "Halo! 👋 Saya adalah asisten AI Mie Ayam Ranger. Saya bisa membantu kamu menemukan warung mie ayam terbaik berdasarkan preferensimu. Mau cari mie ayam seperti apa hari ini?"
-  }]);
+
+  // Load messages from localStorage on mount
+  const [messages, setMessages] = useState<Message[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load chat history:", e);
+    }
+    return [{
+      role: "assistant",
+      content: "Halo! 👋 Saya adalah asisten AI Mie Ayam Ranger. Saya bisa membantu kamu menemukan warung mie ayam terbaik berdasarkan preferensimu. Mau cari mie ayam seperti apa hari ini?",
+      timestamp: Date.now()
+    }];
+  });
+
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isButtonVisible, setIsButtonVisible] = useState(false);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Save messages to localStorage
+  useEffect(() => {
+    try {
+      // Keep only last MAX_MESSAGES
+      const toSave = messages.slice(-MAX_MESSAGES);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+    } catch (e) {
+      console.error("Failed to save chat history:", e);
+    }
+  }, [messages]);
 
   // Smooth auto-scroll to bottom when new messages arrive
   const scrollToBottom = useCallback(() => {
@@ -132,12 +177,37 @@ const AIChatbot = ({
       inputRef.current.focus();
     }
   }, [isOpen]);
+
+  const clearHistory = () => {
+    const initialMessage: Message = {
+      role: "assistant",
+      content: "Halo! 👋 Saya adalah asisten AI Mie Ayam Ranger. Saya bisa membantu kamu menemukan warung mie ayam terbaik berdasarkan preferensimu. Mau cari mie ayam seperti apa hari ini?",
+      timestamp: Date.now()
+    };
+    setMessages([initialMessage]);
+    toast({
+      title: "Riwayat dihapus",
+      description: "Percakapan telah direset",
+    });
+  };
+
+  const copyMessage = async (content: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex(null), 2000);
+    } catch (e) {
+      console.error("Failed to copy:", e);
+    }
+  };
+
   const handleSend = async (directMessage?: string) => {
     const messageToSend = directMessage || input.trim();
     if (!messageToSend || isLoading) return;
     const userMessage: Message = {
       role: "user",
-      content: messageToSend
+      content: messageToSend,
+      timestamp: Date.now()
     };
     setMessages(prev => [...prev, userMessage]);
     if (!directMessage) setInput("");
@@ -164,7 +234,8 @@ const AIChatbot = ({
       // Add empty assistant message to stream into
       setMessages(prev => [...prev, {
         role: "assistant",
-        content: ""
+        content: "",
+        timestamp: Date.now()
       }]);
       while (true) {
         const {
@@ -193,7 +264,8 @@ const AIChatbot = ({
                 const newMessages = [...prev];
                 newMessages[newMessages.length - 1] = {
                   role: "assistant",
-                  content: assistantContent
+                  content: assistantContent,
+                  timestamp: Date.now()
                 };
                 return newMessages;
               });
@@ -209,18 +281,44 @@ const AIChatbot = ({
       console.error("Chat error:", error);
       setMessages(prev => [...prev, {
         role: "assistant",
-        content: "Maaf, terjadi kesalahan. Silakan coba lagi."
+        content: "Maaf, terjadi kesalahan. Silakan coba lagi.",
+        timestamp: Date.now()
       }]);
     } finally {
       setIsLoading(false);
     }
   };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
   };
+
+  // Dynamic quick suggestions based on conversation length
+  const getQuickSuggestions = () => {
+    if (messages.length <= 2) {
+      return [
+        { label: "🏆 Rekomendasi terbaik", query: "Apa rekomendasi mie ayam terbaik?" },
+        { label: "💰 Mie ayam murah", query: "Mie ayam murah yang enak dimana?" },
+        { label: "🍜 Kuah terenak", query: "Mie ayam kuah paling enak?" },
+        { label: "🍝 Goreng favorit", query: "Mie ayam goreng yang recommended?" },
+      ];
+    } else if (messages.length <= 6) {
+      return [
+        { label: "📍 Di Jakarta", query: "Mie ayam enak di Jakarta?" },
+        { label: "🧹 Paling bersih", query: "Mie ayam dengan fasilitas paling bersih?" },
+        { label: "⭐ Editor's Choice", query: "Mie ayam yang dapat Editor's Choice?" },
+        { label: "🔥 Paling kompleks", query: "Mie ayam dengan rasa paling kompleks?" },
+      ];
+    }
+    return [
+      { label: "🆕 Review terbaru", query: "Review mie ayam terbaru?" },
+      { label: "🗺️ Bandingkan", query: "Bandingkan 3 mie ayam terbaik" },
+    ];
+  };
+
   return <>
       {/* Floating Button with entrance/exit animation */}
       <button 
@@ -248,31 +346,71 @@ const AIChatbot = ({
       {/* Chat Window */}
       {isOpen && <div className="fixed bottom-24 right-6 z-50 w-[360px] max-w-[calc(100vw-3rem)] bg-card border border-border rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-5 fade-in duration-300">
           {/* Header */}
-          <div className="bg-primary px-4 py-3 flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary-foreground animate-pulse" />
-            <h3 className="font-semibold text-primary-foreground">Mie Ayam AI Assistant</h3>
+          <div className="bg-primary px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary-foreground animate-pulse" />
+              <h3 className="font-semibold text-primary-foreground">Mie Ayam AI Assistant</h3>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 text-primary-foreground hover:bg-primary-foreground/20"
+              onClick={clearHistory}
+              title="Hapus riwayat"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
 
           {/* Messages */}
-          <ScrollArea className="h-[300px] p-4" ref={scrollAreaRef}>
+          <ScrollArea className="h-[320px] p-4" ref={scrollAreaRef}>
             <div className="space-y-4">
-              {messages.map((msg, idx) => <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} animate-fade-in`}>
-                  <div className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm whitespace-pre-wrap ${msg.role === "user" ? "bg-primary text-primary-foreground rounded-br-md" : "bg-muted text-foreground rounded-bl-md"}`}>
-                    {msg.content ? renderMessageContent(msg.content) : isLoading && idx === messages.length - 1 && <Loader2 className="h-4 w-4 animate-spin" />}
+              {messages.map((msg, idx) => (
+                <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} animate-fade-in group`}>
+                  <div className="flex flex-col max-w-[85%]">
+                    <div className={`px-4 py-2.5 rounded-2xl text-sm whitespace-pre-wrap ${msg.role === "user" ? "bg-primary text-primary-foreground rounded-br-md" : "bg-muted text-foreground rounded-bl-md"}`}>
+                      {msg.content ? renderMessageContent(msg.content) : isLoading && idx === messages.length - 1 && (
+                        <div className="flex items-center gap-2">
+                          <span className="flex gap-1">
+                            <span className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                            <span className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                            <span className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    {/* Message footer with timestamp and copy */}
+                    <div className={`flex items-center gap-2 mt-1 ${msg.role === "user" ? "justify-end" : "justify-start"} opacity-0 group-hover:opacity-100 transition-opacity`}>
+                      {msg.timestamp && (
+                        <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {formatTime(msg.timestamp)}
+                        </span>
+                      )}
+                      {msg.role === "assistant" && msg.content && (
+                        <button 
+                          onClick={() => copyMessage(msg.content, idx)}
+                          className="text-muted-foreground hover:text-foreground transition-colors"
+                          title="Salin"
+                        >
+                          {copiedIndex === idx ? (
+                            <Check className="h-3 w-3 text-green-500" />
+                          ) : (
+                            <Copy className="h-3 w-3" />
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>)}
+                </div>
+              ))}
             </div>
           </ScrollArea>
 
           {/* Quick Suggestions */}
-          {messages.length <= 2 && !isLoading && (
+          {!isLoading && (
             <div className="px-3 pb-2 flex flex-wrap gap-2">
-              {[
-                { label: "🏆 Rekomendasi terbaik", query: "Apa rekomendasi mie ayam terbaik?" },
-                { label: "💰 Mie ayam murah", query: "Mie ayam murah yang enak dimana?" },
-                { label: "🍜 Kuah terenak", query: "Mie ayam kuah paling enak?" },
-                { label: "🍝 Goreng favorit", query: "Mie ayam goreng yang recommended?" },
-              ].map((suggestion) => (
+              {getQuickSuggestions().map((suggestion) => (
                 <button
                   key={suggestion.label}
                   onClick={() => handleSend(suggestion.query)}

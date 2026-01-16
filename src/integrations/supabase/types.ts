@@ -14,12 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      review_views: {
+        Row: {
+          id: string
+          review_id: string | null
+          viewed_at: string | null
+          viewer_fingerprint: string | null
+        }
+        Insert: {
+          id?: string
+          review_id?: string | null
+          viewed_at?: string | null
+          viewer_fingerprint?: string | null
+        }
+        Update: {
+          id?: string
+          review_id?: string | null
+          viewed_at?: string | null
+          viewer_fingerprint?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_views_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           address: string
           ayam_bumbu: number | null
           ayam_potongan: number | null
           city: string
+          compare_count: number | null
           complexity: number | null
           created_at: string
           editor_choice: boolean | null
@@ -65,6 +95,7 @@ export type Database = {
           topping_tetelan: boolean | null
           topping_variasi_bumbu: boolean | null
           updated_at: string
+          view_count: number | null
           visit_date: string
         }
         Insert: {
@@ -72,6 +103,7 @@ export type Database = {
           ayam_bumbu?: number | null
           ayam_potongan?: number | null
           city: string
+          compare_count?: number | null
           complexity?: number | null
           created_at?: string
           editor_choice?: boolean | null
@@ -117,6 +149,7 @@ export type Database = {
           topping_tetelan?: boolean | null
           topping_variasi_bumbu?: boolean | null
           updated_at?: string
+          view_count?: number | null
           visit_date: string
         }
         Update: {
@@ -124,6 +157,7 @@ export type Database = {
           ayam_bumbu?: number | null
           ayam_potongan?: number | null
           city?: string
+          compare_count?: number | null
           complexity?: number | null
           created_at?: string
           editor_choice?: boolean | null
@@ -169,6 +203,7 @@ export type Database = {
           topping_tetelan?: boolean | null
           topping_variasi_bumbu?: boolean | null
           updated_at?: string
+          view_count?: number | null
           visit_date?: string
         }
         Relationships: []
@@ -200,6 +235,7 @@ export type Database = {
           place_name: string
           status: string
           updated_at: string
+          vote_count: number | null
         }
         Insert: {
           created_at?: string
@@ -209,6 +245,7 @@ export type Database = {
           place_name: string
           status?: string
           updated_at?: string
+          vote_count?: number | null
         }
         Update: {
           created_at?: string
@@ -218,8 +255,38 @@ export type Database = {
           place_name?: string
           status?: string
           updated_at?: string
+          vote_count?: number | null
         }
         Relationships: []
+      }
+      wishlist_votes: {
+        Row: {
+          created_at: string | null
+          id: string
+          voter_identifier: string
+          wishlist_entry_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          voter_identifier: string
+          wishlist_entry_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          voter_identifier?: string
+          wishlist_entry_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wishlist_votes_wishlist_entry_id_fkey"
+            columns: ["wishlist_entry_id"]
+            isOneToOne: false
+            referencedRelation: "wishlist_entries"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
