@@ -5,6 +5,8 @@ import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
 import { Badge } from "./ui/badge";
 import RadarChart from "./RadarChart";
 import OptimizedImage from "./OptimizedImage";
+import ViewCounter from "./ViewCounter";
+import TrendingBadge from "./TrendingBadge";
 
 interface ReviewCardProps {
   id: string;
@@ -21,6 +23,8 @@ interface ReviewCardProps {
   overall_score?: number;
   editor_choice?: boolean;
   take_it_or_leave_it?: boolean;
+  view_count?: number;
+  isTrending?: boolean;
   scores: {
     kuah: number;
     mie: number;
@@ -58,6 +62,8 @@ const ReviewCard = ({
   overall_score,
   editor_choice,
   take_it_or_leave_it,
+  view_count,
+  isTrending,
   scores,
   kuah_kekentalan,
   kuah_kaldu,
@@ -150,6 +156,7 @@ const ReviewCard = ({
             
             <div className="absolute top-2 right-2 flex flex-col gap-1 z-10 max-w-[60%]">
               <div className="flex flex-wrap gap-1 justify-end">
+                {isTrending && <TrendingBadge />}
                 <Badge variant={product_type === "kuah" ? "default" : "secondary"} className="shadow-md text-[10px] md:text-xs px-1.5 py-0.5">
                   {product_type === "kuah" ? "🍜" : "🍝"}
                 </Badge>
@@ -202,9 +209,14 @@ const ReviewCard = ({
               <Calendar className="mr-1 h-3 w-3 md:h-4 md:w-4 flex-shrink-0" />
               <span>{new Date(visit_date).toLocaleDateString('id-ID')}</span>
             </div>
-            <div className="flex items-center">
-              <DollarSign className="mr-1 h-3 w-3 md:h-4 md:w-4 flex-shrink-0" />
-              <span>Rp {price.toLocaleString('id-ID')}</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <DollarSign className="mr-1 h-3 w-3 md:h-4 md:w-4 flex-shrink-0" />
+                <span>Rp {price.toLocaleString('id-ID')}</span>
+              </div>
+              {view_count !== undefined && view_count > 0 && (
+                <ViewCounter count={view_count} size="sm" />
+              )}
             </div>
           </div>
         </CardHeader>

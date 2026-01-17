@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { Star, MapPin, Award, AlertTriangle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import ViewCounter from "./ViewCounter";
+import TrendingBadge from "./TrendingBadge";
 
 interface HallOfFameCardProps {
   id: string;
@@ -16,6 +18,8 @@ interface HallOfFameCardProps {
   price: number;
   editor_choice?: boolean;
   take_it_or_leave_it?: boolean;
+  view_count?: number;
+  isTrending?: boolean;
 }
 
 const HallOfFameCard = ({
@@ -32,6 +36,8 @@ const HallOfFameCard = ({
   price,
   editor_choice,
   take_it_or_leave_it,
+  view_count,
+  isTrending,
 }: HallOfFameCardProps) => {
   const displayImage = image_urls?.[0] || image_url || "/placeholder.svg";
   const score = Math.min(10, overall_score || 0);
@@ -110,9 +116,12 @@ const HallOfFameCard = ({
           <div className={`absolute top-3 left-3 w-10 h-10 rounded-lg bg-gradient-to-br ${getRankBadgeStyle(rank)} flex items-center justify-center font-bold text-lg shadow-lg`}>
             {rank}
           </div>
-          {/* Product type badge */}
-          <div className="absolute top-3 right-3 bg-background/90 backdrop-blur-sm text-foreground text-xs px-2.5 py-1 rounded-full font-medium">
-            {product_type === "kuah" ? "🍜 Kuah" : "🍝 Goreng"}
+          {/* Product type badge and trending */}
+          <div className="absolute top-3 right-3 flex gap-1.5">
+            {isTrending && <TrendingBadge />}
+            <div className="bg-background/90 backdrop-blur-sm text-foreground text-xs px-2.5 py-1 rounded-full font-medium">
+              {product_type === "kuah" ? "🍜 Kuah" : "🍝 Goreng"}
+            </div>
           </div>
           {/* Editor badges - prominent bottom overlay */}
           {(editor_choice || take_it_or_leave_it) && (
@@ -148,9 +157,14 @@ const HallOfFameCard = ({
           <h3 className="font-bold text-foreground text-base leading-tight group-hover:text-primary transition-colors line-clamp-2 mb-2">
             {outlet_name}
           </h3>
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <MapPin className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">{city}</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <MapPin className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">{city}</span>
+            </div>
+            {view_count !== undefined && view_count > 0 && (
+              <ViewCounter count={view_count} size="sm" />
+            )}
           </div>
         </div>
       </div>
@@ -202,8 +216,11 @@ const HallOfFameCard = ({
             <MapPin className="h-3 w-3 shrink-0" />
             <span className="truncate">{city}</span>
           </div>
-          <div className="text-xs text-muted-foreground mt-0.5">
-            Rp{price.toLocaleString("id-ID")}
+          <div className="flex items-center justify-between mt-0.5">
+            <span className="text-xs text-muted-foreground">Rp{price.toLocaleString("id-ID")}</span>
+            {view_count !== undefined && view_count > 0 && (
+              <ViewCounter count={view_count} size="sm" />
+            )}
           </div>
         </div>
 
@@ -242,6 +259,10 @@ const HallOfFameCard = ({
             </div>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
               <span className="text-xs text-muted-foreground">Rp{price.toLocaleString("id-ID")}</span>
+              {view_count !== undefined && view_count > 0 && (
+                <ViewCounter count={view_count} size="sm" />
+              )}
+              {isTrending && <TrendingBadge />}
               <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded">
                 {product_type === "kuah" ? "🍜 Kuah" : "🍝 Goreng"}
               </span>
