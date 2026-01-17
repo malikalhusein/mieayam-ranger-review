@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trophy, TrendingUp, Search, AlertCircle, SlidersHorizontal, Loader2, Coins, Clock, ArrowUpDown, Map } from "lucide-react";
+import { Trophy, TrendingUp, Search, AlertCircle, SlidersHorizontal, Loader2, Coins, Clock, ArrowUpDown, Map, Flame } from "lucide-react";
 import AIChatbot from "@/components/AIChatbot";
 import PreferenceWizard from "@/components/PreferenceWizard";
 import { useToast } from "@/hooks/use-toast";
@@ -31,6 +31,8 @@ const Home = () => {
   const [topReviews, setTopReviews] = useState<any[]>([]);
   const [budgetReviews, setBudgetReviews] = useState<any[]>([]);
   const [recentReviews, setRecentReviews] = useState<any[]>([]);
+  const [trendingReviews, setTrendingReviews] = useState<any[]>([]);
+  const [trendingIds, setTrendingIds] = useState<Set<string>>(new Set());
   const [filteredReviews, setFilteredReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showLoadingScreen, setShowLoadingScreen] = useState(true);
@@ -147,6 +149,15 @@ const Home = () => {
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .slice(0, 5);
       setRecentReviews(recent);
+
+      // Get trending reviews (top 5 by view_count)
+      const trending = [...uniqueOutletReviews]
+        .filter(r => (r.view_count || 0) > 0)
+        .sort((a, b) => (b.view_count || 0) - (a.view_count || 0))
+        .slice(0, 5);
+      setTrendingReviews(trending);
+      setTrendingIds(new Set(trending.map(r => r.id)));
+
       setError(null);
     } catch (error: any) {
       const errorMessage = error.message || "Gagal memuat data review";
@@ -363,12 +374,12 @@ const Home = () => {
           
           {/* Desktop: Grid tile layout */}
           <div className="hidden lg:grid grid-cols-5 gap-4">
-            {topReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} editor_choice={review.editor_choice} take_it_or_leave_it={review.take_it_or_leave_it} />)}
+            {topReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} editor_choice={review.editor_choice} take_it_or_leave_it={review.take_it_or_leave_it} view_count={review.view_count} isTrending={trendingIds.has(review.id)} />)}
           </div>
           
           {/* Tablet & Mobile: Stacked list layout */}
           <div className="lg:hidden max-w-2xl mx-auto space-y-3">
-            {topReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} editor_choice={review.editor_choice} take_it_or_leave_it={review.take_it_or_leave_it} />)}
+            {topReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} editor_choice={review.editor_choice} take_it_or_leave_it={review.take_it_or_leave_it} view_count={review.view_count} isTrending={trendingIds.has(review.id)} />)}
           </div>
         </section>}
 
@@ -387,12 +398,12 @@ const Home = () => {
           
           {/* Desktop: Grid tile layout */}
           <div className="hidden lg:grid grid-cols-5 gap-4">
-            {budgetReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} editor_choice={review.editor_choice} take_it_or_leave_it={review.take_it_or_leave_it} />)}
+            {budgetReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} editor_choice={review.editor_choice} take_it_or_leave_it={review.take_it_or_leave_it} view_count={review.view_count} isTrending={trendingIds.has(review.id)} />)}
           </div>
           
           {/* Tablet & Mobile: Stacked list layout */}
           <div className="lg:hidden max-w-2xl mx-auto space-y-3">
-            {budgetReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} editor_choice={review.editor_choice} take_it_or_leave_it={review.take_it_or_leave_it} />)}
+            {budgetReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} editor_choice={review.editor_choice} take_it_or_leave_it={review.take_it_or_leave_it} view_count={review.view_count} isTrending={trendingIds.has(review.id)} />)}
           </div>
         </section>}
 
@@ -411,12 +422,36 @@ const Home = () => {
           
           {/* Desktop: Grid tile layout */}
           <div className="hidden lg:grid grid-cols-5 gap-4">
-            {recentReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} editor_choice={review.editor_choice} take_it_or_leave_it={review.take_it_or_leave_it} />)}
+            {recentReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} editor_choice={review.editor_choice} take_it_or_leave_it={review.take_it_or_leave_it} view_count={review.view_count} isTrending={trendingIds.has(review.id)} />)}
           </div>
           
           {/* Tablet & Mobile: Stacked list layout */}
           <div className="lg:hidden max-w-2xl mx-auto space-y-3">
-            {recentReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} editor_choice={review.editor_choice} take_it_or_leave_it={review.take_it_or_leave_it} />)}
+            {recentReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} editor_choice={review.editor_choice} take_it_or_leave_it={review.take_it_or_leave_it} view_count={review.view_count} isTrending={trendingIds.has(review.id)} />)}
+          </div>
+        </section>}
+
+      {/* Trending Reviews Section */}
+      {trendingReviews.length > 0 && <section className="container py-16 bg-gradient-to-b from-orange-500/5 to-red-500/5" aria-labelledby="trending-heading">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500/20 to-red-500/20 px-4 py-2 rounded-full mb-4">
+              <Flame className="h-5 w-5 text-orange-500" aria-hidden="true" />
+              <span className="text-sm font-medium bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">Trending Now</span>
+            </div>
+            <h2 id="trending-heading" className="text-3xl md:text-4xl font-bold text-foreground">
+              🔥 Paling Banyak Dilihat
+            </h2>
+            <p className="text-muted-foreground mt-2">Review yang sedang populer dan paling banyak dikunjungi</p>
+          </div>
+          
+          {/* Desktop: Grid tile layout */}
+          <div className="hidden lg:grid grid-cols-5 gap-4">
+            {trendingReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} editor_choice={review.editor_choice} take_it_or_leave_it={review.take_it_or_leave_it} view_count={review.view_count} isTrending={true} />)}
+          </div>
+          
+          {/* Tablet & Mobile: Stacked list layout */}
+          <div className="lg:hidden max-w-2xl mx-auto space-y-3">
+            {trendingReviews.map((review, index) => <HallOfFameCard key={review.id} id={review.id} slug={review.slug} rank={index + 1} outlet_name={review.outlet_name} address={review.address} city={review.city} overall_score={review.overall_score} image_url={review.image_url} image_urls={review.image_urls} product_type={review.product_type} price={review.price} editor_choice={review.editor_choice} take_it_or_leave_it={review.take_it_or_leave_it} view_count={review.view_count} isTrending={true} />)}
           </div>
         </section>}
 
@@ -578,7 +613,7 @@ const Home = () => {
             </p>
           </div> : <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-              {displayedReviews.map(review => <ReviewCard key={review.id} id={review.id} slug={review.slug} outlet_name={review.outlet_name} address={review.address} city={review.city} visit_date={review.visit_date} price={review.price} product_type={review.product_type} notes={review.notes} image_url={review.image_url} image_urls={review.image_urls} overall_score={review.overall_score} editor_choice={review.editor_choice} take_it_or_leave_it={review.take_it_or_leave_it} scores={review.scores} kuah_kekentalan={review.kuah_kekentalan} kuah_kaldu={review.kuah_kaldu} kuah_keseimbangan={review.kuah_keseimbangan} mie_tekstur={review.mie_tekstur} ayam_bumbu={review.ayam_bumbu} />)}
+              {displayedReviews.map(review => <ReviewCard key={review.id} id={review.id} slug={review.slug} outlet_name={review.outlet_name} address={review.address} city={review.city} visit_date={review.visit_date} price={review.price} product_type={review.product_type} notes={review.notes} image_url={review.image_url} image_urls={review.image_urls} overall_score={review.overall_score} editor_choice={review.editor_choice} take_it_or_leave_it={review.take_it_or_leave_it} view_count={review.view_count} isTrending={trendingIds.has(review.id)} scores={review.scores} kuah_kekentalan={review.kuah_kekentalan} kuah_kaldu={review.kuah_kaldu} kuah_keseimbangan={review.kuah_keseimbangan} mie_tekstur={review.mie_tekstur} ayam_bumbu={review.ayam_bumbu} />)}
             </div>
             
             {/* Infinite scroll loader */}

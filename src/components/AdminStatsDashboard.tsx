@@ -8,7 +8,10 @@ import {
   Star, 
   Award, 
   AlertTriangle,
-  Utensils
+  Utensils,
+  Eye,
+  GitCompare,
+  Flame
 } from "lucide-react";
 
 interface Review {
@@ -21,6 +24,8 @@ interface Review {
   editor_choice?: boolean;
   take_it_or_leave_it?: boolean;
   created_at: string;
+  view_count?: number;
+  compare_count?: number;
 }
 
 interface AdminStatsDashboardProps {
@@ -100,6 +105,21 @@ const AdminStatsDashboard = ({ reviews }: AdminStatsDashboardProps) => {
       "9-10": reviews.filter(r => (r.overall_score || 0) >= 9).length,
     };
 
+    // View analytics
+    const totalViews = reviews.reduce((sum, r) => sum + (r.view_count || 0), 0);
+    const avgViews = totalViews / reviews.length || 0;
+    const mostViewed = [...reviews]
+      .filter(r => (r.view_count || 0) > 0)
+      .sort((a, b) => (b.view_count || 0) - (a.view_count || 0))
+      .slice(0, 5);
+
+    // Compare analytics
+    const totalCompares = reviews.reduce((sum, r) => sum + (r.compare_count || 0), 0);
+    const mostCompared = [...reviews]
+      .filter(r => (r.compare_count || 0) > 0)
+      .sort((a, b) => (b.compare_count || 0) - (a.compare_count || 0))
+      .slice(0, 5);
+
     return {
       totalReviews,
       avgScore,
@@ -113,6 +133,11 @@ const AdminStatsDashboard = ({ reviews }: AdminStatsDashboardProps) => {
       takeItOrLeaveItCount,
       monthlyTrend,
       scoreRanges,
+      totalViews,
+      avgViews,
+      mostViewed,
+      totalCompares,
+      mostCompared,
     };
   }, [reviews]);
 
@@ -129,7 +154,7 @@ const AdminStatsDashboard = ({ reviews }: AdminStatsDashboardProps) => {
   return (
     <div className="space-y-6">
       {/* Main Stats Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Review</CardTitle>
@@ -160,9 +185,6 @@ const AdminStatsDashboard = ({ reviews }: AdminStatsDashboardProps) => {
             <div className="text-2xl font-bold text-green-600 dark:text-green-400">
               Rp{stats.avgPrice.toLocaleString('id-ID', { maximumFractionDigits: 0 })}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Rp{stats.minPrice.toLocaleString('id-ID')} - Rp{stats.maxPrice.toLocaleString('id-ID')}
-            </p>
           </CardContent>
         </Card>
 
@@ -177,7 +199,89 @@ const AdminStatsDashboard = ({ reviews }: AdminStatsDashboardProps) => {
             </div>
           </CardContent>
         </Card>
+
+        <Card className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border-orange-500/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Views</CardTitle>
+            <Eye className="h-4 w-4 text-orange-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">{stats.totalViews.toLocaleString('id-ID')}</div>
+            <p className="text-xs text-muted-foreground">avg: {stats.avgViews.toFixed(1)}/review</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 border-purple-500/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Compares</CardTitle>
+            <GitCompare className="h-4 w-4 text-purple-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">{stats.totalCompares.toLocaleString('id-ID')}</div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Engagement Analytics Row */}
+      {(stats.mostViewed.length > 0 || stats.mostCompared.length > 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Most Viewed */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Flame className="h-4 w-4 text-orange-500" />
+                Most Viewed Reviews
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {stats.mostViewed.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Belum ada data views</p>
+              ) : (
+                stats.mostViewed.map((review, index) => (
+                  <div key={review.id} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-sm font-bold text-muted-foreground w-4">{index + 1}</span>
+                      <span className="text-sm font-medium truncate">{review.outlet_name}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-orange-600 dark:text-orange-400">
+                      <Eye className="h-3 w-3" />
+                      <span className="text-sm font-bold">{(review.view_count || 0).toLocaleString('id-ID')}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Most Compared */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <GitCompare className="h-4 w-4 text-purple-500" />
+                Most Compared Reviews
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {stats.mostCompared.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Belum ada data comparison</p>
+              ) : (
+                stats.mostCompared.map((review, index) => (
+                  <div key={review.id} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-sm font-bold text-muted-foreground w-4">{index + 1}</span>
+                      <span className="text-sm font-medium truncate">{review.outlet_name}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-purple-600 dark:text-purple-400">
+                      <GitCompare className="h-3 w-3" />
+                      <span className="text-sm font-bold">{(review.compare_count || 0).toLocaleString('id-ID')}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Second Row - Badges & Type */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
