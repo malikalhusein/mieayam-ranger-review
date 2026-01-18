@@ -81,7 +81,7 @@ const Navbar = () => {
         </Link>
         
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-6">
+        <div className="hidden lg:flex items-center space-x-6">
           <Link 
             to="/" 
             className="text-sm font-medium transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-4"
@@ -134,7 +134,7 @@ const Navbar = () => {
 
         {/* Mobile Navigation */}
         <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild className="md:hidden">
+          <SheetTrigger asChild className="lg:hidden">
             <Button variant="ghost" size="sm" aria-label="Open menu">
               <Menu className="h-5 w-5" />
             </Button>
