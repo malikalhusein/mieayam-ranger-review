@@ -293,6 +293,31 @@ const Admin = () => {
     setExistingMenuImageUrl(null);
   };
 
+  // Create review from wishlist entry
+  const handleCreateReviewFromWishlist = (entry: { place_name: string; location: string; notes: string | null }) => {
+    cancelEdit();
+    setShowCreateForm(true);
+    
+    // Parse location to extract address and city if possible
+    const locationParts = entry.location.split(",").map(s => s.trim());
+    const city = locationParts.length > 1 ? locationParts[locationParts.length - 1] : entry.location;
+    const address = entry.location;
+    
+    // Pre-fill form with wishlist data
+    form.setValue("outlet_name", entry.place_name);
+    form.setValue("address", address);
+    form.setValue("city", city);
+    form.setValue("visit_date", new Date().toISOString().split("T")[0]);
+    if (entry.notes) {
+      form.setValue("notes", `Dari wishlist: ${entry.notes}`);
+    }
+    
+    toast({ 
+      title: "Form siap diisi", 
+      description: `Review untuk "${entry.place_name}" - lengkapi data kunjungan dan penilaian` 
+    });
+  };
+
   const deleteReview = async (id: string) => {
     if (!confirm("Yakin ingin menghapus review ini?")) return;
 
@@ -855,7 +880,7 @@ const Admin = () => {
             </Card>
 
             {/* Wishlist Management */}
-            <WishlistAdmin />
+            <WishlistAdmin onCreateReview={handleCreateReviewFromWishlist} />
           </>
         )}
 

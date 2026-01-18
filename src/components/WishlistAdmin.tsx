@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Check, X, MapPin, Loader2, Store, RotateCcw, Trash2 } from "lucide-react";
+import { Check, X, MapPin, Loader2, Store, RotateCcw, Trash2, ClipboardEdit } from "lucide-react";
 
 interface WishlistEntry {
   id: string;
@@ -16,7 +16,11 @@ interface WishlistEntry {
   created_at: string;
 }
 
-const WishlistAdmin = () => {
+interface WishlistAdminProps {
+  onCreateReview?: (entry: WishlistEntry) => void;
+}
+
+const WishlistAdmin = ({ onCreateReview }: WishlistAdminProps) => {
   const { toast } = useToast();
   const [entries, setEntries] = useState<WishlistEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -217,23 +221,41 @@ const WishlistAdmin = () => {
                       <MapPin className="h-3 w-3" />
                       {entry.location}
                     </p>
+                    {entry.notes && (
+                      <p className="text-sm mt-1 italic text-muted-foreground">"{entry.notes}"</p>
+                    )}
                     <Badge variant="outline" className="text-xs mt-1 bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400">
                       Approved
                     </Badge>
                   </div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => deleteEntry(entry.id)}
-                    disabled={updating === entry.id}
-                    title="Delete"
-                  >
-                    {updating === entry.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-4 w-4" />
+                  <div className="flex gap-2">
+                    {onCreateReview && (
+                      <Button
+                        size="sm"
+                        variant="default"
+                        onClick={() => onCreateReview(entry)}
+                        disabled={updating === entry.id}
+                        title="Buat Review"
+                        className="gap-1"
+                      >
+                        <ClipboardEdit className="h-4 w-4" />
+                        <span className="hidden sm:inline">Review</span>
+                      </Button>
                     )}
-                  </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => deleteEntry(entry.id)}
+                      disabled={updating === entry.id}
+                      title="Delete"
+                    >
+                      {updating === entry.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
               ))
             )}
