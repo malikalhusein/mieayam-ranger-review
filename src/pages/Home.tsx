@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import SEOHead from "@/components/SEOHead";
+import OrganizationSchema from "@/components/OrganizationSchema";
+import CollectionSchema from "@/components/CollectionSchema";
 import Footer from "@/components/Footer";
 import ReviewCard from "@/components/ReviewCard";
 import HallOfFameCard from "@/components/HallOfFameCard";
@@ -328,7 +330,15 @@ const Home = () => {
       </div>;
   }
   return <div className="min-h-screen bg-gradient-subtle">
-      <SEOHead />
+      <SEOHead 
+        title="Mie Ayam Ranger - Review Warung Mie Ayam Terbaik Indonesia"
+        description="Platform review mie ayam Indonesia dengan penilaian objektif. Temukan warung mie ayam terbaik berdasarkan rasa, harga, fasilitas. Hall of Fame, Budget Pick, dan perbandingan."
+        keywords="mie ayam, review mie ayam, kuliner indonesia, warung mie ayam, mie ayam enak, rekomendasi mie ayam, mie ayam terbaik, mie ayam jakarta, mie ayam bandung, mie ayam solo"
+        ogUrl="https://mieayamranger.web.id"
+      />
+      <OrganizationSchema />
+      <CollectionSchema reviews={topReviews} title="Top 5 Mie Ayam Terbaik Indonesia" />
+      <Navbar />
       <Navbar />
       
       {/* Error Alert */}

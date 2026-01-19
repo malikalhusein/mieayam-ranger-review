@@ -1,0 +1,78 @@
+# Mie Ayam Ranger - llms.txt
+
+> Platform review mie ayam Indonesia dengan sistem penilaian objektif dan transparan
+
+## Tentang Situs
+
+Mie Ayam Ranger adalah direktori dan platform review warung mie ayam di Indonesia. Situs ini menggunakan sistem penilaian yang terstruktur dan objektif untuk membantu pengguna menemukan warung mie ayam terbaik.
+
+## Informasi Kunci
+
+- **Nama Situs**: Mie Ayam Ranger
+- **URL**: https://mieayamranger.web.id
+- **Bahasa**: Indonesia (id-ID)
+- **Kategori**: Kuliner, Review Makanan, Direktori Restoran
+- **Fokus**: Review warung mie ayam di Indonesia
+
+## Konten Utama
+
+### Review Mie Ayam
+Setiap review mencakup penilaian objektif berdasarkan:
+- **Kualitas Mie**: Tekstur dan kematangan mie
+- **Kualitas Ayam**: Bumbu dan potongan ayam
+- **Kuah/Goreng**: Untuk mie ayam kuah (kekentalan, keseimbangan, kaldu, aroma, kejernihan) atau goreng (keseimbangan minyak, bumbu tumisan, aroma tumisan)
+- **Fasilitas**: Kebersihan, alat makan, kenyamanan tempat
+- **Service**: Durasi penyajian
+- **Harga**: Kategori harga (murah/standar/premium)
+
+### Sistem Penilaian
+- Skor keseluruhan: 0-10
+- Kategori penilaian menggunakan skala 1-5
+- Perhitungan skor transparan dan konsisten
+
+### Fitur Utama
+1. **Hall of Fame**: Warung mie ayam dengan skor tertinggi
+2. **Budget Pick**: Rekomendasi mie ayam dengan harga terjangkau dan kualitas baik
+3. **Perceptual Map**: Visualisasi karakteristik mie ayam (kompleksitas vs manis)
+4. **Perbandingan**: Membandingkan beberapa warung mie ayam
+5. **Wishlist**: Rekomendasi warung dari pengguna
+
+## Halaman Tersedia
+
+- `/` - Halaman utama dengan daftar review dan ranking
+- `/reviews/{slug}` - Detail review individual
+- `/compare` - Perbandingan antar warung
+- `/about` - Tentang Mie Ayam Ranger dan metodologi penilaian
+- `/wishlist` - Rekomendasi warung dari komunitas
+- `/donation` - Dukungan untuk platform
+
+## Data Terstruktur
+
+Situs ini menggunakan Schema.org untuk:
+- Restaurant reviews
+- LocalBusiness listings
+- Breadcrumb navigation
+- Organization information
+
+## API & Sitemap
+
+- Sitemap: https://mieayamranger.web.id/sitemap.xml
+- Format: XML Sitemap Protocol
+
+## Kebijakan Konten
+
+- Semua review bersifat independen dan objektif
+- Tidak menerima pembayaran untuk review positif
+- Metodologi penilaian transparan dan konsisten
+- Data lokasi dan harga diperbarui secara berkala
+
+## Kontak
+
+Untuk informasi lebih lanjut, kunjungi halaman About di https://mieayamranger.web.id/about
+
+## Lisensi Data
+
+Konten review dan penilaian adalah hak cipta Mie Ayam Ranger. Data dapat direferensikan dengan atribusi yang sesuai.
+
+---
+Terakhir diperbarui: 2026-01-19

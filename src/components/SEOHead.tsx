@@ -9,6 +9,9 @@ interface SEOHeadProps {
   type?: "website" | "article";
   author?: string;
   publishedTime?: string;
+  modifiedTime?: string;
+  section?: string;
+  noIndex?: boolean;
 }
 
 const SEOHead = ({
@@ -20,6 +23,9 @@ const SEOHead = ({
   type = "website",
   author = "Mie Ayam Ranger",
   publishedTime,
+  modifiedTime,
+  section,
+  noIndex = false,
 }: SEOHeadProps) => {
   useEffect(() => {
     // Update document title
@@ -38,6 +44,19 @@ const SEOHead = ({
       element.content = content;
     };
 
+    // Helper function to update or create link tag
+    const setLinkTag = (rel: string, href: string, type?: string) => {
+      let element = document.querySelector(`link[rel="${rel}"]`) as HTMLLinkElement;
+      
+      if (!element) {
+        element = document.createElement("link");
+        element.rel = rel;
+        document.head.appendChild(element);
+      }
+      element.href = href;
+      if (type) element.type = type;
+    };
+
     // Basic meta tags
     setMetaTag("description", description);
     setMetaTag("keywords", keywords);
@@ -47,7 +66,10 @@ const SEOHead = ({
     setMetaTag("og:title", title, true);
     setMetaTag("og:description", description, true);
     setMetaTag("og:type", type, true);
-    setMetaTag("og:image", ogImage, true);
+    setMetaTag("og:image", ogImage.startsWith("http") ? ogImage : `https://mieayamranger.web.id${ogImage}`, true);
+    setMetaTag("og:image:alt", title, true);
+    setMetaTag("og:image:width", "1200", true);
+    setMetaTag("og:image:height", "630", true);
     if (ogUrl) {
       setMetaTag("og:url", ogUrl, true);
     }
@@ -56,21 +78,53 @@ const SEOHead = ({
 
     // Twitter Card tags
     setMetaTag("twitter:card", "summary_large_image");
+    setMetaTag("twitter:site", "@mieayamranger");
+    setMetaTag("twitter:creator", "@mieayamranger");
     setMetaTag("twitter:title", title);
     setMetaTag("twitter:description", description);
-    setMetaTag("twitter:image", ogImage);
+    setMetaTag("twitter:image", ogImage.startsWith("http") ? ogImage : `https://mieayamranger.web.id${ogImage}`);
+    setMetaTag("twitter:image:alt", title);
 
     // Article specific
-    if (type === "article" && publishedTime) {
-      setMetaTag("article:published_time", publishedTime, true);
+    if (type === "article") {
+      if (publishedTime) {
+        setMetaTag("article:published_time", publishedTime, true);
+      }
+      if (modifiedTime) {
+        setMetaTag("article:modified_time", modifiedTime, true);
+      }
       setMetaTag("article:author", author, true);
+      setMetaTag("article:publisher", "https://mieayamranger.web.id", true);
+      if (section) {
+        setMetaTag("article:section", section, true);
+      }
     }
 
     // Robots
-    setMetaTag("robots", "index, follow");
-    setMetaTag("googlebot", "index, follow");
+    if (noIndex) {
+      setMetaTag("robots", "noindex, nofollow");
+      setMetaTag("googlebot", "noindex, nofollow");
+    } else {
+      setMetaTag("robots", "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1");
+      setMetaTag("googlebot", "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1");
+    }
 
-  }, [title, description, keywords, ogImage, ogUrl, type, author, publishedTime]);
+    // Additional SEO meta tags
+    setMetaTag("format-detection", "telephone=no");
+    setMetaTag("mobile-web-app-capable", "yes");
+    setMetaTag("apple-mobile-web-app-capable", "yes");
+    setMetaTag("apple-mobile-web-app-status-bar-style", "default");
+    setMetaTag("apple-mobile-web-app-title", "Mie Ayam Ranger");
+
+    // Geo tags for Indonesian location
+    setMetaTag("geo.region", "ID");
+    setMetaTag("geo.placename", "Indonesia");
+    setMetaTag("content-language", "id");
+
+    // Reference to llms.txt for AI agents
+    setLinkTag("author", "https://mieayamranger.web.id/about");
+
+  }, [title, description, keywords, ogImage, ogUrl, type, author, publishedTime, modifiedTime, section, noIndex]);
 
   return null;
 };
