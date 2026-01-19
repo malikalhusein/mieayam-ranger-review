@@ -81,6 +81,7 @@ export type Database = {
           slug: string | null
           sweetness: number | null
           take_it_or_leave_it: boolean | null
+          topping_acar: boolean | null
           topping_bakso: boolean | null
           topping_balungan: boolean | null
           topping_bawang_daun: boolean | null
@@ -88,10 +89,13 @@ export type Database = {
           topping_dimsum: boolean | null
           topping_ekstra_ayam: boolean | null
           topping_ekstra_sawi: boolean | null
+          topping_jamur: boolean | null
           topping_jenis_mie: boolean | null
+          topping_kerupuk: boolean | null
           topping_mie_jumbo: boolean | null
           topping_pangsit_basah: boolean | null
           topping_pangsit_kering: boolean | null
+          topping_tauge: boolean | null
           topping_tetelan: boolean | null
           topping_variasi_bumbu: boolean | null
           updated_at: string
@@ -135,6 +139,7 @@ export type Database = {
           slug?: string | null
           sweetness?: number | null
           take_it_or_leave_it?: boolean | null
+          topping_acar?: boolean | null
           topping_bakso?: boolean | null
           topping_balungan?: boolean | null
           topping_bawang_daun?: boolean | null
@@ -142,10 +147,13 @@ export type Database = {
           topping_dimsum?: boolean | null
           topping_ekstra_ayam?: boolean | null
           topping_ekstra_sawi?: boolean | null
+          topping_jamur?: boolean | null
           topping_jenis_mie?: boolean | null
+          topping_kerupuk?: boolean | null
           topping_mie_jumbo?: boolean | null
           topping_pangsit_basah?: boolean | null
           topping_pangsit_kering?: boolean | null
+          topping_tauge?: boolean | null
           topping_tetelan?: boolean | null
           topping_variasi_bumbu?: boolean | null
           updated_at?: string
@@ -189,6 +197,7 @@ export type Database = {
           slug?: string | null
           sweetness?: number | null
           take_it_or_leave_it?: boolean | null
+          topping_acar?: boolean | null
           topping_bakso?: boolean | null
           topping_balungan?: boolean | null
           topping_bawang_daun?: boolean | null
@@ -196,10 +205,13 @@ export type Database = {
           topping_dimsum?: boolean | null
           topping_ekstra_ayam?: boolean | null
           topping_ekstra_sawi?: boolean | null
+          topping_jamur?: boolean | null
           topping_jenis_mie?: boolean | null
+          topping_kerupuk?: boolean | null
           topping_mie_jumbo?: boolean | null
           topping_pangsit_basah?: boolean | null
           topping_pangsit_kering?: boolean | null
+          topping_tauge?: boolean | null
           topping_tetelan?: boolean | null
           topping_variasi_bumbu?: boolean | null
           updated_at?: string
