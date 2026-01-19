@@ -1,32 +1,99 @@
 # Robots.txt for mieayamranger.web.id
-# Last updated: 2026-01-04
+# Last updated: 2026-01-19
 
-# Allow all major search engine crawlers
+# ===========================================
+# SEARCH ENGINE CRAWLERS
+# ===========================================
+
+# Google
 User-agent: Googlebot
 Allow: /
 Crawl-delay: 1
 
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Googlebot-News
+Allow: /
+
+# Bing
 User-agent: Bingbot
 Allow: /
 Crawl-delay: 1
 
+# Yahoo
 User-agent: Slurp
 Allow: /
 Crawl-delay: 1
 
+# DuckDuckGo
 User-agent: DuckDuckBot
 Allow: /
 Crawl-delay: 1
 
+# Baidu
 User-agent: Baiduspider
 Allow: /
 Crawl-delay: 2
 
+# Yandex
 User-agent: YandexBot
 Allow: /
 Crawl-delay: 2
 
-# Social media crawlers for rich previews
+# ===========================================
+# AI AGENTS & LLM CRAWLERS
+# ===========================================
+
+# OpenAI GPT / ChatGPT
+User-agent: GPTBot
+Allow: /
+Crawl-delay: 2
+
+User-agent: ChatGPT-User
+Allow: /
+
+# Anthropic Claude
+User-agent: anthropic-ai
+Allow: /
+Crawl-delay: 2
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+# Google AI (Gemini, Bard)
+User-agent: Google-Extended
+Allow: /
+Crawl-delay: 2
+
+# Perplexity AI
+User-agent: PerplexityBot
+Allow: /
+Crawl-delay: 2
+
+# Cohere AI
+User-agent: cohere-ai
+Allow: /
+
+# Meta AI
+User-agent: Meta-ExternalAgent
+Allow: /
+
+User-agent: FacebookBot
+Allow: /
+
+# Common Crawl (used by many AI models)
+User-agent: CCBot
+Allow: /
+Crawl-delay: 3
+
+# ===========================================
+# SOCIAL MEDIA CRAWLERS
+# ===========================================
+
 User-agent: Twitterbot
 Allow: /
 
@@ -42,11 +109,16 @@ Allow: /
 User-agent: TelegramBot
 Allow: /
 
-# Pinterest
 User-agent: Pinterest
 Allow: /
 
-# Default rule for all other bots
+User-agent: Slackbot
+Allow: /
+
+# ===========================================
+# DEFAULT RULE
+# ===========================================
+
 User-agent: *
 Allow: /
 Crawl-delay: 2
@@ -56,5 +128,12 @@ Disallow: /admin
 Disallow: /login
 Disallow: /api/
 
+# ===========================================
+# IMPORTANT FILES
+# ===========================================
+
 # Sitemap location
 Sitemap: https://mieayamranger.web.id/sitemap.xml
+
+# LLMs.txt for AI agents
+# See: /llms.txt and /.well-known/llms.txt

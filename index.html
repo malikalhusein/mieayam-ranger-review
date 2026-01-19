@@ -1,37 +1,106 @@
 <!doctype html>
-<html lang="id">
+<html lang="id" prefix="og: https://ogp.me/ns#">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23dc2626' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m16 2-2.3 2.3a3 3 0 0 0 0 4.2l1.8 1.8a3 3 0 0 0 4.2 0L22 8'/><path d='M15 15 3.3 3.3a4.2 4.2 0 0 0 0 6l7.3 7.3c.7.7 2 .7 2.8 0L15 15Zm0 0 7 7'/><path d='m2.1 21.8 6.4-6.3'/><path d='m19 5-7 7'/></svg>" type="image/svg+xml" />
     
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://kqsqocrtaybbkpigvwjy.supabase.co" />
+    <link rel="dns-prefetch" href="https://kqsqocrtaybbkpigvwjy.supabase.co" />
+    
     <!-- Sitemap reference -->
     <link rel="sitemap" type="application/xml" href="https://kqsqocrtaybbkpigvwjy.supabase.co/functions/v1/sitemap" />
-    <title>Mie Ayam Ranger - Review Warung Mie Ayam Terbaik</title>
-    <meta name="description" content="Direktori review warung mie ayam dengan sistem penilaian objektif. Temukan mie ayam terbaik berdasarkan rasa, harga, dan fasilitas." />
-    <meta name="keywords" content="mie ayam, review mie ayam, kuliner indonesia, warung mie ayam, rekomendasi mie ayam, mie ayam enak" />
-    <link rel="canonical" href="https://mieayamranger.web.id/" />
     
-    <!-- Robots -->
-    <meta name="robots" content="index, follow" />
-    <meta name="googlebot" content="index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1" />
+    <!-- Primary Meta Tags -->
+    <title>Mie Ayam Ranger - Review Warung Mie Ayam Terbaik Indonesia</title>
+    <meta name="title" content="Mie Ayam Ranger - Review Warung Mie Ayam Terbaik Indonesia" />
+    <meta name="description" content="Platform review mie ayam Indonesia dengan sistem penilaian objektif. Temukan warung mie ayam terbaik berdasarkan rasa, harga, fasilitas. Hall of Fame, Budget Pick, dan perbandingan lengkap." />
+    <meta name="keywords" content="mie ayam, review mie ayam, kuliner indonesia, warung mie ayam, rekomendasi mie ayam, mie ayam enak, mie ayam terbaik, mie ayam jakarta, mie ayam bandung, mie ayam solo, mie ayam jogja" />
+    <link rel="canonical" href="https://mieayamranger.web.id/" />
+    <meta name="author" content="Mie Ayam Ranger" />
+    
+    <!-- Robots & Indexing -->
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="bingbot" content="index, follow" />
+    
+    <!-- Geographic Tags -->
+    <meta name="geo.region" content="ID" />
+    <meta name="geo.placename" content="Indonesia" />
+    <meta name="content-language" content="id" />
 
-    <!-- Open Graph -->
-    <meta property="og:title" content="Mie Ayam Ranger - Review Warung Mie Ayam Terbaik" />
-    <meta property="og:description" content="Platform review mie ayam dengan penilaian objektif dan transparan. Temukan warung mie ayam terbaik di Indonesia." />
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://mieayamranger.web.id/" />
+    <meta property="og:title" content="Mie Ayam Ranger - Review Warung Mie Ayam Terbaik Indonesia" />
+    <meta property="og:description" content="Platform review mie ayam dengan penilaian objektif dan transparan. Temukan warung mie ayam terbaik di Indonesia dengan sistem scoring yang terstruktur." />
+    <meta property="og:image" content="https://mieayamranger.web.id/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Mie Ayam Ranger - Platform Review Mie Ayam Indonesia" />
     <meta property="og:site_name" content="Mie Ayam Ranger" />
     <meta property="og:locale" content="id_ID" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Mie Ayam Ranger - Review Warung Mie Ayam Terbaik" />
-    <meta name="twitter:description" content="Platform review mie ayam dengan penilaian objektif dan transparan" />
+    <meta name="twitter:url" content="https://mieayamranger.web.id/" />
+    <meta name="twitter:title" content="Mie Ayam Ranger - Review Warung Mie Ayam Terbaik Indonesia" />
+    <meta name="twitter:description" content="Platform review mie ayam dengan penilaian objektif dan transparan. Temukan warung mie ayam terbaik di Indonesia." />
+    <meta name="twitter:image" content="https://mieayamranger.web.id/og-image.png" />
+    <meta name="twitter:image:alt" content="Mie Ayam Ranger - Platform Review Mie Ayam Indonesia" />
+    <meta name="twitter:site" content="@mieayamranger" />
+    <meta name="twitter:creator" content="@mieayamranger" />
     
     <!-- Additional SEO -->
-    <meta name="author" content="Mie Ayam Ranger" />
     <meta name="theme-color" content="#dc2626" />
+    <meta name="msapplication-TileColor" content="#dc2626" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Mie Ayam Ranger" />
+    
+    <!-- AI Agent References -->
+    <link rel="author" href="https://mieayamranger.web.id/about" />
+    
+    <!-- Structured Data - Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Mie Ayam Ranger",
+      "url": "https://mieayamranger.web.id",
+      "logo": "https://mieayamranger.web.id/og-image.png",
+      "description": "Platform review warung mie ayam Indonesia dengan sistem penilaian objektif dan transparan",
+      "foundingDate": "2024",
+      "areaServed": {
+        "@type": "Country",
+        "name": "Indonesia"
+      },
+      "knowsLanguage": "id"
+    }
+    </script>
+    
+    <!-- Structured Data - WebSite with Search -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Mie Ayam Ranger",
+      "url": "https://mieayamranger.web.id",
+      "description": "Direktori review warung mie ayam dengan sistem penilaian objektif",
+      "inLanguage": "id-ID",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://mieayamranger.web.id/?search={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
   </head>
 
   <body>
