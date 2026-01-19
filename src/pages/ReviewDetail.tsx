@@ -664,6 +664,11 @@ const ReviewDetail = () => {
                     <ToppingItem label="Pangsit Kering" available={review.topping_pangsit_kering} />
                     <ToppingItem label="Dimsum" available={review.topping_dimsum} />
                     <ToppingItem label="Variasi Bumbu" available={review.topping_variasi_bumbu} />
+                    <ToppingItem label="Daun Bawang" available={review.topping_bawang_daun} />
+                    <ToppingItem label="Jamur" available={review.topping_jamur} />
+                    <ToppingItem label="Tauge" available={review.topping_tauge} />
+                    <ToppingItem label="Acar" available={review.topping_acar} />
+                    <ToppingItem label="Kerupuk" available={review.topping_kerupuk} />
                   </div>
                 </div>
 

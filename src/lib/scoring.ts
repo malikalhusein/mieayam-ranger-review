@@ -50,6 +50,11 @@ export interface ReviewScores {
   topping_pangsit_kering?: boolean;
   topping_dimsum?: boolean;
   topping_variasi_bumbu?: boolean;
+  topping_bawang_daun?: boolean;
+  topping_jamur?: boolean;
+  topping_tauge?: boolean;
+  topping_acar?: boolean;
+  topping_kerupuk?: boolean;
 }
 
 export interface ReviewData extends ReviewScores {
@@ -158,6 +163,11 @@ function calculateToppingBonus(review: ReviewScores): number {
     review.topping_pangsit_kering,
     review.topping_dimsum,
     review.topping_variasi_bumbu,
+    review.topping_bawang_daun,
+    review.topping_jamur,
+    review.topping_tauge,
+    review.topping_acar,
+    review.topping_kerupuk,
   ];
   
   const availableCount = toppings.filter(Boolean).length;

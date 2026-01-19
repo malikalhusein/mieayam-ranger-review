@@ -69,6 +69,10 @@ const reviewSchema = z.object({
   topping_dimsum: z.boolean().optional().default(false),
   topping_variasi_bumbu: z.boolean().optional().default(false),
   topping_bawang_daun: z.boolean().optional().default(false),
+  topping_jamur: z.boolean().optional().default(false),
+  topping_tauge: z.boolean().optional().default(false),
+  topping_acar: z.boolean().optional().default(false),
+  topping_kerupuk: z.boolean().optional().default(false),
 });
 
 type ReviewFormData = z.infer<typeof reviewSchema>;
@@ -150,6 +154,10 @@ const Admin = () => {
         topping_pangsit_kering: value.topping_pangsit_kering || false,
         topping_dimsum: value.topping_dimsum || false,
         topping_variasi_bumbu: value.topping_variasi_bumbu || false,
+        topping_jamur: value.topping_jamur || false,
+        topping_tauge: value.topping_tauge || false,
+        topping_acar: value.topping_acar || false,
+        topping_kerupuk: value.topping_kerupuk || false,
       };
 
       const result = calculateScore(reviewData);
@@ -1276,7 +1284,43 @@ const Admin = () => {
                         checked={form.watch("topping_bawang_daun") || false}
                         onCheckedChange={(checked) => form.setValue("topping_bawang_daun", checked as boolean)}
                       />
-                      <Label htmlFor="topping_bawang_daun" className="text-sm cursor-pointer">Bawang Daun (Loncang)</Label>
+                      <Label htmlFor="topping_bawang_daun" className="text-sm cursor-pointer">Daun Bawang (Loncang)</Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="topping_jamur"
+                        checked={form.watch("topping_jamur") || false}
+                        onCheckedChange={(checked) => form.setValue("topping_jamur", checked as boolean)}
+                      />
+                      <Label htmlFor="topping_jamur" className="text-sm cursor-pointer">Jamur</Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="topping_tauge"
+                        checked={form.watch("topping_tauge") || false}
+                        onCheckedChange={(checked) => form.setValue("topping_tauge", checked as boolean)}
+                      />
+                      <Label htmlFor="topping_tauge" className="text-sm cursor-pointer">Tauge</Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="topping_acar"
+                        checked={form.watch("topping_acar") || false}
+                        onCheckedChange={(checked) => form.setValue("topping_acar", checked as boolean)}
+                      />
+                      <Label htmlFor="topping_acar" className="text-sm cursor-pointer">Acar</Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="topping_kerupuk"
+                        checked={form.watch("topping_kerupuk") || false}
+                        onCheckedChange={(checked) => form.setValue("topping_kerupuk", checked as boolean)}
+                      />
+                      <Label htmlFor="topping_kerupuk" className="text-sm cursor-pointer">Kerupuk</Label>
                     </div>
                   </div>
                 </div>
