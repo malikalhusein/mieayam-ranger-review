@@ -71,6 +71,8 @@ const PreferenceWizard = ({ isOpen, onClose, onOpenChatbot }: PreferenceWizardPr
       let sweetnessMin = -5, sweetnessMax = 5;
       let complexityMin = -5, complexityMax = 5;
       let priceMin = 0, priceMax = 100000;
+      // Minimum facility score for premium category (to filter out basic stalls)
+      let minFacilityScore = 0;
 
       if (selectedTaste === "salty") {
         sweetnessMin = -5; sweetnessMax = -2;
@@ -88,13 +90,16 @@ const PreferenceWizard = ({ isOpen, onClose, onOpenChatbot }: PreferenceWizardPr
         complexityMin = 2; complexityMax = 5;
       }
 
-      // Set price range
+      // Set price range - STRICT enforcement for premium
+      // Premium users expect better facilities, not just high scores
       if (selectedPrice === "budget") {
         priceMin = 0; priceMax = 10000;
       } else if (selectedPrice === "normal") {
         priceMin = 10000; priceMax = 15000;
+        minFacilityScore = 2; // At least moderate facilities
       } else if (selectedPrice === "premium") {
         priceMin = 15000; priceMax = 100000;
+        minFacilityScore = 3; // Require good facilities for premium
       }
 
       let query = supabase
@@ -106,9 +111,16 @@ const PreferenceWizard = ({ isOpen, onClose, onOpenChatbot }: PreferenceWizardPr
         .gte("complexity", complexityMin)
         .lte("complexity", complexityMax);
 
-      // Add price filter if selected
+      // Add price filter - ALWAYS enforce for premium/normal to prevent cheap overscore
       if (selectedPrice) {
         query = query.gte("price", priceMin).lte("price", priceMax);
+        
+        // For premium/normal, also require minimum facility standards
+        if (minFacilityScore > 0) {
+          query = query
+            .gte("fasilitas_kebersihan", minFacilityScore)
+            .gte("fasilitas_tempat", minFacilityScore);
+        }
       }
 
       const { data, error } = await query
@@ -120,12 +132,13 @@ const PreferenceWizard = ({ isOpen, onClose, onOpenChatbot }: PreferenceWizardPr
       if (data && data.length > 0) {
         setMatchedReview(data[0]);
       } else {
-        // Fallback: get best match by type and price only
+        // Fallback: get best match by type and price only (STRICT price enforcement)
         let fallbackQuery = supabase
           .from("reviews")
           .select("*")
           .eq("product_type", selectedType);
         
+        // ALWAYS enforce price range - no cross-category recommendations
         if (selectedPrice) {
           fallbackQuery = fallbackQuery.gte("price", priceMin).lte("price", priceMax);
         }
@@ -137,6 +150,8 @@ const PreferenceWizard = ({ isOpen, onClose, onOpenChatbot }: PreferenceWizardPr
         if (fallbackData && fallbackData.length > 0) {
           setMatchedReview(fallbackData[0]);
         }
+        // If still no match, don't show cheap alternatives to premium users
+        // Let them see "no match" message instead of wrong category
       }
     } catch (error) {
       console.error("Error finding match:", error);
