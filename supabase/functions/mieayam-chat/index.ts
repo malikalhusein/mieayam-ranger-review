@@ -34,7 +34,7 @@ serve(async (req) => {
         fasilitas_kebersihan, fasilitas_alat_makan, fasilitas_tempat, service_durasi,
         topping_ceker, topping_bakso, topping_ekstra_ayam, topping_ekstra_sawi, topping_balungan,
         topping_tetelan, topping_mie_jumbo, topping_jenis_mie, topping_pangsit_basah, topping_pangsit_kering,
-        topping_dimsum, topping_variasi_bumbu, topping_bawang_daun
+        topping_dimsum, topping_variasi_bumbu, topping_bawang_daun, topping_jamur, topping_tauge, topping_acar, topping_kerupuk
       `)
       .order("overall_score", { ascending: false })
       .limit(100);
@@ -59,6 +59,10 @@ serve(async (req) => {
       if (r.topping_dimsum) toppings.push("Dimsum");
       if (r.topping_variasi_bumbu) toppings.push("Variasi Bumbu");
       if (r.topping_bawang_daun) toppings.push("Bawang Daun");
+      if (r.topping_jamur) toppings.push("Jamur");
+      if (r.topping_tauge) toppings.push("Tauge");
+      if (r.topping_acar) toppings.push("Acar");
+      if (r.topping_kerupuk) toppings.push("Kerupuk");
 
       let context = `- [SLUG:${r.slug || r.id}] ${r.outlet_name} (${r.city}): ${r.product_type}, Rp${r.price?.toLocaleString()}, Score: ${r.overall_score?.toFixed(1) || 'N/A'}`;
       
@@ -120,7 +124,7 @@ PARAMETER FASILITAS:
 - Tempat: kenyamanan tempat makan
 
 TOPPING YANG TERSEDIA:
-Ceker, Bakso, Ekstra Ayam, Ekstra Sawi, Balungan, Tetelan, Mie Jumbo, Pilihan Jenis Mie, Pangsit Basah, Pangsit Kering, Dimsum, Variasi Bumbu, Bawang Daun
+Ceker, Bakso, Ekstra Ayam, Ekstra Sawi, Balungan, Tetelan, Mie Jumbo, Pilihan Jenis Mie, Pangsit Basah, Pangsit Kering, Dimsum, Variasi Bumbu, Bawang Daun, Jamur, Tauge, Acar, Kerupuk
 
 DATA REVIEW TERSEDIA:
 ${reviewsContext}
