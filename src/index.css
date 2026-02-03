@@ -62,50 +62,53 @@ All colors MUST be HSL.
   }
 
   .dark {
-    /* Dark Mode: Warm, cozy dark theme with excellent readability */
-    --background: 20 14% 8%;
-    --foreground: 45 30% 95%;
+    /* Dark Mode: High contrast, warm theme for excellent readability */
+    --background: 20 15% 6%;
+    --foreground: 40 20% 98%;
 
-    --card: 20 12% 12%;
-    --card-foreground: 45 30% 95%;
+    --card: 20 14% 10%;
+    --card-foreground: 40 20% 98%;
 
-    --popover: 20 12% 14%;
-    --popover-foreground: 45 30% 95%;
+    --popover: 20 14% 12%;
+    --popover-foreground: 40 20% 98%;
 
-    /* Primary: Warm amber/orange that pops on dark */
-    --primary: 36 100% 55%;
-    --primary-foreground: 20 14% 8%;
-    --primary-glow: 38 100% 65%;
+    /* Primary: Bright amber/orange that pops on dark */
+    --primary: 38 100% 50%;
+    --primary-foreground: 20 20% 8%;
+    --primary-glow: 40 100% 60%;
 
-    /* Secondary: Warm coral red */
-    --secondary: 12 75% 55%;
+    /* Secondary: Bright coral red for visibility */
+    --secondary: 12 80% 58%;
     --secondary-foreground: 0 0% 100%;
 
-    /* Accent: Warm green with better visibility */
-    --accent: 150 65% 45%;
+    /* Accent: Bright green with high visibility */
+    --accent: 145 70% 50%;
     --accent-foreground: 0 0% 100%;
 
-    --muted: 20 10% 18%;
-    --muted-foreground: 40 15% 70%;
+    --muted: 20 12% 16%;
+    --muted-foreground: 35 20% 75%;
 
-    --destructive: 0 70% 55%;
+    --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 25 12% 22%;
-    --input: 25 10% 20%;
-    --ring: 36 100% 55%;
+    --border: 25 15% 25%;
+    --input: 25 12% 18%;
+    --ring: 38 100% 50%;
 
-    /* Chart colors for dark mode - brighter for visibility */
-    --chart-1: 36 100% 55%;
-    --chart-2: 12 75% 55%;
-    --chart-3: 150 65% 45%;
-    --chart-4: 270 80% 70%;
-    --chart-5: 200 90% 60%;
+    /* Gradients for dark mode */
+    --gradient-subtle: linear-gradient(180deg, hsl(20 15% 6%), hsl(20 14% 10%));
+
+    /* Chart colors for dark mode - much brighter for visibility */
+    --chart-1: 38 100% 55%;
+    --chart-2: 12 85% 60%;
+    --chart-3: 145 70% 50%;
+    --chart-4: 270 85% 72%;
+    --chart-5: 200 95% 62%;
 
     /* Shadows for dark mode */
-    --shadow-card: 0 4px 20px -4px hsl(0 0% 0% / 0.6);
-    --shadow-hover: 0 8px 30px -6px hsl(0 0% 0% / 0.7);
-    --shadow-glow: 0 0 40px hsl(36 100% 55% / 0.3);
+    --shadow-card: 0 4px 20px -4px hsl(0 0% 0% / 0.7);
+    --shadow-hover: 0 8px 30px -6px hsl(0 0% 0% / 0.8);
+    --shadow-glow: 0 0 40px hsl(38 100% 50% / 0.35);
   }
 }
 

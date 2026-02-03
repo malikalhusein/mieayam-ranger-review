@@ -157,10 +157,10 @@ const ReviewCard = ({
             <div className="absolute top-2 right-2 flex flex-col gap-1 z-10 max-w-[60%]">
               <div className="flex flex-wrap gap-1 justify-end">
                 {isTrending && <TrendingBadge />}
-                <Badge variant={product_type === "kuah" ? "default" : "secondary"} className="shadow-md text-[10px] md:text-xs px-1.5 py-0.5">
+                <Badge variant={product_type === "kuah" ? "default" : "secondary"} className="shadow-md text-[10px] md:text-xs px-1.5 py-0.5 font-semibold">
                   {product_type === "kuah" ? "🍜" : "🍝"}
                 </Badge>
-                <Badge variant="outline" className="bg-background/90 backdrop-blur-sm shadow-md text-[10px] md:text-xs px-1.5 py-0.5 truncate max-w-[80px] md:max-w-none">
+                <Badge variant="outline" className="bg-card/95 backdrop-blur-sm shadow-md text-[10px] md:text-xs px-1.5 py-0.5 truncate max-w-[80px] md:max-w-none font-medium text-foreground border-border">
                   {priceCategory.label}
                 </Badge>
               </div>

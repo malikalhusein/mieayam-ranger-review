@@ -119,7 +119,7 @@ const HallOfFameCard = ({
           {/* Product type badge and trending */}
           <div className="absolute top-3 right-3 flex gap-1.5">
             {isTrending && <TrendingBadge />}
-            <div className="bg-background/90 backdrop-blur-sm text-foreground text-xs px-2.5 py-1 rounded-full font-medium">
+            <div className="bg-card/95 backdrop-blur-sm text-foreground text-xs px-2.5 py-1 rounded-full font-semibold shadow-md border border-border/50">
               {product_type === "kuah" ? "🍜 Kuah" : "🍝 Goreng"}
             </div>
           </div>
@@ -263,7 +263,7 @@ const HallOfFameCard = ({
                 <ViewCounter count={view_count} size="sm" />
               )}
               {isTrending && <TrendingBadge />}
-              <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded">
+              <span className="text-[10px] bg-primary/25 text-primary px-1.5 py-0.5 rounded font-semibold">
                 {product_type === "kuah" ? "🍜 Kuah" : "🍝 Goreng"}
               </span>
               {editor_choice && (

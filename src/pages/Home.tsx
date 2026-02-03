@@ -371,7 +371,7 @@ const Home = () => {
       {/* Hall of Fame - Best of the Best Section */}
       {topReviews.length > 0 && <section className="container py-16" aria-labelledby="best-of-best-heading">
           <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-4">
+            <div className="inline-flex items-center gap-2 bg-primary/15 dark:bg-primary/25 px-4 py-2 rounded-full mb-4">
               <Trophy className="h-5 w-5 text-primary" aria-hidden="true" />
               <span className="text-sm font-medium text-primary">Hall of Fame</span>
             </div>
@@ -393,11 +393,11 @@ const Home = () => {
         </section>}
 
       {/* Hall of Fame - Budget Friendly Section */}
-      {budgetReviews.length > 0 && <section className="container py-16 bg-muted/30" aria-labelledby="budget-friendly-heading">
+      {budgetReviews.length > 0 && <section className="container py-16 bg-muted/50 dark:bg-muted/30" aria-labelledby="budget-friendly-heading">
           <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 bg-green-500/10 px-4 py-2 rounded-full mb-4">
-              <Coins className="h-5 w-5 text-green-600" aria-hidden="true" />
-              <span className="text-sm font-medium text-green-600">Budget Friendly</span>
+            <div className="inline-flex items-center gap-2 bg-accent/15 dark:bg-accent/25 px-4 py-2 rounded-full mb-4">
+              <Coins className="h-5 w-5 text-accent" aria-hidden="true" />
+              <span className="text-sm font-medium text-accent">Budget Friendly</span>
             </div>
             <h2 id="budget-friendly-heading" className="text-3xl md:text-4xl font-bold text-foreground">
               Top 5 Budget Friendly
@@ -419,9 +419,9 @@ const Home = () => {
       {/* Recently Added Section */}
       {recentReviews.length > 0 && <section className="container py-16" aria-labelledby="recently-added-heading">
           <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 bg-blue-500/10 px-4 py-2 rounded-full mb-4">
-              <Clock className="h-5 w-5 text-blue-600" aria-hidden="true" />
-              <span className="text-sm font-medium text-blue-600">Baru Ditambahkan</span>
+            <div className="inline-flex items-center gap-2 bg-secondary/15 dark:bg-secondary/25 px-4 py-2 rounded-full mb-4">
+              <Clock className="h-5 w-5 text-secondary" aria-hidden="true" />
+              <span className="text-sm font-medium text-secondary">Baru Ditambahkan</span>
             </div>
             <h2 id="recently-added-heading" className="text-3xl md:text-4xl font-bold text-foreground">
               Recently Added
@@ -441,11 +441,11 @@ const Home = () => {
         </section>}
 
       {/* Trending Reviews Section */}
-      {trendingReviews.length > 0 && <section className="container py-16 bg-gradient-to-b from-orange-500/5 to-red-500/5" aria-labelledby="trending-heading">
+      {trendingReviews.length > 0 && <section className="container py-16 bg-secondary/5 dark:bg-secondary/10" aria-labelledby="trending-heading">
           <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500/20 to-red-500/20 px-4 py-2 rounded-full mb-4">
-              <Flame className="h-5 w-5 text-orange-500" aria-hidden="true" />
-              <span className="text-sm font-medium bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">Trending Now</span>
+            <div className="inline-flex items-center gap-2 bg-secondary/15 dark:bg-secondary/25 px-4 py-2 rounded-full mb-4">
+              <Flame className="h-5 w-5 text-secondary" aria-hidden="true" />
+              <span className="text-sm font-medium text-secondary">Trending Now</span>
             </div>
             <h2 id="trending-heading" className="text-3xl md:text-4xl font-bold text-foreground">
               🔥 Paling Banyak Dilihat
