@@ -339,7 +339,6 @@ const Home = () => {
       <OrganizationSchema />
       <CollectionSchema reviews={topReviews} title="Top 5 Mie Ayam Terbaik Indonesia" />
       <Navbar />
-      <Navbar />
       
       {/* Error Alert */}
       {error && <div className="container pt-6">
