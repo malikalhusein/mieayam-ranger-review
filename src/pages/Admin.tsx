@@ -25,7 +25,13 @@ const reviewSchema = z.object({
   address: z.string().min(1, "Alamat wajib diisi"),
   city: z.string().min(1, "Kota wajib diisi"),
   visit_date: z.string().min(1, "Tanggal kunjungan wajib diisi"),
-  price: z.string().min(1, "Harga wajib diisi"),
+  price: z.string().min(1, "Harga wajib diisi").refine(
+    (v) => {
+      const n = parseInt(v, 10);
+      return !isNaN(n) && n >= 1000;
+    },
+    { message: "Harga minimal Rp 1.000 — masukkan dalam Rupiah penuh (contoh: 12000, bukan 12)" }
+  ),
   product_type: z.enum(["kuah", "goreng"]),
   mie_tipe: z.string().optional(),
   google_map_url: z.string().url("URL tidak valid").optional().or(z.literal("")),
@@ -1055,7 +1061,8 @@ const Admin = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="price">Harga (Rp)</Label>
-                    <Input id="price" type="number" {...form.register("price")} />
+                    <Input id="price" type="number" min={1000} step={500} placeholder="contoh: 12000" {...form.register("price")} />
+                    <p className="text-xs text-muted-foreground mt-1">Masukkan harga dalam Rupiah penuh (contoh: 12000, bukan 12).</p>
                     {form.formState.errors.price && (
                       <p className="text-sm text-destructive">{form.formState.errors.price.message}</p>
                     )}
