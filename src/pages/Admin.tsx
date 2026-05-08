@@ -25,7 +25,13 @@ const reviewSchema = z.object({
   address: z.string().min(1, "Alamat wajib diisi"),
   city: z.string().min(1, "Kota wajib diisi"),
   visit_date: z.string().min(1, "Tanggal kunjungan wajib diisi"),
-  price: z.string().min(1, "Harga wajib diisi"),
+  price: z.string().min(1, "Harga wajib diisi").refine(
+    (v) => {
+      const n = parseInt(v, 10);
+      return !isNaN(n) && n >= 1000;
+    },
+    { message: "Harga minimal Rp 1.000 — masukkan dalam Rupiah penuh (contoh: 12000, bukan 12)" }
+  ),
   product_type: z.enum(["kuah", "goreng"]),
   mie_tipe: z.string().optional(),
   google_map_url: z.string().url("URL tidak valid").optional().or(z.literal("")),
