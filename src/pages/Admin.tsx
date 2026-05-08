@@ -767,10 +767,13 @@ const Admin = () => {
       cancelEdit();
       fetchReviews();
     } catch (error: any) {
-      toast({ 
-        title: "Error", 
-        description: error.message,
-        variant: "destructive" 
+      const isPriceCheck = typeof error?.message === "string" && error.message.includes("reviews_price_min_check");
+      toast({
+        title: isPriceCheck ? "Harga ditolak server" : "Error",
+        description: isPriceCheck
+          ? "Database menolak input: harga minimal Rp 1.000. Pastikan ditulis dalam Rupiah penuh (contoh: 12000)."
+          : error.message,
+        variant: "destructive",
       });
     } finally {
       setSubmitting(false);
