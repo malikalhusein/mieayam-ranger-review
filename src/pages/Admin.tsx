@@ -603,6 +603,15 @@ const Admin = () => {
   };
 
   const handleUpdate = async (data: ReviewFormData) => {
+    const priceNum = parseInt(data.price, 10);
+    if (isNaN(priceNum) || priceNum < 1000) {
+      toast({
+        title: "Harga tidak valid",
+        description: "Harga minimal Rp 1.000. Pastikan input dalam Rupiah penuh (contoh: 12000, bukan 12). Skor tidak akan terhitung jika harga di bawah Rp 1.000.",
+        variant: "destructive",
+      });
+      return;
+    }
     setSubmitting(true);
     try {
       const newImageUrls = await uploadImages();
