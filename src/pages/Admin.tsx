@@ -1055,7 +1055,8 @@ const Admin = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="price">Harga (Rp)</Label>
-                    <Input id="price" type="number" {...form.register("price")} />
+                    <Input id="price" type="number" min={1000} step={500} placeholder="contoh: 12000" {...form.register("price")} />
+                    <p className="text-xs text-muted-foreground mt-1">Masukkan harga dalam Rupiah penuh (contoh: 12000, bukan 12).</p>
                     {form.formState.errors.price && (
                       <p className="text-sm text-destructive">{form.formState.errors.price.message}</p>
                     )}
