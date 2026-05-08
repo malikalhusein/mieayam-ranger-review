@@ -603,6 +603,15 @@ const Admin = () => {
   };
 
   const handleUpdate = async (data: ReviewFormData) => {
+    const priceNum = parseInt(data.price, 10);
+    if (isNaN(priceNum) || priceNum < 1000) {
+      toast({
+        title: "Harga tidak valid",
+        description: "Harga minimal Rp 1.000. Pastikan input dalam Rupiah penuh (contoh: 12000, bukan 12). Skor tidak akan terhitung jika harga di bawah Rp 1.000.",
+        variant: "destructive",
+      });
+      return;
+    }
     setSubmitting(true);
     try {
       const newImageUrls = await uploadImages();
@@ -669,10 +678,13 @@ const Admin = () => {
       cancelEdit();
       fetchReviews();
     } catch (error: any) {
-      toast({ 
-        title: "Error", 
-        description: error.message,
-        variant: "destructive" 
+      const isPriceCheck = typeof error?.message === "string" && error.message.includes("reviews_price_min_check");
+      toast({
+        title: isPriceCheck ? "Harga ditolak server" : "Error",
+        description: isPriceCheck
+          ? "Database menolak input: harga minimal Rp 1.000. Pastikan ditulis dalam Rupiah penuh (contoh: 12000)."
+          : error.message,
+        variant: "destructive",
       });
     } finally {
       setSubmitting(false);
@@ -680,6 +692,15 @@ const Admin = () => {
   };
 
   const handleCreate = async (data: ReviewFormData) => {
+    const priceNum = parseInt(data.price, 10);
+    if (isNaN(priceNum) || priceNum < 1000) {
+      toast({
+        title: "Harga tidak valid",
+        description: "Harga minimal Rp 1.000. Pastikan input dalam Rupiah penuh (contoh: 12000, bukan 12). Skor tidak akan terhitung jika harga di bawah Rp 1.000.",
+        variant: "destructive",
+      });
+      return;
+    }
     setSubmitting(true);
     try {
       const imageUrls = await uploadImages();
@@ -746,10 +767,13 @@ const Admin = () => {
       cancelEdit();
       fetchReviews();
     } catch (error: any) {
-      toast({ 
-        title: "Error", 
-        description: error.message,
-        variant: "destructive" 
+      const isPriceCheck = typeof error?.message === "string" && error.message.includes("reviews_price_min_check");
+      toast({
+        title: isPriceCheck ? "Harga ditolak server" : "Error",
+        description: isPriceCheck
+          ? "Database menolak input: harga minimal Rp 1.000. Pastikan ditulis dalam Rupiah penuh (contoh: 12000)."
+          : error.message,
+        variant: "destructive",
       });
     } finally {
       setSubmitting(false);
