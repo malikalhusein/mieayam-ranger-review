@@ -19,8 +19,7 @@ serve(async (req) => {
     );
 
     const accounts = [
-      { email: 'zayyanadib@mieayamranger.web.id', password: 'mieayamtonjo' },
-      { email: 'muza@mieayamranger.web.id', password: 'mieayamtonjo' },
+      { email: 'lycho.daves@gmail.com', password: 'sijitekansepuluh' },
     ];
 
     const results: any[] = [];
