@@ -15,8 +15,8 @@ interface SEOHeadProps {
 }
 
 const SEOHead = ({
-  title = "Mie Ayam Ranger - Review Warung Mie Ayam Terbaik",
-  description = "Direktori review warung mie ayam dengan sistem penilaian objektif. Temukan mie ayam terbaik berdasarkan rasa, harga, dan fasilitas.",
+  title = "Mie Ayam Ranger — Review Warung Mie Ayam Terbaik",
+  description = "Review warung mie ayam Indonesia dengan skor objektif. Hall of Fame, Budget Pick, dan perbandingan rasa, harga, fasilitas.",
   keywords = "mie ayam, review mie ayam, kuliner indonesia, warung mie ayam, mie ayam enak, rekomendasi mie ayam",
   ogImage = "/og-image.png",
   ogUrl,
@@ -72,6 +72,7 @@ const SEOHead = ({
     setMetaTag("og:image:height", "630", true);
     if (ogUrl) {
       setMetaTag("og:url", ogUrl, true);
+      setLinkTag("canonical", ogUrl);
     }
     setMetaTag("og:site_name", "Mie Ayam Ranger", true);
     setMetaTag("og:locale", "id_ID", true);

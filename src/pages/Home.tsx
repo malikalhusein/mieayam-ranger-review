@@ -331,10 +331,10 @@ const Home = () => {
   }
   return <div className="min-h-screen bg-gradient-subtle">
       <SEOHead 
-        title="Mie Ayam Ranger - Review Warung Mie Ayam Terbaik Indonesia"
-        description="Platform review mie ayam Indonesia dengan penilaian objektif. Temukan warung mie ayam terbaik berdasarkan rasa, harga, fasilitas. Hall of Fame, Budget Pick, dan perbandingan."
-        keywords="mie ayam, review mie ayam, kuliner indonesia, warung mie ayam, mie ayam enak, rekomendasi mie ayam, mie ayam terbaik, mie ayam jakarta, mie ayam bandung, mie ayam solo"
-        ogUrl="https://mieayamranger.web.id"
+        title="Mie Ayam Ranger — Review Warung Mie Ayam Terbaik"
+        description="Review warung mie ayam Indonesia dengan skor objektif. Hall of Fame, Budget Pick, dan perbandingan rasa, harga, fasilitas."
+        keywords="mie ayam, review mie ayam, kuliner indonesia, warung mie ayam, mie ayam enak, rekomendasi mie ayam, mie ayam terbaik"
+        ogUrl="https://mieayamranger.web.id/"
       />
       <OrganizationSchema />
       <CollectionSchema reviews={topReviews} title="Top 5 Mie Ayam Terbaik Indonesia" />
