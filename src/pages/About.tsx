@@ -1,9 +1,15 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
 import { Card, CardContent } from "@/components/ui/card";
 import { Award, Target, TrendingUp } from "lucide-react";
 const About = () => {
   return <div className="min-h-screen bg-gradient-subtle">
+      <SEOHead
+        title="Tentang Mie Ayam Ranger — Metodologi & Skor Objektif"
+        description="Pelajari metodologi penilaian Mie Ayam Ranger: formula skor, perceptual mapping, kategori harga, dan editor badges."
+        ogUrl="https://mieayamranger.web.id/about"
+      />
       <Navbar />
       
       <div className="container py-16">

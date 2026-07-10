@@ -1,11 +1,17 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Heart, Coffee } from "lucide-react";
 
 const Donation = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle">
+      <SEOHead
+        title="Dukung Mie Ayam Ranger — Donasi via Saweria"
+        description="Bantu Mie Ayam Ranger terus menghadirkan review objektif warung mie ayam Indonesia. Dukung via Saweria."
+        ogUrl="https://mieayamranger.web.id/donation"
+      />
       <Navbar />
       
       <div className="container py-16">
