@@ -29,7 +29,7 @@ const About = () => {
                     <Target className="h-8 w-8 text-primary" />
                   </div>
                 </div>
-                <h3 className="font-bold mb-2">Objektif</h3>
+                <h2 className="font-bold mb-2">Objektif</h2>
                 <p className="text-sm text-muted-foreground">
                   Penilaian berdasarkan formula matematis yang adil
                 </p>
@@ -43,7 +43,7 @@ const About = () => {
                     <Award className="h-8 w-8 text-secondary" />
                   </div>
                 </div>
-                <h3 className="font-bold mb-2">Transparan</h3>
+                <h2 className="font-bold mb-2">Transparan</h2>
                 <p className="text-sm text-muted-foreground">
                   Semua skor dan metodologi terbuka untuk publik
                 </p>
@@ -57,7 +57,7 @@ const About = () => {
                     <TrendingUp className="h-8 w-8 text-accent" />
                   </div>
                 </div>
-                <h3 className="font-bold mb-2">Komprehensif</h3>
+                <h2 className="font-bold mb-2">Komprehensif</h2>
                 <p className="text-sm text-muted-foreground">
                   Menilai berbagai aspek dari rasa hingga fasilitas
                 </p>
