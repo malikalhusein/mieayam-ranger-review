@@ -377,6 +377,7 @@ const ReviewDetail = () => {
                   size="icon"
                   onClick={shareReview}
                   className="hover:bg-accent transition-colors"
+                  aria-label="Bagikan review ini"
                 >
                   {copied ? <Check className="h-4 w-4 text-green-500" /> : <Share2 className="h-4 w-4" />}
                 </Button>

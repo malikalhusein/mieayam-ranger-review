@@ -115,7 +115,7 @@ const ReviewCard = ({
             {/* OptimizedImage with blur placeholder */}
             <OptimizedImage
               src={images[currentImageIndex]}
-              alt={`${outlet_name} - Foto ${currentImageIndex + 1}`}
+              alt={`${outlet_name} — Mie Ayam ${product_type === "kuah" ? "Kuah" : "Goreng"} (Foto ${currentImageIndex + 1})`}
               className="h-full w-full group-hover:scale-110 transition-transform duration-300"
               aspectRatio="4/3"
             />

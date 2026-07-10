@@ -355,7 +355,7 @@ const Home = () => {
         <div className="container relative z-10">
           <div className="max-w-3xl mx-auto text-center text-white">
             <h1 className="text-4xl md:text-5xl font-bold mb-6 drop-shadow-lg">
-              Mie Ayam Ranger
+              Mie Ayam Ranger — Review Warung Mie Ayam Terbaik Indonesia
             </h1>
             <p className="text-lg md:text-xl mb-8 text-white/90">
               Direktori review warung mie ayam dengan sistem penilaian yang adil dan transparan
