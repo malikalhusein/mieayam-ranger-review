@@ -1,13 +1,6 @@
-import { createClient } from "@supabase/supabase-js";
-import { defineTool, type ToolContext } from "@lovable.dev/mcp-js";
+import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
-
-function supabaseForUser(ctx: ToolContext) {
-  return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
-    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
+import { supabaseForUser } from "../supabase";
 
 export default defineTool({
   name: "get_review",
@@ -25,7 +18,8 @@ export default defineTool({
       .eq("slug", slug)
       .maybeSingle();
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
-    if (!data) return { content: [{ type: "text", text: `No review found for slug '${slug}'.` }], isError: true };
+    if (!data)
+      return { content: [{ type: "text", text: `No review found for slug '${slug}'.` }], isError: true };
     return {
       content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
       structuredContent: { review: data },
