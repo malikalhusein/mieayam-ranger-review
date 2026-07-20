@@ -1012,7 +1012,7 @@ const Admin = () => {
 
             <Card>
               <CardContent className="pt-6">
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-6">
               {/* Basic Info */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Informasi Dasar</h3>
