@@ -18,6 +18,7 @@ const Donation = lazy(() => import("./pages/Donation"));
 const Compare = lazy(() => import("./pages/Compare"));
 const Wishlist = lazy(() => import("./pages/Wishlist"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ const App = () => (
                 <Route path="/about" element={<About />} />
                 <Route path="/donation" element={<Donation />} />
                 <Route path="/wishlist" element={<Wishlist />} />
+                <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

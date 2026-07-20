@@ -1,0 +1,199 @@
+{
+  "version": 1,
+  "sdk_version": "0.23.0",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://kqsqocrtaybbkpigvwjy.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "mie-ayam-ranger-mcp",
+      "version": "0.1.0",
+      "title": "Mie Ayam Ranger"
+    },
+    "tools": [
+      {
+        "name": "search_reviews",
+        "title": "Search mie ayam reviews",
+        "description": "Search reviews of mie ayam outlets on Mie Ayam Ranger. Filter by city, product type (kuah/goreng), and minimum overall score. Returns compact list ordered by score.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "city": {
+              "description": "Filter by city (partial, case-insensitive match).",
+              "type": "string"
+            },
+            "product_type": {
+              "description": "Filter by product type: kuah (soup) or goreng (fried).",
+              "type": "string",
+              "enum": [
+                "kuah",
+                "goreng"
+              ]
+            },
+            "min_score": {
+              "description": "Minimum overall_score (0-10).",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10
+            },
+            "max_price": {
+              "description": "Maximum price in IDR.",
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            "limit": {
+              "default": 10,
+              "description": "Max number of results (default 10).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_review",
+        "title": "Get review detail by slug",
+        "description": "Fetch full review detail for a single mie ayam outlet by its URL slug, including all scoring parameters (kuah, goreng, mie, ayam, fasilitas, service) and toppings.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "slug": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The review URL slug, e.g. 'mie-ayam-pak-saryono'."
+            }
+          },
+          "required": [
+            "slug"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_wishlist",
+        "title": "List wishlist entries",
+        "description": "List community-submitted wishlist entries (mie ayam outlets pending review). Filter by status. Pending/rejected entries require admin privileges via RLS.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "status": {
+              "default": "approved",
+              "description": "Wishlist status filter.",
+              "type": "string",
+              "enum": [
+                "pending",
+                "approved",
+                "rejected"
+              ]
+            },
+            "limit": {
+              "default": 20,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "submit_wishlist",
+        "title": "Submit a mie ayam outlet to the wishlist",
+        "description": "Submit a new mie ayam outlet recommendation to the wishlist. Entry starts with status 'pending' and needs admin approval before appearing publicly.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "place_name": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Name of the mie ayam outlet."
+            },
+            "location": {
+              "type": "string",
+              "minLength": 1,
+              "description": "City / address / area of the outlet."
+            },
+            "notes": {
+              "description": "Why this outlet is worth reviewing (optional).",
+              "type": "string"
+            }
+          },
+          "required": [
+            "place_name",
+            "location"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "moderate_wishlist",
+        "title": "Approve or reject a wishlist entry (admin)",
+        "description": "Set the status of a wishlist entry to 'approved' or 'rejected'. Requires admin privileges; RLS will reject non-admin callers.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "Wishlist entry ID."
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "approved",
+                "rejected"
+              ],
+              "description": "New status."
+            }
+          },
+          "required": [
+            "id",
+            "status"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}

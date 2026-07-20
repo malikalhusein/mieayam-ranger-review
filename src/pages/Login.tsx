@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -14,16 +14,25 @@ const loginSchema = z.object({
   password: z.string().min(6, "Password minimal 6 karakter"),
 });
 
+// Only allow same-origin relative redirects.
+const safeNext = (raw: string | null): string | null => {
+  if (!raw) return null;
+  if (!raw.startsWith("/") || raw.startsWith("//")) return null;
+  return raw;
+};
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const nextPath = safeNext(searchParams.get("next"));
   const { toast } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       loginSchema.parse({ email, password });
       setLoading(true);
@@ -35,7 +44,15 @@ const Login = () => {
 
       if (error) throw error;
 
-      // Check if user is admin
+      // If the user came here from the OAuth consent page (or any other
+      // authenticated flow), send them straight back — every signed-in user
+      // may authorize their own OAuth clients, not just admins.
+      if (nextPath) {
+        window.location.href = nextPath;
+        return;
+      }
+
+      // Default admin panel flow — only admins may reach /admin.
       const { data: roleData } = await supabase
         // @ts-ignore - Supabase types are auto-generated
         .from("user_roles")
@@ -65,6 +82,7 @@ const Login = () => {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
