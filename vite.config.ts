@@ -28,6 +28,7 @@ export default defineConfig(({ mode }) => ({
       manifest: false, // Use external manifest.json
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        navigateFallbackDenylist: [/^\/\.lovable\//, /^\/functions\//],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/kqsqocrtaybbkpigvwjy\.supabase\.co\/.*/i,
