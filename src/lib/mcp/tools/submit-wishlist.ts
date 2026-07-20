@@ -20,7 +20,6 @@ export default defineTool({
     notes: z.string().optional().describe("Why this outlet is worth reviewing (optional)."),
   },
   annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
-  needsApproval: true,
   handler: async ({ place_name, location, notes }, ctx) => {
     if (!ctx.isAuthenticated()) {
       return { content: [{ type: "text", text: "Not authenticated" }], isError: true };

@@ -19,7 +19,6 @@ export default defineTool({
     status: z.enum(["approved", "rejected"]).describe("New status."),
   },
   annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
-  needsApproval: true,
   handler: async ({ id, status }, ctx) => {
     if (!ctx.isAuthenticated()) {
       return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
