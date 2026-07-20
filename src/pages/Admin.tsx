@@ -105,7 +105,7 @@ const Admin = () => {
   const { toast } = useToast();
 
   const form = useForm<ReviewFormData>({
-    resolver: zodResolver(reviewSchema),
+    resolver: zodResolver(reviewSchema) as any,
     defaultValues: {
       product_type: "kuah",
     },
