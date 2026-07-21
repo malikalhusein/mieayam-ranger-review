@@ -88,17 +88,15 @@ function calculateScore(review: ReviewData): { finalScore10: number; rasaScore: 
   const baseScore = (rasaScore * 0.80) + (fasilitasScore * 0.20);
   const timeScore = review.service_durasi ? calculateTimeScore(review.service_durasi) : 0;
   const valueFactor = calculateValueFactor(review.price);
-  
-  let finalScore100 = (baseScore + timeScore) * valueFactor;
-  finalScore100 = Math.max(0, Math.min(100, finalScore100));
-  
-  // Convert to 0-10 scale and cap at 10
-  const finalScore10 = Math.min(10, finalScore100 / 10);
-  
-  return { 
-    finalScore10: parseFloat(finalScore10.toFixed(1)), 
-    rasaScore: parseFloat(rasaScore.toFixed(1)), 
-    fasilitasScore: parseFloat(fasilitasScore.toFixed(1)) 
+
+  // base+time are on 0-10 scale; do NOT divide by 10 again
+  let finalScore10 = (baseScore + timeScore) * valueFactor;
+  finalScore10 = Math.max(0, Math.min(10, finalScore10));
+
+  return {
+    finalScore10: parseFloat(finalScore10.toFixed(1)),
+    rasaScore: parseFloat(rasaScore.toFixed(1)),
+    fasilitasScore: parseFloat(fasilitasScore.toFixed(1))
   };
 }
 

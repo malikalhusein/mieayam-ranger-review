@@ -213,14 +213,10 @@ export function calculateScore(review: ReviewData): ScoringResult {
   // 6. Calculate VALUE_FACTOR
   const valueFactor = calculateValueFactor(review.price);
   
-  // 7. Calculate FINAL_SCORE (including topping bonus)
-  let finalScore100 = (baseScore + timeScore + toppingBonus) * valueFactor;
-  
-  // Clamp between 0 and 100
-  finalScore100 = Math.max(0, Math.min(100, finalScore100));
-  
-  // 7. Convert to 0-10 scale for UI and clamp to max 10
-  const finalScore10 = Math.min(10, finalScore100 / 10);
+  // 7. Calculate FINAL_SCORE on 0-10 scale (base+time+topping are all on 0-10 units)
+  let finalScore10 = (baseScore + timeScore + toppingBonus) * valueFactor;
+  finalScore10 = Math.max(0, Math.min(10, finalScore10));
+  const finalScore100 = finalScore10 * 10;
   
   // 8. Get price tier
   const priceTier = getPriceTier(review.price);
