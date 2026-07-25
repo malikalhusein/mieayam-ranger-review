@@ -305,6 +305,45 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_review_overall_score_v2: {
+        Args: {
+          p_ayam_bumbu: number
+          p_ayam_potongan: number
+          p_fasilitas_alat_makan: number
+          p_fasilitas_kebersihan: number
+          p_fasilitas_tempat: number
+          p_goreng_aroma_tumisan: number
+          p_goreng_bumbu_tumisan: number
+          p_goreng_keseimbangan_minyak: number
+          p_kuah_aroma: number
+          p_kuah_kaldu: number
+          p_kuah_kejernihan: number
+          p_kuah_kekentalan: number
+          p_kuah_keseimbangan: number
+          p_mie_tekstur: number
+          p_price: number
+          p_product_type: string
+          p_service_durasi: number
+          p_topping_acar: boolean
+          p_topping_bakso: boolean
+          p_topping_balungan: boolean
+          p_topping_bawang_daun: boolean
+          p_topping_ceker: boolean
+          p_topping_dimsum: boolean
+          p_topping_ekstra_ayam: boolean
+          p_topping_ekstra_sawi: boolean
+          p_topping_jamur: boolean
+          p_topping_jenis_mie: boolean
+          p_topping_kerupuk: boolean
+          p_topping_mie_jumbo: boolean
+          p_topping_pangsit_basah: boolean
+          p_topping_pangsit_kering: boolean
+          p_topping_tauge: boolean
+          p_topping_tetelan: boolean
+          p_topping_variasi_bumbu: boolean
+        }
+        Returns: number
+      }
       generate_slug: { Args: { name: string }; Returns: string }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
