@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Scoring algorithm - matches src/lib/scoring.ts exactly
+// Scoring v2 — must stay in sync with src/lib/scoring.ts
 interface ReviewData {
   product_type: "kuah" | "goreng";
   price: number;
@@ -26,78 +26,79 @@ interface ReviewData {
   fasilitas_tempat?: number;
   service_durasi?: number;
   overall_score?: number;
+  topping_ceker?: boolean;
+  topping_bakso?: boolean;
+  topping_ekstra_ayam?: boolean;
+  topping_ekstra_sawi?: boolean;
+  topping_balungan?: boolean;
+  topping_tetelan?: boolean;
+  topping_mie_jumbo?: boolean;
+  topping_jenis_mie?: boolean;
+  topping_pangsit_basah?: boolean;
+  topping_pangsit_kering?: boolean;
+  topping_dimsum?: boolean;
+  topping_variasi_bumbu?: boolean;
+  topping_bawang_daun?: boolean;
+  topping_jamur?: boolean;
+  topping_tauge?: boolean;
+  topping_acar?: boolean;
+  topping_kerupuk?: boolean;
 }
 
-function calculateRasaScore(review: ReviewData): number {
-  const tekstur = review.mie_tekstur || 0;
-  const bumbuAyam = review.ayam_bumbu || 0;
-  const potonganAyam = review.ayam_potongan || 0;
-  
-  if (review.product_type === "kuah") {
-    const bodyKuah = review.kuah_kekentalan || 0;
-    const keseimbanganKuah = review.kuah_keseimbangan || 0;
-    const kaldu = review.kuah_kaldu || 0;
-    const aromaKuah = review.kuah_aroma || 0;
-    const kejernihan = review.kuah_kejernihan || 0;
-    
-    const indicators = [tekstur, bumbuAyam, potonganAyam, bodyKuah, keseimbanganKuah, kaldu, aromaKuah, kejernihan];
-    const validIndicators = indicators.filter(v => v > 0);
-    
-    if (validIndicators.length === 0) return 0;
-    return validIndicators.reduce((a, b) => a + b, 0) / validIndicators.length;
-  } else {
-    const keseimbanganMinyak = review.goreng_keseimbangan_minyak || 0;
-    const bumbuTumisan = review.goreng_bumbu_tumisan || 0;
-    const aromaTumisan = review.goreng_aroma_tumisan || 0;
-    
-    const indicators = [tekstur, bumbuAyam, potonganAyam, keseimbanganMinyak, bumbuTumisan, aromaTumisan];
-    const validIndicators = indicators.filter(v => v > 0);
-    
-    if (validIndicators.length === 0) return 0;
-    return validIndicators.reduce((a, b) => a + b, 0) / validIndicators.length;
+const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+
+function getPriceTierConfig(price: number) {
+  if (price < 8000)  return { label: "Murah Ga Masuk Akal", stars: "⭐", expectedRasa: 5.8, expectedFas: 3.5, base: 0.45 };
+  if (price <= 10000) return { label: "Murah", stars: "⭐⭐", expectedRasa: 6.2, expectedFas: 4.2, base: 0.30 };
+  if (price <= 12000) return { label: "Normal", stars: "⭐⭐⭐", expectedRasa: 6.8, expectedFas: 5.0, base: 0.10 };
+  if (price <= 17999) return { label: "Resto Menengah", stars: "⭐⭐⭐⭐", expectedRasa: 7.3, expectedFas: 6.2, base: 0.0 };
+  if (price <= 20000) return { label: "Cukup Mahal", stars: "⭐⭐⭐⭐⭐", expectedRasa: 8.0, expectedFas: 7.2, base: -0.20 };
+  return { label: "Mahal", stars: "⭐⭐⭐⭐⭐⭐", expectedRasa: 8.5, expectedFas: 8.0, base: -0.40 };
+}
+
+function rasaScore(r: ReviewData): number {
+  const t = r.mie_tekstur || 0, ab = r.ayam_bumbu || 0, ap = r.ayam_potongan || 0;
+  if (r.product_type === "kuah") {
+    return (t + ab + ap + (r.kuah_kekentalan||0) + (r.kuah_keseimbangan||0) +
+            (r.kuah_kaldu||0) + (r.kuah_aroma||0) + (r.kuah_kejernihan||0)) / 8;
   }
+  return (t + ab + ap + (r.goreng_keseimbangan_minyak||0) +
+          (r.goreng_bumbu_tumisan||0) + (r.goreng_aroma_tumisan||0)) / 6;
 }
 
-function calculateFasilitasScore(review: ReviewData): number {
-  const kebersihan = review.fasilitas_kebersihan || 0;
-  const alatMakan = review.fasilitas_alat_makan || 0;
-  const tempat = review.fasilitas_tempat || 0;
-  
-  const indicators = [kebersihan, alatMakan, tempat];
-  const validIndicators = indicators.filter(v => v > 0);
-  
-  if (validIndicators.length === 0) return 0;
-  return validIndicators.reduce((a, b) => a + b, 0) / validIndicators.length;
+function fasilitasScore(r: ReviewData): number {
+  return ((r.fasilitas_kebersihan||0) + (r.fasilitas_alat_makan||0) + (r.fasilitas_tempat||0)) / 3;
 }
 
-function calculateTimeScore(serviceDuration: number): number {
-  const standardTime = 8;
-  const timeDiff = standardTime - serviceDuration;
-  return serviceDuration <= standardTime ? timeDiff * 1.5 : timeDiff * 2;
+function timeScoreV2(d?: number): number {
+  if (d == null) return 0;
+  const diff = 8 - d;
+  return d <= 8 ? Math.min(diff * 0.15, 0.45) : Math.max(diff * 0.20, -0.80);
 }
 
-function calculateValueFactor(price: number): number {
-  const standardPrice = 17000;
-  const factor = standardPrice / price;
-  return Math.max(0.85, Math.min(1.15, factor));
+function toppingBonusV2(r: ReviewData): number {
+  const arr = [r.topping_ceker, r.topping_bakso, r.topping_ekstra_ayam, r.topping_ekstra_sawi,
+    r.topping_balungan, r.topping_tetelan, r.topping_mie_jumbo, r.topping_jenis_mie,
+    r.topping_pangsit_basah, r.topping_pangsit_kering, r.topping_dimsum, r.topping_variasi_bumbu,
+    r.topping_bawang_daun, r.topping_jamur, r.topping_tauge, r.topping_acar, r.topping_kerupuk];
+  return Math.min(arr.filter(Boolean).length * 0.12, 0.60);
 }
 
-function calculateScore(review: ReviewData): { finalScore10: number; rasaScore: number; fasilitasScore: number } {
-  const rasaScore = calculateRasaScore(review);
-  const fasilitasScore = calculateFasilitasScore(review);
-  const baseScore = (rasaScore * 0.80) + (fasilitasScore * 0.20);
-  const timeScore = review.service_durasi ? calculateTimeScore(review.service_durasi) : 0;
-  const valueFactor = calculateValueFactor(review.price);
+function softCeiling(v: number): number {
+  return v <= 9.2 ? v : 9.2 + (v - 9.2) * 0.45;
+}
 
-  // base+time are on 0-10 scale; do NOT divide by 10 again
-  let finalScore10 = (baseScore + timeScore) * valueFactor;
-  finalScore10 = Math.max(0, Math.min(10, finalScore10));
-
-  return {
-    finalScore10: parseFloat(finalScore10.toFixed(1)),
-    rasaScore: parseFloat(rasaScore.toFixed(1)),
-    fasilitasScore: parseFloat(fasilitasScore.toFixed(1))
-  };
+function calculateScoreV2(r: ReviewData) {
+  const tier = getPriceTierConfig(r.price);
+  const rasa = rasaScore(r);
+  const fas = fasilitasScore(r);
+  const baseQuality = rasa * 0.82 + fas * 0.18;
+  const priceAdj = clamp(tier.base + (rasa - tier.expectedRasa) * 0.22 + (fas - tier.expectedFas) * 0.12, -0.90, 0.90);
+  const timeS = timeScoreV2(r.service_durasi);
+  const topBonus = toppingBonusV2(r);
+  const raw = baseQuality + priceAdj + timeS + topBonus;
+  const finalScore10 = clamp(softCeiling(raw), 0, 10);
+  return { finalScore10, rasa, fas, tier };
 }
 
 serve(async (req) => {
@@ -108,56 +109,29 @@ serve(async (req) => {
   try {
     const { review } = await req.json();
     console.log('Generating scorecard for review:', review.outlet_name);
-    console.log('Review data:', JSON.stringify(review, null, 2));
 
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    if (!lovableApiKey) {
-      throw new Error('LOVABLE_API_KEY not configured');
-    }
+    if (!lovableApiKey) throw new Error('LOVABLE_API_KEY not configured');
 
-    // Calculate score using the algorithm
-    const reviewData: ReviewData = {
-      product_type: review.product_type,
-      price: review.price,
-      mie_tekstur: review.mie_tekstur,
-      ayam_bumbu: review.ayam_bumbu,
-      ayam_potongan: review.ayam_potongan,
-      kuah_kekentalan: review.kuah_kekentalan,
-      kuah_keseimbangan: review.kuah_keseimbangan,
-      kuah_kaldu: review.kuah_kaldu,
-      kuah_aroma: review.kuah_aroma,
-      kuah_kejernihan: review.kuah_kejernihan,
-      goreng_keseimbangan_minyak: review.goreng_keseimbangan_minyak,
-      goreng_bumbu_tumisan: review.goreng_bumbu_tumisan,
-      goreng_aroma_tumisan: review.goreng_aroma_tumisan,
-      fasilitas_kebersihan: review.fasilitas_kebersihan,
-      fasilitas_alat_makan: review.fasilitas_alat_makan,
-      fasilitas_tempat: review.fasilitas_tempat,
-      service_durasi: review.service_durasi,
-      overall_score: review.overall_score,
-    };
+    const { finalScore10, rasa, fas, tier } = calculateScoreV2(review as ReviewData);
 
-    const { finalScore10, rasaScore, fasilitasScore } = calculateScore(reviewData);
-    
-    // Use overall_score from database if available, otherwise use calculated score
-    const displayScore = review.overall_score 
-      ? Math.min(10, parseFloat(review.overall_score)).toFixed(1) 
+    const displayScore = review.overall_score != null
+      ? Math.min(10, parseFloat(review.overall_score)).toFixed(1)
       : finalScore10.toFixed(1);
 
-    console.log('Calculated scores:', { finalScore10, rasaScore, fasilitasScore, displayScore });
+    console.log('Scorecard scores:', { finalScore10, rasa, fas, tier: tier.label, displayScore });
 
-    // Create detailed prompt for scorecard
     const isKuah = review.product_type === "kuah";
     const scoreBreakdown = isKuah
-      ? `- Rasa (Mie + Ayam + Kuah): ${rasaScore}/10\n- Fasilitas: ${fasilitasScore}/10`
-      : `- Rasa (Mie + Ayam + Goreng): ${rasaScore}/10\n- Fasilitas: ${fasilitasScore}/10`;
+      ? `- Rasa (Mie + Ayam + Kuah): ${rasa.toFixed(1)}/10\n- Fasilitas: ${fas.toFixed(1)}/10`
+      : `- Rasa (Mie + Ayam + Goreng): ${rasa.toFixed(1)}/10\n- Fasilitas: ${fas.toFixed(1)}/10`;
 
     const prompt = `Create a professional PORTRAIT Instagram story scorecard (1080x1920px, 9:16 aspect ratio) for a Mie Ayam (Indonesian chicken noodle) restaurant review with these specifications:
 
 **Restaurant:** ${review.outlet_name}
 **Location:** ${review.city}
 **Type:** ${isKuah ? "Kuah (Soup)" : "Goreng (Fried)"}
-**Price:** Rp ${review.price.toLocaleString('id-ID')}
+**Price:** Rp ${review.price.toLocaleString('id-ID')} — ${tier.stars} ${tier.label}
 **Visit Date:** ${new Date(review.visit_date).toLocaleDateString('id-ID')}
 
 **Overall Score: ${displayScore}/10**
@@ -181,8 +155,6 @@ ${scoreBreakdown}
 
 Make it look appetizing, professional, and share-worthy for Instagram Stories! The score "${displayScore}/10" must be clearly visible and prominent. This is a VERTICAL/PORTRAIT image.`;
 
-    console.log('Sending request to Lovable AI with display score:', displayScore);
-
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -191,14 +163,9 @@ Make it look appetizing, professional, and share-worthy for Instagram Stories! T
       },
       body: JSON.stringify({
         model: 'google/gemini-3-pro-image-preview',
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        modalities: ['image', 'text']
-      })
+        messages: [{ role: 'user', content: prompt }],
+        modalities: ['image', 'text'],
+      }),
     });
 
     if (!response.ok) {
@@ -208,21 +175,15 @@ Make it look appetizing, professional, and share-worthy for Instagram Stories! T
     }
 
     const data = await response.json();
-    console.log('Received response from AI Gateway');
-
     const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-    
     if (!imageUrl) {
       console.error('No image in response:', JSON.stringify(data));
       throw new Error('No image generated in response');
     }
 
     return new Response(
-      JSON.stringify({ imageUrl, calculatedScore: displayScore }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200
-      }
+      JSON.stringify({ imageUrl, calculatedScore: displayScore, priceTier: `${tier.stars} ${tier.label}` }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
 
   } catch (error) {
@@ -230,10 +191,7 @@ Make it look appetizing, professional, and share-worthy for Instagram Stories! T
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return new Response(
       JSON.stringify({ error: errorMessage }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
 });
