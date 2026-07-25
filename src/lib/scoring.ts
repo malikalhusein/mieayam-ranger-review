@@ -1,43 +1,39 @@
 /**
- * Mie Ayam Ranger Scoring Algorithm
- * Inspired by Coffee Value Assessment (SCA)
- * 
- * Formula:
- * - RASA_SCORE (80% weight)
- * - FASILITAS_SCORE (20% weight)
- * - BASE_SCORE = (RASA × 0.80) + (FASILITAS × 0.20)
- * - TIME_SCORE (bonus/penalty based on 8 min standard)
- * - VALUE_FACTOR = 17000 / price (clamped 0.85-1.15)
- * - FINAL_SCORE = (BASE_SCORE + TIME_SCORE) × VALUE_FACTOR
+ * Mie Ayam Ranger Scoring Algorithm v2 — Price Tier Expectation
+ *
+ * FINAL_SCORE = softCeiling( BASE_QUALITY + PRICE_ADJUSTMENT + TIME_SCORE + TOPPING_BONUS )
+ *
+ * - BASE_QUALITY = Rasa × 0.82 + Fasilitas × 0.18
+ * - PRICE_ADJUSTMENT = baseAdj(tier) + (rasa - expectedRasa) × 0.22 + (fas - expectedFas) × 0.12
+ *   clamped to ±0.90
+ * - TIME_SCORE capped between −0.80 and +0.45
+ * - TOPPING_BONUS = min(count × 0.12, 0.60)
+ * - Soft ceiling above 9.2 → 9.2 + (raw − 9.2) × 0.45, final clamp 0–10
+ *
+ * complexity & sweetness are metadata only (perceptual mapping), not scored.
  */
 
 export interface ReviewScores {
-  // Common indicators
   mie_tekstur?: number;
   ayam_bumbu?: number;
   ayam_potongan?: number;
-  
-  // Kuah-specific indicators
-  kuah_kekentalan?: number; // Body Kuah
-  kuah_keseimbangan?: number; // Keseimbangan Rasa Kuah
-  kuah_kaldu?: number; // Kaldu/Umami/Depth
-  kuah_aroma?: number; // Aroma Kuah
-  kuah_kejernihan?: number; // Kejernihan/Visual Kuah
-  
-  // Goreng-specific indicators
+
+  kuah_kekentalan?: number;
+  kuah_keseimbangan?: number;
+  kuah_kaldu?: number;
+  kuah_aroma?: number;
+  kuah_kejernihan?: number;
+
   goreng_keseimbangan_minyak?: number;
   goreng_bumbu_tumisan?: number;
   goreng_aroma_tumisan?: number;
-  
-  // Facilities
+
   fasilitas_kebersihan?: number;
   fasilitas_alat_makan?: number;
   fasilitas_tempat?: number;
-  
-  // Other factors
-  service_durasi?: number; // in minutes
-  
-  // Topping availability (bonus points)
+
+  service_durasi?: number;
+
   topping_ceker?: boolean;
   topping_bakso?: boolean;
   topping_ekstra_ayam?: boolean;
@@ -62,194 +58,165 @@ export interface ReviewData extends ReviewScores {
   price: number;
 }
 
+export type PriceTierKey =
+  | "super_cheap"
+  | "cheap"
+  | "normal"
+  | "mid"
+  | "expensive"
+  | "premium";
+
+export interface PriceTierConfig {
+  key: PriceTierKey;
+  label: string;
+  stars: string;
+  expectedRasa: number;
+  expectedFasilitas: number;
+  baseAdjustment: number;
+}
+
 export interface ScoringResult {
   rasa_score: number;
   fasilitas_score: number;
   base_score: number;
   time_score: number;
-  value_factor: number;
+  topping_bonus: number;
+  price_adjustment: number;
+  raw_final_score: number;
+  value_factor: number; // deprecated, kept for backward compat = 1
   final_score_100: number;
   final_score_10: number;
   price_tier: string;
+  price_tier_key: PriceTierKey;
+  expected_rasa: number;
+  expected_fasilitas: number;
   note: string;
 }
 
-/**
- * Get price tier category for metadata
- */
-export function getPriceTier(price: number): string {
-  if (price < 8000) return "⭐ Murah Ga Masuk Akal";
-  if (price <= 10000) return "⭐⭐ Murah";
-  if (price <= 12000) return "⭐⭐⭐ Normal";
-  if (price <= 15000) return "⭐⭐⭐⭐ Resto Menengah";
-  if (price <= 20000) return "⭐⭐⭐⭐⭐ Cukup Mahal";
-  return "⭐⭐⭐⭐⭐⭐ Mahal";
+const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+
+export function getPriceTierConfig(price: number): PriceTierConfig {
+  if (price < 8000)
+    return { key: "super_cheap", label: "Murah Ga Masuk Akal", stars: "⭐", expectedRasa: 5.8, expectedFasilitas: 3.5, baseAdjustment: 0.45 };
+  if (price <= 10000)
+    return { key: "cheap", label: "Murah", stars: "⭐⭐", expectedRasa: 6.2, expectedFasilitas: 4.2, baseAdjustment: 0.30 };
+  if (price <= 12000)
+    return { key: "normal", label: "Normal", stars: "⭐⭐⭐", expectedRasa: 6.8, expectedFasilitas: 5.0, baseAdjustment: 0.10 };
+  if (price <= 17999)
+    return { key: "mid", label: "Resto Menengah", stars: "⭐⭐⭐⭐", expectedRasa: 7.3, expectedFasilitas: 6.2, baseAdjustment: 0.0 };
+  if (price <= 20000)
+    return { key: "expensive", label: "Cukup Mahal", stars: "⭐⭐⭐⭐⭐", expectedRasa: 8.0, expectedFasilitas: 7.2, baseAdjustment: -0.20 };
+  return { key: "premium", label: "Mahal", stars: "⭐⭐⭐⭐⭐⭐", expectedRasa: 8.5, expectedFasilitas: 8.0, baseAdjustment: -0.40 };
 }
 
-/**
- * Calculate RASA_SCORE based on product type
- */
+export function getPriceTier(price: number): string {
+  const t = getPriceTierConfig(price);
+  return `${t.stars} ${t.label}`;
+}
+
 function calculateRasaScore(review: ReviewData): number {
   const tekstur = review.mie_tekstur || 0;
   const bumbuAyam = review.ayam_bumbu || 0;
   const potonganAyam = review.ayam_potongan || 0;
-  
+
   if (review.product_type === "kuah") {
-    // For KUAH: average of 8 indicators
-    const bodyKuah = review.kuah_kekentalan || 0;
-    const keseimbanganKuah = review.kuah_keseimbangan || 0;
-    const kaldu = review.kuah_kaldu || 0;
-    const aromaKuah = review.kuah_aroma || 0;
-    const kejernihan = review.kuah_kejernihan || 0;
-    
-    const sum = tekstur + bumbuAyam + potonganAyam + 
-                bodyKuah + keseimbanganKuah + kaldu + aromaKuah + kejernihan;
+    const sum =
+      tekstur + bumbuAyam + potonganAyam +
+      (review.kuah_kekentalan || 0) + (review.kuah_keseimbangan || 0) +
+      (review.kuah_kaldu || 0) + (review.kuah_aroma || 0) + (review.kuah_kejernihan || 0);
     return sum / 8;
-  } else {
-    // For GORENG: average of 6 indicators
-    const keseimbanganMinyak = review.goreng_keseimbangan_minyak || 0;
-    const bumbuTumisan = review.goreng_bumbu_tumisan || 0;
-    const aromaTumisan = review.goreng_aroma_tumisan || 0;
-    
-    const sum = tekstur + bumbuAyam + potonganAyam + 
-                keseimbanganMinyak + bumbuTumisan + aromaTumisan;
-    return sum / 6;
   }
+  const sum =
+    tekstur + bumbuAyam + potonganAyam +
+    (review.goreng_keseimbangan_minyak || 0) +
+    (review.goreng_bumbu_tumisan || 0) +
+    (review.goreng_aroma_tumisan || 0);
+  return sum / 6;
 }
 
-/**
- * Calculate FASILITAS_SCORE
- */
 function calculateFasilitasScore(review: ReviewData): number {
-  const kebersihan = review.fasilitas_kebersihan || 0;
-  const alatMakan = review.fasilitas_alat_makan || 0;
-  const tempat = review.fasilitas_tempat || 0;
-  
-  return (kebersihan + alatMakan + tempat) / 3;
+  return (
+    (review.fasilitas_kebersihan || 0) +
+    (review.fasilitas_alat_makan || 0) +
+    (review.fasilitas_tempat || 0)
+  ) / 3;
 }
 
-/**
- * Calculate TIME_SCORE (bonus/penalty)
- * Standard: 8 minutes
- * If <= 8: bonus = (8 - time) × 1.5
- * If > 8: penalty = (8 - time) × 2 (negative)
- */
-function calculateTimeScore(serviceDuration: number): number {
-  const standardTime = 8;
-  const timeDiff = standardTime - serviceDuration;
-  
-  if (serviceDuration <= standardTime) {
-    return timeDiff * 1.5; // bonus for fast service
-  } else {
-    return timeDiff * 2; // penalty for slow service (negative value)
-  }
+function calculatePriceAdjustment(price: number, rasa: number, fasilitas: number, tier: PriceTierConfig): number {
+  const delta =
+    tier.baseAdjustment +
+    (rasa - tier.expectedRasa) * 0.22 +
+    (fasilitas - tier.expectedFasilitas) * 0.12;
+  return clamp(delta, -0.90, 0.90);
 }
 
-/**
- * Calculate TOPPING_BONUS
- * Each available topping adds 0.5 points (max 4 points for 8 toppings)
- */
-function calculateToppingBonus(review: ReviewScores): number {
+function calculateTimeScoreV2(serviceDuration?: number): number {
+  if (serviceDuration == null) return 0;
+  const diff = 8 - serviceDuration;
+  if (serviceDuration <= 8) return Math.min(diff * 0.15, 0.45);
+  return Math.max(diff * 0.20, -0.80);
+}
+
+function calculateToppingBonusV2(review: ReviewScores): number {
   const toppings = [
-    review.topping_ceker,
-    review.topping_bakso,
-    review.topping_ekstra_ayam,
-    review.topping_ekstra_sawi,
-    review.topping_balungan,
-    review.topping_tetelan,
-    review.topping_mie_jumbo,
-    review.topping_jenis_mie,
-    review.topping_pangsit_basah,
-    review.topping_pangsit_kering,
-    review.topping_dimsum,
-    review.topping_variasi_bumbu,
-    review.topping_bawang_daun,
-    review.topping_jamur,
-    review.topping_tauge,
-    review.topping_acar,
-    review.topping_kerupuk,
+    review.topping_ceker, review.topping_bakso, review.topping_ekstra_ayam,
+    review.topping_ekstra_sawi, review.topping_balungan, review.topping_tetelan,
+    review.topping_mie_jumbo, review.topping_jenis_mie, review.topping_pangsit_basah,
+    review.topping_pangsit_kering, review.topping_dimsum, review.topping_variasi_bumbu,
+    review.topping_bawang_daun, review.topping_jamur, review.topping_tauge,
+    review.topping_acar, review.topping_kerupuk,
   ];
-  
-  const availableCount = toppings.filter(Boolean).length;
-  return availableCount * 0.5; // 0.5 points per topping
+  const count = toppings.filter(Boolean).length;
+  return Math.min(count * 0.12, 0.60);
 }
 
-/**
- * Calculate VALUE_FACTOR
- * Standard price: Rp 17,000
- * Factor = 17000 / price
- * Clamped between 0.85 and 1.15
- */
-function calculateValueFactor(price: number): number {
-  const standardPrice = 17000;
-  const factor = standardPrice / price;
-  
-  // Clamp between 0.85 and 1.15
-  return Math.max(0.85, Math.min(1.15, factor));
+function applySoftCeiling(raw: number): number {
+  if (raw <= 9.2) return raw;
+  return 9.2 + (raw - 9.2) * 0.45;
 }
 
-/**
- * Main scoring function
- * Returns complete scoring breakdown
- */
 export function calculateScore(review: ReviewData): ScoringResult {
-  // 1. Calculate RASA_SCORE
-  const rasaScore = calculateRasaScore(review);
-  
-  // 2. Calculate FASILITAS_SCORE
-  const fasilitasScore = calculateFasilitasScore(review);
-  
-  // 3. Calculate BASE_SCORE (weighted average)
-  const baseScore = (rasaScore * 0.80) + (fasilitasScore * 0.20);
-  
-  // 4. Calculate TIME_SCORE
-  const timeScore = review.service_durasi 
-    ? calculateTimeScore(review.service_durasi)
-    : 0;
-  
-  // 5. Calculate TOPPING_BONUS
-  const toppingBonus = calculateToppingBonus(review);
-  
-  // 6. Calculate VALUE_FACTOR
-  const valueFactor = calculateValueFactor(review.price);
-  
-  // 7. Calculate FINAL_SCORE on 0-10 scale (base+time+topping are all on 0-10 units)
-  let finalScore10 = (baseScore + timeScore + toppingBonus) * valueFactor;
-  finalScore10 = Math.max(0, Math.min(10, finalScore10));
-  const finalScore100 = finalScore10 * 10;
-  
-  // 8. Get price tier
-  const priceTier = getPriceTier(review.price);
-  
+  const tier = getPriceTierConfig(review.price);
+  const rasa = calculateRasaScore(review);
+  const fasilitas = calculateFasilitasScore(review);
+  const baseQuality = rasa * 0.82 + fasilitas * 0.18;
+  const priceAdjustment = calculatePriceAdjustment(review.price, rasa, fasilitas, tier);
+  const timeScore = calculateTimeScoreV2(review.service_durasi);
+  const toppingBonus = calculateToppingBonusV2(review);
+
+  const rawFinal = baseQuality + priceAdjustment + timeScore + toppingBonus;
+  const finalScore10 = clamp(applySoftCeiling(rawFinal), 0, 10);
+
   return {
-    rasa_score: parseFloat(rasaScore.toFixed(2)),
-    fasilitas_score: parseFloat(fasilitasScore.toFixed(2)),
-    base_score: parseFloat(baseScore.toFixed(2)),
+    rasa_score: parseFloat(rasa.toFixed(2)),
+    fasilitas_score: parseFloat(fasilitas.toFixed(2)),
+    base_score: parseFloat(baseQuality.toFixed(2)),
     time_score: parseFloat(timeScore.toFixed(2)),
-    value_factor: parseFloat(valueFactor.toFixed(2)),
-    final_score_100: parseFloat(finalScore100.toFixed(2)),
+    topping_bonus: parseFloat(toppingBonus.toFixed(2)),
+    price_adjustment: parseFloat(priceAdjustment.toFixed(2)),
+    raw_final_score: parseFloat(rawFinal.toFixed(2)),
+    value_factor: 1,
+    final_score_100: parseFloat((finalScore10 * 10).toFixed(2)),
     final_score_10: parseFloat(finalScore10.toFixed(2)),
-    price_tier: priceTier,
-    note: "Kompleksitas rasa & profil rasa tidak mempengaruhi skor; hanya metadata."
+    price_tier: `${tier.stars} ${tier.label}`,
+    price_tier_key: tier.key,
+    expected_rasa: tier.expectedRasa,
+    expected_fasilitas: tier.expectedFasilitas,
+    note: "Score v2: dikalibrasi terhadap ekspektasi kategori harga. Complexity & sweetness hanya metadata.",
   };
 }
 
-/**
- * Legacy scoring for backward compatibility
- * This matches the old formula for existing reviews
- */
+/** Legacy fallback for very old rows without new fields. */
 export function calculateLegacyScore(review: ReviewData): number {
-  const kuahScore = review.product_type === "kuah" 
-    ? ((review.kuah_kekentalan || 0) + (review.kuah_kaldu || 0) + 
+  const kuahScore = review.product_type === "kuah"
+    ? ((review.kuah_kekentalan || 0) + (review.kuah_kaldu || 0) +
        (review.kuah_keseimbangan || 0) + (review.kuah_aroma || 0)) / 4
     : 0;
-  
   const mieScore = review.mie_tekstur || 0;
   const ayamScore = ((review.ayam_bumbu || 0) + (review.ayam_potongan || 0)) / 2;
-  const fasilitasScore = ((review.fasilitas_kebersihan || 0) + 
-                           (review.fasilitas_alat_makan || 0) + 
-                           (review.fasilitas_tempat || 0)) / 3;
-
+  const fasilitasScore = ((review.fasilitas_kebersihan || 0) +
+                          (review.fasilitas_alat_makan || 0) +
+                          (review.fasilitas_tempat || 0)) / 3;
   const avgRasa = (kuahScore + mieScore + ayamScore) / 3;
   return ((avgRasa + fasilitasScore) / review.price) * 1000;
 }

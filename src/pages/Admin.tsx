@@ -98,7 +98,7 @@ const Admin = () => {
   const [reviews, setReviews] = useState<any[]>([]);
   const [editingReview, setEditingReview] = useState<any>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [previewScore, setPreviewScore] = useState<number | null>(null);
+  const [previewScore, setPreviewScore] = useState<ReturnType<typeof calculateScore> | null>(null);
   const [uniqueOutlets, setUniqueOutlets] = useState<Array<{name: string, address: string, city: string}>>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -166,8 +166,7 @@ const Admin = () => {
         topping_kerupuk: value.topping_kerupuk || false,
       };
 
-      const result = calculateScore(reviewData);
-      setPreviewScore(result.final_score_10);
+      setPreviewScore(calculateScore(reviewData));
     });
     return () => subscription.unsubscribe();
   }, [form]);
@@ -1525,21 +1524,28 @@ const Admin = () => {
                   </div>
                 </div>
 
-                {/* Real-time Score Preview */}
+                {/* Real-time Score Preview (Scoring v2) */}
                 {previewScore !== null && (
                   <Alert className="bg-primary/10 border-primary">
                     <TrendingUp className="h-4 w-4" />
                     <AlertDescription>
                       <div>
                         <span className="font-semibold">Preview Overall Score: </span>
-                        <span className="text-2xl font-bold text-primary">{previewScore.toFixed(2)}</span>
+                        <span className="text-2xl font-bold text-primary">{previewScore.final_score_10.toFixed(2)}</span>
                         <span className="text-sm text-muted-foreground ml-2">/10</span>
                       </div>
-                      <div className="text-xs mt-2 text-muted-foreground">
-                        Formula Baru: (BASE_SCORE + TIME_SCORE) × VALUE_FACTOR
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1 text-xs mt-3 text-muted-foreground">
+                        <div>Kategori Harga: <span className="font-semibold text-foreground">{previewScore.price_tier}</span></div>
+                        <div>Rasa: <span className="font-semibold text-foreground">{previewScore.rasa_score.toFixed(2)}</span> (exp {previewScore.expected_rasa.toFixed(1)})</div>
+                        <div>Fasilitas: <span className="font-semibold text-foreground">{previewScore.fasilitas_score.toFixed(2)}</span> (exp {previewScore.expected_fasilitas.toFixed(1)})</div>
+                        <div>Base Quality: <span className="font-semibold text-foreground">{previewScore.base_score.toFixed(2)}</span></div>
+                        <div>Price Adj: <span className="font-semibold text-foreground">{previewScore.price_adjustment >= 0 ? "+" : ""}{previewScore.price_adjustment.toFixed(2)}</span></div>
+                        <div>Time Score: <span className="font-semibold text-foreground">{previewScore.time_score >= 0 ? "+" : ""}{previewScore.time_score.toFixed(2)}</span></div>
+                        <div>Topping Bonus: <span className="font-semibold text-foreground">+{previewScore.topping_bonus.toFixed(2)}</span></div>
+                        <div>Raw Final: <span className="font-semibold text-foreground">{previewScore.raw_final_score.toFixed(2)}</span></div>
                       </div>
-                      <div className="text-xs mt-1 text-muted-foreground italic">
-                        Rasa 80% + Fasilitas 20% | Standar waktu: 8 menit | Standar harga: Rp 17.000
+                      <div className="text-xs mt-2 text-muted-foreground italic">
+                        Scoring v2: Quality (Rasa 82% + Fasilitas 18%) + Price Tier Expectation + Bonus kecil, dengan soft ceiling di 9.2 supaya 10/10 langka.
                       </div>
                     </AlertDescription>
                   </Alert>

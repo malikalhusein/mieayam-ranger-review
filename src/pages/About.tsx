@@ -89,14 +89,16 @@ const About = () => {
                 <h2 className="text-2xl font-bold">Cara Kerja Penilaian</h2>
                 
                 <div className="bg-muted p-6 rounded-lg">
-                  <h3 className="font-bold text-foreground mb-2">Formula Penilaian</h3>
+                  <h3 className="font-bold text-foreground mb-2">Formula Penilaian (Scoring v2)</h3>
                   <p className="mb-2">
-                    <code className="bg-background px-2 py-1 rounded text-sm">Score = (BASE_SCORE + TIME_SCORE) × VALUE_FACTOR</code>
+                    <code className="bg-background px-2 py-1 rounded text-sm">Final = softCeiling(Base Quality + Price Adjustment + Time + Topping)</code>
                   </p>
                   <ul className="text-sm space-y-1 text-muted-foreground">
-                    <li>• <strong>BASE_SCORE</strong> = (Rasa × 80%) + (Fasilitas × 20%)</li>
-                    <li>• <strong>TIME_SCORE</strong> = Bonus/Penalti berdasarkan waktu penyajian (standar: 8 menit)</li>
-                    <li>• VALUE_FACTOR = Faktor harga, set normatif Rp 17.000 sebagai treshold parameter.<strong>VALUE_FACTOR</strong> = 17.000 / Harga (dibatasi 0.85-1.15)</li>
+                    <li>• <strong>Base Quality</strong> = Rasa × 82% + Fasilitas × 18%</li>
+                    <li>• <strong>Price Adjustment</strong> = performa relatif terhadap ekspektasi kategori harga (dibatasi ±0.90)</li>
+                    <li>• <strong>Time Score</strong> = bonus/penalti kecil di sekitar standar 8 menit (dibatasi +0.45 / −0.80)</li>
+                    <li>• <strong>Topping Bonus</strong> = 0.12 per topping tersedia, maksimum 0.60</li>
+                    <li>• <strong>Soft Ceiling</strong>: di atas 9.2 skor naik lebih pelan, sehingga <strong>10/10 sangat langka</strong></li>
                   </ul>
                 </div>
 
@@ -128,27 +130,42 @@ const About = () => {
                 </div>
 
                 <div className="bg-muted p-6 rounded-lg">
-                  <h3 className="font-bold text-foreground mb-3">Kategori Harga</h3>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li>• &lt; Rp 8.000 = Murah Ga Masuk Akal ⭐</li>
-                    <li>• Rp 8.000 - 10.000 = Murah ⭐⭐</li>
-                    <li>• Rp 11.000 - 12.000 = Normal ⭐⭐⭐</li>
-                    <li>• Rp 13.000 - 15.000 = Resto Menengah ⭐⭐⭐⭐</li>
-                    <li>• Rp 18.000 - 20.000 = Cukup Mahal ⭐⭐⭐⭐⭐</li>
-                    <li>• &gt; Rp 20.000 = Mahal ⭐⭐⭐⭐⭐⭐</li>
-                  </ul>
-                  <p className="text-xs mt-3 italic text-muted-foreground">* Kategori harga dibuah sebagai bentuk kompensasi, semakin mahal semakin banyak value yang bisa kita tuntut. Sebaliknya semakin murah mie ayam semakin sedikit hal yang bisa diekspektasikan, semisal mie ayam 8rb tidak bisa dibandingkan dengan yang harganya 15rb baik untuk rasa maupun dari segi fasilitas lainnya.</p>
+                  <h3 className="font-bold text-foreground mb-3">Kategori Harga & Ekspektasi</h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs md:text-sm">
+                      <thead>
+                        <tr className="text-left border-b border-border">
+                          <th className="py-2 pr-3">Range</th>
+                          <th className="py-2 pr-3">Kategori</th>
+                          <th className="py-2 pr-3">Exp. Rasa</th>
+                          <th className="py-2 pr-3">Exp. Fasilitas</th>
+                          <th className="py-2">Base Adj.</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-muted-foreground">
+                        <tr className="border-b border-border/50"><td className="py-1 pr-3">&lt; Rp 8.000</td><td className="py-1 pr-3">Murah Ga Masuk Akal ⭐</td><td className="py-1 pr-3">5.8</td><td className="py-1 pr-3">3.5</td><td className="py-1">+0.45</td></tr>
+                        <tr className="border-b border-border/50"><td className="py-1 pr-3">Rp 8.000 – 10.000</td><td className="py-1 pr-3">Murah ⭐⭐</td><td className="py-1 pr-3">6.2</td><td className="py-1 pr-3">4.2</td><td className="py-1">+0.30</td></tr>
+                        <tr className="border-b border-border/50"><td className="py-1 pr-3">Rp 11.000 – 12.000</td><td className="py-1 pr-3">Normal ⭐⭐⭐</td><td className="py-1 pr-3">6.8</td><td className="py-1 pr-3">5.0</td><td className="py-1">+0.10</td></tr>
+                        <tr className="border-b border-border/50"><td className="py-1 pr-3">Rp 13.000 – 17.999</td><td className="py-1 pr-3">Resto Menengah ⭐⭐⭐⭐</td><td className="py-1 pr-3">7.3</td><td className="py-1 pr-3">6.2</td><td className="py-1">0.00</td></tr>
+                        <tr className="border-b border-border/50"><td className="py-1 pr-3">Rp 18.000 – 20.000</td><td className="py-1 pr-3">Cukup Mahal ⭐⭐⭐⭐⭐</td><td className="py-1 pr-3">8.0</td><td className="py-1 pr-3">7.2</td><td className="py-1">−0.20</td></tr>
+                        <tr><td className="py-1 pr-3">&gt; Rp 20.000</td><td className="py-1 pr-3">Mahal ⭐⭐⭐⭐⭐⭐</td><td className="py-1 pr-3">8.5</td><td className="py-1 pr-3">8.0</td><td className="py-1">−0.40</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="text-xs mt-3 italic text-muted-foreground">
+                    Kategori harga dipakai sebagai <strong>konteks ekspektasi</strong>, bukan sekadar bonus/penalti. Mie ayam murah tetap diapresiasi kalau bagus untuk kelasnya; mie ayam mahal tetap dituntut memberi rasa & fasilitas sesuai harganya.
+                  </p>
                 </div>
 
                 <div className="bg-primary/10 border border-primary/20 p-6 rounded-lg">
-                  <h3 className="font-bold text-foreground mb-2">Waktu Penyajian (Toleransi 8 Menit)</h3>
+                  <h3 className="font-bold text-foreground mb-2">Waktu Penyajian (Standar 8 Menit)</h3>
                   <ul className="text-sm space-y-2 text-muted-foreground">
-                    <li>• <strong>Standar 8 menit:</strong> Tidak ada penalti atau bonus</li>
-                    <li>• <strong>Lebih cepat dari 8 menit:</strong> Mendapat bonus poin ((8 − waktu) × 1.5)</li>
-                    <li>• <strong>Lebih lambat dari 8 menit:</strong> Terkena penalti ((8 − waktu) × 2)</li>
+                    <li>• <strong>Standar 8 menit:</strong> tanpa bonus/penalti</li>
+                    <li>• <strong>Lebih cepat:</strong> bonus (8 − waktu) × 0.15, maksimum <strong>+0.45</strong></li>
+                    <li>• <strong>Lebih lambat:</strong> penalti (8 − waktu) × 0.20, minimum <strong>−0.80</strong></li>
                   </ul>
                   <p className="text-xs mt-3 text-muted-foreground italic">
-                    Contoh: Waktu 5 menit = bonus +4.5 poin, Waktu 12 menit = penalti -8 poin
+                    Waktu penyajian jadi konteks pengalaman, bukan faktor pembalik. Rasa tetap dominan.
                   </p>
                 </div>
 
@@ -156,9 +173,10 @@ const About = () => {
                   <h3 className="font-bold text-foreground mb-2">Catatan Penting</h3>
                   <ul className="space-y-1 text-sm text-muted-foreground">
                     <li>• Algoritma terinspirasi dari Coffee Value Assessment (SCA)</li>
-                    <li>• Kompleksitas rasa dan profil rasa tidak mempengaruhi skor - hanya metadata</li>
-                    <li>• Standar harga nasional: Rp 17.000</li>
-                    <li>• Skor maksimal: 10 (skala 0-10)</li>
+                    <li>• Kompleksitas rasa dan profil rasa hanya metadata perceptual mapping — tidak mempengaruhi skor</li>
+                    <li>• Skor v2 dikalibrasi terhadap ekspektasi kategori harga</li>
+                    <li>• Soft ceiling di 9.2 membuat skor 10/10 sangat langka — hanya untuk performa luar biasa di kelasnya</li>
+                    <li>• Skala skor: 0–10</li>
                   </ul>
                 </div>
               </div>
