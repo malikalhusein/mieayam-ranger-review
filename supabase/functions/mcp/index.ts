@@ -11,10 +11,46 @@ import { z } from "npm:zod@^4.4.3";
 
 // src/lib/mcp/supabase.ts
 import { createClient } from "npm:@supabase/supabase-js@^2.58.0";
-var env = globalThis.process.env;
+function runtimeEnv(name) {
+  const runtime = globalThis;
+  return runtime.Deno?.env?.get?.(name) ?? runtime.process?.env?.[name];
+}
+function configuredEnv(names) {
+  for (const name of names) {
+    const value = runtimeEnv(name)?.trim();
+    if (value) return value;
+  }
+  return void 0;
+}
+function supabaseProjectUrl() {
+  const url = configuredEnv(["SUPABASE_URL", "VITE_SUPABASE_URL"]);
+  if (!url) throw new Error("SUPABASE_URL (or VITE_SUPABASE_URL) is required");
+  return url;
+}
+function supabasePublishableKey() {
+  const direct = configuredEnv(["SUPABASE_PUBLISHABLE_KEY", "VITE_SUPABASE_PUBLISHABLE_KEY"]);
+  if (direct) return direct;
+  const keyset = runtimeEnv("SUPABASE_PUBLISHABLE_KEYS");
+  if (keyset) {
+    try {
+      const parsed = JSON.parse(keyset);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        const keys = parsed;
+        const key = [keys.default, ...Object.values(keys)].find((v) => typeof v === "string" && v.trim().startsWith("sb_publishable_"))?.trim();
+        if (key) return key;
+      }
+    } catch {
+    }
+  }
+  const legacy = configuredEnv(["SUPABASE_ANON_KEY", "VITE_SUPABASE_ANON_KEY"]);
+  if (legacy) return legacy;
+  throw new Error("SUPABASE_PUBLISHABLE_KEYS or SUPABASE_ANON_KEY is required");
+}
 function supabaseForUser(ctx) {
-  return createClient(env.SUPABASE_URL, env.SUPABASE_PUBLISHABLE_KEY, {
-    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
+  const token = ctx.getToken();
+  if (!token) throw new Error("supabaseForUser requires a verified OAuth token");
+  return createClient(supabaseProjectUrl(), supabasePublishableKey(), {
+    global: { headers: { Authorization: `Bearer ${token}` } },
     auth: { persistSession: false, autoRefreshToken: false }
   });
 }
@@ -146,8 +182,8 @@ var moderate_wishlist_default = defineTool5({
 // src/lib/mcp/index.ts
 var projectRef = "kqsqocrtaybbkpigvwjy";
 var mcp_default = defineMcp({
-  name: "mie-ayam-ranger-mcp",
-  title: "Mie Ayam Ranger",
+  name: "mieayam-ranger-review",
+  title: "mieayam-ranger-review",
   version: "0.1.0",
   instructions: "Tools for Mie Ayam Ranger \u2014 a directory of Indonesian mie ayam outlet reviews. Use `search_reviews` and `get_review` to explore the review database. Use `list_wishlist` to see community-submitted outlet suggestions, `submit_wishlist` to add a new one, and `moderate_wishlist` (admin only) to approve/reject entries.",
   auth: auth.oauth.issuer({

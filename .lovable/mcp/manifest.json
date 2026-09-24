@@ -11,9 +11,9 @@
   },
   "mcp": {
     "server": {
-      "name": "mie-ayam-ranger-mcp",
+      "name": "mieayam-ranger-review",
       "version": "0.1.0",
-      "title": "Mie Ayam Ranger"
+      "title": "mieayam-ranger-review"
     },
     "tools": [
       {
