@@ -68,9 +68,9 @@ var search_reviews_default = defineTool({
     limit: z.number().int().min(1).max(50).default(10).describe("Max number of results (default 10).")
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
-  handler: async ({ city, product_type, min_score, max_price, limit }, ctx) => {
+  handler: async ({ city: city2, product_type, min_score, max_price, limit }, ctx) => {
     let q = supabaseForUser(ctx).from("reviews").select("slug, outlet_name, city, address, product_type, price, overall_score, notes").order("overall_score", { ascending: false }).limit(limit);
-    if (city) q = q.ilike("city", `%${city}%`);
+    if (city2) q = q.ilike("city", `%${city2}%`);
     if (product_type) q = q.eq("product_type", product_type);
     if (typeof min_score === "number") q = q.gte("overall_score", min_score);
     if (typeof max_price === "number") q = q.lte("price", max_price);
@@ -179,18 +179,307 @@ var moderate_wishlist_default = defineTool5({
   }
 });
 
+// src/lib/mcp/tools/get-review-template.ts
+import { defineTool as defineTool6 } from "npm:@lovable.dev/mcp-js@0.23.0";
+var TEMPLATE = `Template review Mie Ayam Ranger (nilai 0-10, boleh desimal):
+WAJIB: outlet_name, address, city, price (Rupiah penuh, mis. 12000), product_type (kuah/goreng)
+Semua tipe: mie_tekstur, ayam_bumbu, ayam_potongan, fasilitas_kebersihan, fasilitas_alat_makan, fasilitas_tempat
+Kuah: kuah_kekentalan, kuah_keseimbangan, kuah_kaldu, kuah_aroma, kuah_kejernihan
+Goreng: goreng_keseimbangan_minyak, goreng_bumbu_tumisan, goreng_aroma_tumisan
+Opsional: visit_date (YYYY-MM-DD), service_durasi (menit), mie_tipe, google_map_url, complexity (-5..5), sweetness (-5..5), notes, toppings
+Topping: ceker, bakso, ekstra_ayam, ekstra_sawi, balungan, tetelan, mie_jumbo, jenis_mie, pangsit_basah, pangsit_kering, dimsum, variasi_bumbu, bawang_daun, jamur, tauge, acar, kerupuk
+
+Alur: kumpulkan nilai -> preview_score -> konfirmasi user -> create_review -> attach_review_image untuk foto.
+
+Contoh pesan: "Mie Ayam Pak Kumis, Jl. Slamet Riyadi 10, Solo, 12rb, kuah. Mie 8, bumbu ayam 7.5, potongan 7, kental 7, seimbang 8, kaldu 8, aroma 7.5, jernih 7, bersih 7, alat makan 7, tempat 6. Saji 6 menit. Topping bakso, pangsit kering."`;
+var get_review_template_default = defineTool6({
+  name: "get_review_template",
+  title: "Get review input template",
+  description: "Return the list of review fields, which are required per product type, available toppings, and an example message.",
+  inputSchema: {},
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: () => ({ content: [{ type: "text", text: TEMPLATE }] })
+});
+
+// src/lib/mcp/tools/preview-score.ts
+import { defineTool as defineTool7 } from "npm:@lovable.dev/mcp-js@0.23.0";
+
+// src/lib/mcp/review-fields.ts
+import { z as z6 } from "npm:zod@^4.4.3";
+var score = z6.number().min(0).max(10);
+var reviewFieldShape = {
+  outlet_name: z6.string().trim().min(2).max(200).describe("Nama warung/outlet."),
+  address: z6.string().trim().min(3).max(500).describe("Alamat lengkap."),
+  city: z6.string().trim().min(2).max(100).describe("Kota."),
+  visit_date: z6.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().describe("Tanggal kunjungan YYYY-MM-DD (default: hari ini)."),
+  price: z6.number().int().min(1e3).max(1e6).describe("Harga dalam Rupiah, minimal 1000 (mis. 12000, bukan 12)."),
+  product_type: z6.enum(["kuah", "goreng"]).describe("kuah atau goreng."),
+  google_map_url: z6.string().url().max(2048).optional(),
+  mie_tipe: z6.string().max(100).optional().describe("Jenis mie, mis. 'mie kecil', 'mie pipih'."),
+  mie_tekstur: score.optional(),
+  ayam_bumbu: score.optional(),
+  ayam_potongan: score.optional(),
+  kuah_kekentalan: score.optional().describe("Wajib untuk kuah."),
+  kuah_keseimbangan: score.optional().describe("Wajib untuk kuah."),
+  kuah_kaldu: score.optional().describe("Wajib untuk kuah."),
+  kuah_aroma: score.optional().describe("Wajib untuk kuah."),
+  kuah_kejernihan: score.optional().describe("Wajib untuk kuah."),
+  goreng_keseimbangan_minyak: score.optional().describe("Wajib untuk goreng."),
+  goreng_bumbu_tumisan: score.optional().describe("Wajib untuk goreng."),
+  goreng_aroma_tumisan: score.optional().describe("Wajib untuk goreng."),
+  fasilitas_kebersihan: score.optional(),
+  fasilitas_alat_makan: score.optional(),
+  fasilitas_tempat: score.optional(),
+  service_durasi: z6.number().min(0).max(120).optional().describe("Lama penyajian dalam menit."),
+  complexity: z6.number().int().min(-5).max(5).optional().describe("Kompleksitas rasa -5..+5."),
+  sweetness: z6.number().int().min(-5).max(5).optional().describe("Asin(-5) .. manis(+5)."),
+  notes: z6.string().max(1e4).optional().describe("Catatan review (markdown)."),
+  toppings: z6.array(
+    z6.enum([
+      "ceker",
+      "bakso",
+      "ekstra_ayam",
+      "ekstra_sawi",
+      "balungan",
+      "tetelan",
+      "mie_jumbo",
+      "jenis_mie",
+      "pangsit_basah",
+      "pangsit_kering",
+      "dimsum",
+      "variasi_bumbu",
+      "bawang_daun",
+      "jamur",
+      "tauge",
+      "acar",
+      "kerupuk"
+    ])
+  ).optional().describe("Daftar topping yang tersedia.")
+};
+var TOPPINGS = [
+  "ceker",
+  "bakso",
+  "ekstra_ayam",
+  "ekstra_sawi",
+  "balungan",
+  "tetelan",
+  "mie_jumbo",
+  "jenis_mie",
+  "pangsit_basah",
+  "pangsit_kering",
+  "dimsum",
+  "variasi_bumbu",
+  "bawang_daun",
+  "jamur",
+  "tauge",
+  "acar",
+  "kerupuk"
+];
+var REQUIRED_COMMON = ["mie_tekstur", "ayam_bumbu", "ayam_potongan", "fasilitas_kebersihan", "fasilitas_alat_makan", "fasilitas_tempat"];
+var REQUIRED_KUAH = ["kuah_kekentalan", "kuah_keseimbangan", "kuah_kaldu", "kuah_aroma", "kuah_kejernihan"];
+var REQUIRED_GORENG = ["goreng_keseimbangan_minyak", "goreng_bumbu_tumisan", "goreng_aroma_tumisan"];
+function missingScoreFields(input, type) {
+  const req = [...REQUIRED_COMMON, ...type === "kuah" ? REQUIRED_KUAH : REQUIRED_GORENG];
+  return req.filter((k) => typeof input[k] !== "number");
+}
+function toReviewRow(input, allToppings) {
+  const { toppings, ...rest } = input;
+  const row = {};
+  for (const [k, v] of Object.entries(rest)) if (v !== void 0) row[k] = v;
+  if (toppings !== void 0 || allToppings) {
+    const set = new Set(toppings ?? []);
+    for (const t of TOPPINGS) row[`topping_${t}`] = set.has(t);
+  }
+  return row;
+}
+function scoreRpcArgs(r) {
+  const n = (k) => typeof r[k] === "number" ? r[k] : 0;
+  const b = (t) => r[`topping_${t}`] === true;
+  return {
+    p_product_type: String(r.product_type),
+    p_price: n("price"),
+    p_mie_tekstur: n("mie_tekstur"),
+    p_ayam_bumbu: n("ayam_bumbu"),
+    p_ayam_potongan: n("ayam_potongan"),
+    p_kuah_kekentalan: n("kuah_kekentalan"),
+    p_kuah_keseimbangan: n("kuah_keseimbangan"),
+    p_kuah_kaldu: n("kuah_kaldu"),
+    p_kuah_aroma: n("kuah_aroma"),
+    p_kuah_kejernihan: n("kuah_kejernihan"),
+    p_goreng_keseimbangan_minyak: n("goreng_keseimbangan_minyak"),
+    p_goreng_bumbu_tumisan: n("goreng_bumbu_tumisan"),
+    p_goreng_aroma_tumisan: n("goreng_aroma_tumisan"),
+    p_fasilitas_kebersihan: n("fasilitas_kebersihan"),
+    p_fasilitas_alat_makan: n("fasilitas_alat_makan"),
+    p_fasilitas_tempat: n("fasilitas_tempat"),
+    p_service_durasi: n("service_durasi"),
+    p_topping_ceker: b("ceker"),
+    p_topping_bakso: b("bakso"),
+    p_topping_ekstra_ayam: b("ekstra_ayam"),
+    p_topping_ekstra_sawi: b("ekstra_sawi"),
+    p_topping_balungan: b("balungan"),
+    p_topping_tetelan: b("tetelan"),
+    p_topping_mie_jumbo: b("mie_jumbo"),
+    p_topping_jenis_mie: b("jenis_mie"),
+    p_topping_pangsit_basah: b("pangsit_basah"),
+    p_topping_pangsit_kering: b("pangsit_kering"),
+    p_topping_dimsum: b("dimsum"),
+    p_topping_variasi_bumbu: b("variasi_bumbu"),
+    p_topping_bawang_daun: b("bawang_daun"),
+    p_topping_jamur: b("jamur"),
+    p_topping_tauge: b("tauge"),
+    p_topping_acar: b("acar"),
+    p_topping_kerupuk: b("kerupuk")
+  };
+}
+var SITE_URL = "https://mieayamranger.web.id";
+var reviewLink = (slug) => slug ? `${SITE_URL}/reviews/${slug}` : null;
+var notAuth = { content: [{ type: "text", text: "Not authenticated" }], isError: true };
+var errText = (text) => ({ content: [{ type: "text", text }], isError: true });
+
+// src/lib/mcp/tools/preview-score.ts
+var { outlet_name, address, city, ...scoreShape } = reviewFieldShape;
+var preview_score_default = defineTool7({
+  name: "preview_score",
+  title: "Preview review score",
+  description: "Calculate the Scoring v2 overall score for review inputs without saving anything. Use before create_review to confirm with the user.",
+  inputSchema: scoreShape,
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async (input, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuth;
+    const row = toReviewRow(input, true);
+    const missing = missingScoreFields(row, input.product_type);
+    const { data, error } = await supabaseForUser(ctx).rpc("calculate_review_overall_score_v2", scoreRpcArgs(row));
+    if (error) return errText(error.message);
+    const score2 = Math.round(Number(data) * 100) / 100;
+    const warn = missing.length ? ` Nilai belum lengkap (dihitung 0): ${missing.join(", ")}.` : "";
+    return {
+      content: [{ type: "text", text: `Perkiraan skor akhir: ${score2}/10.${warn}` }],
+      structuredContent: { score: score2, missing_fields: missing }
+    };
+  }
+});
+
+// src/lib/mcp/tools/create-review.ts
+import { defineTool as defineTool8 } from "npm:@lovable.dev/mcp-js@0.23.0";
+var create_review_default = defineTool8({
+  name: "create_review",
+  title: "Create a mie ayam review (admin)",
+  description: "Publish a new mie ayam review. Admin only. All flavor/facility scores for the chosen product type are required. Returns the final score and review link.",
+  inputSchema: reviewFieldShape,
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+  handler: async (input, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuth;
+    const row = toReviewRow(input, true);
+    const missing = missingScoreFields(row, input.product_type);
+    if (missing.length) return errText(`Nilai wajib belum diisi: ${missing.join(", ")}. Tanyakan ke user lalu coba lagi.`);
+    if (!row.visit_date) row.visit_date = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+    const { data, error } = await supabaseForUser(ctx).from("reviews").insert(row).select("id, slug, outlet_name, overall_score").single();
+    if (error) return errText(`Gagal menyimpan (pastikan akun admin): ${error.message}`);
+    const link = reviewLink(data.slug);
+    return {
+      content: [{ type: "text", text: `Review "${data.outlet_name}" tersimpan. Skor: ${Number(data.overall_score).toFixed(2)}/10. Slug: ${data.slug}. ${link ?? ""}` }],
+      structuredContent: { id: data.id, slug: data.slug, overall_score: Number(data.overall_score), url: link }
+    };
+  }
+});
+
+// src/lib/mcp/tools/update-review.ts
+import { defineTool as defineTool9 } from "npm:@lovable.dev/mcp-js@0.23.0";
+import { z as z7 } from "npm:zod@^4.4.3";
+var partial = Object.fromEntries(
+  Object.entries(reviewFieldShape).map(([k, v]) => [k, v.optional()])
+);
+var update_review_default = defineTool9({
+  name: "update_review",
+  title: "Update a review (admin)",
+  description: "Update selected fields of an existing review by slug. Only provided fields change. If toppings is given it replaces the whole topping list.",
+  inputSchema: { slug: z7.string().min(1).describe("Slug review."), ...partial },
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  handler: async ({ slug, ...fields }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuth;
+    const row = toReviewRow(fields, false);
+    if (!Object.keys(row).length) return errText("Tidak ada field yang diubah.");
+    const { data, error } = await supabaseForUser(ctx).from("reviews").update(row).eq("slug", slug).select("id, slug, outlet_name, overall_score").maybeSingle();
+    if (error) return errText(error.message);
+    if (!data) return errText(`Review '${slug}' tidak ditemukan atau akun bukan admin.`);
+    return {
+      content: [{ type: "text", text: `Review "${data.outlet_name}" diperbarui. Skor sekarang: ${Number(data.overall_score).toFixed(2)}/10.` }],
+      structuredContent: { id: data.id, slug: data.slug, overall_score: Number(data.overall_score), url: reviewLink(data.slug) }
+    };
+  }
+});
+
+// src/lib/mcp/tools/attach-review-image.ts
+import { defineTool as defineTool10 } from "npm:@lovable.dev/mcp-js@0.23.0";
+import { z as z8 } from "npm:zod@^4.4.3";
+var MAX = 8 * 1024 * 1024;
+var EXT = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" };
+var attach_review_image_default = defineTool10({
+  name: "attach_review_image",
+  title: "Attach a photo to a review (admin)",
+  description: "Upload a photo (public image URL or base64) and add it to a review's gallery. Set as_menu=true for a menu photo. Max 8 MB, jpeg/png/webp.",
+  inputSchema: {
+    slug: z8.string().min(1),
+    image_url: z8.string().url().optional().describe("URL gambar yang bisa diunduh."),
+    image_base64: z8.string().optional().describe("Isi gambar base64 (tanpa prefix data:)."),
+    mime_type: z8.enum(["image/jpeg", "image/png", "image/webp", "image/gif"]).optional().describe("Wajib jika memakai base64."),
+    as_menu: z8.boolean().optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+  handler: async ({ slug, image_url, image_base64, mime_type, as_menu }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuth;
+    let bytes;
+    let mime;
+    if (image_url) {
+      const res = await fetch(image_url);
+      if (!res.ok) return errText(`Gagal unduh gambar: ${res.status}`);
+      mime = (res.headers.get("content-type") ?? "").split(";")[0];
+      bytes = new Uint8Array(await res.arrayBuffer());
+    } else if (image_base64 && mime_type) {
+      mime = mime_type;
+      bytes = Uint8Array.from(atob(image_base64.replace(/^data:[^,]+,/, "")), (c) => c.charCodeAt(0));
+    } else return errText("Berikan image_url, atau image_base64 + mime_type.");
+    if (!EXT[mime]) return errText(`Tipe file tidak didukung: ${mime || "unknown"}`);
+    if (bytes.byteLength > MAX) return errText("Gambar lebih dari 8 MB.");
+    const sb = supabaseForUser(ctx);
+    const { data: review, error: rErr } = await sb.from("reviews").select("id, image_url, image_urls").eq("slug", slug).maybeSingle();
+    if (rErr) return errText(rErr.message);
+    if (!review) return errText(`Review '${slug}' tidak ditemukan.`);
+    const path = `${review.id}/${Date.now()}.${EXT[mime]}`;
+    const { error: upErr } = await sb.storage.from("review-images").upload(path, bytes, { contentType: mime });
+    if (upErr) return errText(`Upload gagal (akun admin?): ${upErr.message}`);
+    const publicUrl = sb.storage.from("review-images").getPublicUrl(path).data.publicUrl;
+    const patch = as_menu ? { menu_image_url: publicUrl } : { image_urls: [...review.image_urls ?? [], publicUrl], image_url: review.image_url ?? publicUrl };
+    const { error: uErr } = await sb.from("reviews").update(patch).eq("id", review.id);
+    if (uErr) return errText(uErr.message);
+    return { content: [{ type: "text", text: `Foto ditambahkan: ${publicUrl}` }], structuredContent: { url: publicUrl } };
+  }
+});
+
 // src/lib/mcp/index.ts
 var projectRef = "kqsqocrtaybbkpigvwjy";
 var mcp_default = defineMcp({
   name: "mieayam-ranger-review",
   title: "mieayam-ranger-review",
-  version: "0.1.0",
-  instructions: "Tools for Mie Ayam Ranger \u2014 a directory of Indonesian mie ayam outlet reviews. Use `search_reviews` and `get_review` to explore the review database. Use `list_wishlist` to see community-submitted outlet suggestions, `submit_wishlist` to add a new one, and `moderate_wishlist` (admin only) to approve/reject entries.",
+  version: "0.2.0",
+  instructions: "Tools for Mie Ayam Ranger \u2014 Indonesian mie ayam outlet reviews. Explore with `search_reviews` and `get_review`. To publish a review from chat: call `get_review_template`, collect missing scores from the user, call `preview_score`, confirm with the user, then `create_review`; add photos with `attach_review_image`; fix mistakes with `update_review`. Writing reviews requires an admin account. Wishlist: `list_wishlist`, `submit_wishlist`, `moderate_wishlist` (admin).",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated"
   }),
-  tools: [search_reviews_default, get_review_default, list_wishlist_default, submit_wishlist_default, moderate_wishlist_default]
+  tools: [
+    search_reviews_default,
+    get_review_default,
+    list_wishlist_default,
+    submit_wishlist_default,
+    moderate_wishlist_default,
+    get_review_template_default,
+    preview_score_default,
+    create_review_default,
+    update_review_default,
+    attach_review_image_default
+  ]
 });
 
 // lovable-mcp-supabase-entry.ts
