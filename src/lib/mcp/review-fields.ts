@@ -88,7 +88,7 @@ export function scoreRpcArgs(r: Record<string, unknown>) {
 }
 
 export const SITE_URL = "https://mieayamranger.web.id";
-export const reviewLink = (slug: string | null) => (slug ? `${SITE_URL}/review/${slug}` : null);
+export const reviewLink = (slug: string | null) => (slug ? `${SITE_URL}/reviews/${slug}` : null);
 
 export const notAuth = { content: [{ type: "text" as const, text: "Not authenticated" }], isError: true };
 export const errText = (text: string) => ({ content: [{ type: "text" as const, text }], isError: true });
