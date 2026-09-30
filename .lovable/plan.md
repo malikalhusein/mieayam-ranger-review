@@ -1,70 +1,48 @@
-# Scoring Algorithm v2 — Price Tier Expectation
+# Jembatan Hermes Agent ke Mie Ayam Ranger (submit review via Telegram/WhatsApp)
 
-Implementasi sesuai `Revision_implementation_plan_v2.md` yang sudah kamu tulis. Fokus: score kalibrasi berbasis ekspektasi harga, `10/10` jadi langka, konsistensi frontend ↔ DB ↔ scorecard function.
+## Jawaban singkat
+Bisa. Situs ini sudah punya "pintu" untuk agen AI (server MCP) dengan 5 alat: cari review, lihat review, lihat wishlist, usulkan wishlist, moderasi wishlist. Hermes Agent bisa terhubung ke pintu itu. Yang belum ada: alat untuk **membuat/mengubah review** dan **mengunggah foto**. Itu yang akan ditambahkan.
 
-## Perubahan
+## Alur yang dituju
+```text
+Kamu (Telegram / WhatsApp)
+      |  "Mie Ayam Pak X, Solo, 12rb, kuah, mie 8, kaldu 7.5, ... + foto"
+      v
+Hermes Agent (di server kamu)  -- memahami pesan, menanyakan nilai yang kurang
+      |  memanggil alat MCP
+      v
+Mie Ayam Ranger (server MCP)  -- validasi, simpan review, hitung skor v2
+      |
+      v
+Balasan ke chat: skor akhir + link review
+```
 
-### 1. `src/lib/scoring.ts` — rewrite core
-- Tambah tipe `PriceTierKey` dan `PriceTierConfig`.
-- Tambah `getPriceTierConfig(price)` dengan 6 tier (super_cheap / cheap / normal / mid / expensive / premium), termasuk transisi `13k–17.999` masuk `mid`.
-- Helper baru:
-  - `calculatePriceAdjustment(price, rasa, fasilitas)` → clamp ±0.90
-  - `calculateTimeScoreV2(durasi)` → capped +0.45 / −0.80
-  - `calculateToppingBonusV2(review)` → `min(count × 0.12, 0.60)`
-  - `applySoftCeiling(raw)` → di atas 9.2 dikompresi ×0.45
-- `calculateScore()`:
-  - `BASE_QUALITY = rasa × 0.82 + fasilitas × 0.18`
-  - `RAW_FINAL = BASE_QUALITY + PRICE_ADJUSTMENT + TIME_SCORE + TOPPING_BONUS`
-  - `FINAL = clamp(applySoftCeiling(RAW_FINAL), 0, 10)`
-- `ScoringResult` diperluas: `price_adjustment`, `topping_bonus`, `raw_final_score`, `price_tier_key`, `expected_rasa`, `expected_fasilitas`. `value_factor` di-set `1` untuk backward compat.
-- `calculateLegacyScore` dibiarkan.
+## Yang akan dibangun di sini
+1. **Alat baru `create_review`** — isi semua field review (nama outlet, alamat, kota, tanggal, harga, kuah/goreng, semua nilai rasa & fasilitas, durasi, topping, catatan, link Google Maps). Validasi sama seperti panel admin (harga minimal Rp 1.000, nilai 0–10, field wajib sesuai tipe kuah/goreng). Mengembalikan skor akhir dan link review.
+2. **Alat `preview_score`** — hitung skor tanpa menyimpan, agar kamu bisa cek dulu sebelum publish.
+3. **Alat `update_review`** — ubah sebagian field review berdasarkan slug (misal koreksi harga).
+4. **Alat `attach_review_image`** — terima foto (URL atau base64 dari Hermes), kompres ke WebP, simpan ke penyimpanan foto review, tambahkan ke galeri review.
+5. **Alat `get_review_template`** — mengembalikan daftar field + contoh, supaya Hermes tahu apa yang harus ditanyakan.
+6. **Akses admin tanpa login browser** — Hermes jalan di server tanpa layar, jadi login OAuth biasa merepotkan. Opsi: kunci akses khusus bot (disimpan aman di backend), hanya berlaku untuk alat admin, bisa dicabut kapan saja. Alat baca tetap publik seperti sekarang.
+7. Semua alat tulis tetap dibatasi hanya untuk admin.
 
-### 2. Migration baru — `supabase/migrations/<ts>_scoring_v2_price_tier_expectation.sql`
-Non-destruktif:
-- `CREATE OR REPLACE FUNCTION public.calculate_review_overall_score_v2(...)` `LANGUAGE sql IMMUTABLE`, argumen: semua field rasa (kuah + goreng), fasilitas, price, product_type, service_durasi, plus 17 boolean topping. Function berisi seluruh formula (rasa per product_type, base quality, tier expectation, price adjustment clamp, time score capped, topping bonus capped, soft ceiling, final clamp).
-- `ALTER TABLE public.reviews DROP COLUMN IF EXISTS overall_score;`
-- `ALTER TABLE public.reviews ADD COLUMN overall_score numeric GENERATED ALWAYS AS (public.calculate_review_overall_score_v2(...)) STORED;`
-- Tidak menyentuh baris data, tidak DROP TABLE / TRUNCATE / DELETE.
+## Yang kamu lakukan di server Hermes
+1. Publish situs dulu (server MCP baru aktif setelah publish).
+2. Di konfigurasi Hermes, tambahkan server MCP dengan URL situs + kunci akses bot.
+3. Hubungkan gateway Telegram dan/atau WhatsApp di Hermes (`hermes gateway setup`).
+4. Batasi Hermes agar hanya menerima perintah dari nomor/akun Telegram kamu dan kolaborator (allowlist di Hermes).
+5. (Opsional) Beri Hermes instruksi/skill: "Kalau user kirim review mie ayam, tanyakan field yang kurang, panggil preview_score, minta konfirmasi, lalu create_review."
 
-### 3. `supabase/functions/generate-scorecard/index.ts`
-- Duplikasi helper v2 (tier config, price adjustment, time v2, topping v2, soft ceiling) supaya sinkron dengan `src/lib/scoring.ts`.
-- Prefer `review.overall_score` dari DB; fallback ke kalkulasi v2.
-- Tambah `price_tier` di prompt scorecard.
-- Deploy ulang function.
+Saya akan menyertakan panduan setup langkah demi langkah + contoh konfigurasi Hermes di dokumentasi proyek.
 
-### 4. `src/pages/Admin.tsx`
-- Preview skor pakai `calculateScore()` v2 (otomatis dari #1).
-- Panel preview tampilkan: Final score, Kategori harga + bintang, Kompensasi harga, Bonus topping, Time score, Expected rasa/fasilitas.
-- Pastikan semua 17 topping + `service_durasi` + `goreng_*` masuk payload preview.
+## Catatan teknis
+- Tambah tool di `src/lib/mcp/tools/` (create-review, update-review, preview-score, attach-review-image, get-review-template), daftarkan di `src/lib/mcp/index.ts`, deploy ulang function `mcp`.
+- Skor dihitung oleh kolom generated `overall_score` (fungsi `calculate_review_overall_score_v2`), jadi tidak ada duplikasi logika; `preview_score` memanggil fungsi RPC yang sama.
+- Auth bot: secret `MCP_BOT_TOKEN` (generate), dicek di function `mcp` via header `Authorization: Bearer`; bila cocok, operasi tulis memakai service role dengan audit (log siapa/kapan). Jika token tidak ada, jalur OAuth tetap berlaku (admin via RLS `is_admin`).
+- Validasi input dengan Zod, selaras dengan skema di `Admin.tsx`. Slug otomatis via trigger yang sudah ada.
+- Upload foto: batas ukuran (mis. 8 MB), tipe image/*, simpan di bucket `review-images`, append ke `image_urls`.
+- Dokumentasi: `HERMES_SETUP.md` berisi contoh `config.yaml` Hermes (`mcp_servers`) dan contoh pesan.
 
-### 5. `src/pages/Home.tsx`
-- Sorting/Hall of Fame tetap pakai `overall_score` dari DB.
-- Fallback score (jika DB null) pakai `calculateScore()` v2.
-- Perceptual mapping guard tetap: tampil jika `complexity != null || sweetness != null`.
-
-### 6. `src/pages/About.tsx`
-- Tambahkan section "Scoring v2" menjelaskan:
-  - Quality = Rasa 82% + Fasilitas 18%
-  - Price tier sebagai ekspektasi (tabel 6 tier)
-  - Bonus kecil (topping cap 0.60, time cap +0.45/−0.80)
-  - Soft ceiling → `10/10` langka
-
-### 7. Validasi
-- `bun run build` lulus (typecheck + build).
-- Query DB spot-check beberapa review existing setelah migration: pastikan `overall_score` recompute wajar (misal goreng score sebelumnya ~8.9 tidak melonjak ke 10).
-- Simulasi manual sesuai acceptance criteria di doc:
-  - Goreng 17k, rasa/fasilitas 8, service 8, 0 topping → ~8, bukan 10.
-  - Murah value bagus → 7.7–8.2.
-  - Mahal average → 6.4–7.0.
-  - Mahal premium → 9.0–9.6.
-
-## Yang TIDAK diubah
-- MCP/OAuth (`/.lovable/oauth/consent`, edge function `mcp`, tools).
-- PWA (manifest, SW, `vite.config.ts`).
-- Data existing (migration hanya recompute generated column).
-- Auto-generated: `src/integrations/supabase/{client,types}.ts`, `.env`, `supabase/config.toml`.
-- Perceptual mapping semantik (`complexity` & `sweetness` tetap metadata).
-
-## Catatan
-- File `Revision_implementation_plan_v2.md` sudah ada di root — dibiarkan sebagai referensi dokumen.
-- GitHub sync otomatis (Lovable) — tidak ada langkah `git push` manual.
+## Pertanyaan terbuka (bisa dijawab saat approve)
+- Pakai kunci akses bot (disarankan, paling mudah untuk server) atau tetap OAuth?
+- Review dari chat langsung tayang, atau disimpan sebagai draft dulu untuk dicek di panel admin?
