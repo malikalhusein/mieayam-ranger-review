@@ -22,7 +22,7 @@ export default defineTool({
     if (!ctx.isAuthenticated()) return notAuth;
     let bytes: Uint8Array; let mime: string;
     if (image_url) {
-      const res = await fetch(image_url, { signal: ctx.signal });
+      const res = await fetch(image_url);
       if (!res.ok) return errText(`Gagal unduh gambar: ${res.status}`);
       mime = (res.headers.get("content-type") ?? "").split(";")[0];
       bytes = new Uint8Array(await res.arrayBuffer());
