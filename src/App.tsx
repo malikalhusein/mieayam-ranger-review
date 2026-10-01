@@ -51,6 +51,7 @@ const App = () => (
                 <Route path="/about" element={<About />} />
                 <Route path="/donation" element={<Donation />} />
                 <Route path="/wishlist" element={<Wishlist />} />
+                <Route path="/oauth/consent" element={<OAuthConsent />} />
                 <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
