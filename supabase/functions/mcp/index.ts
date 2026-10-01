@@ -69,7 +69,13 @@ var search_reviews_default = defineTool({
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ city: city2, product_type, min_score, max_price, limit }, ctx) => {
-    let q = supabaseForUser(ctx).from("reviews").select("slug, outlet_name, city, address, product_type, price, overall_score, notes").order("overall_score", { ascending: false }).limit(limit);
+    let sb;
+    try {
+      sb = supabaseForUser(ctx);
+    } catch (e) {
+      return { content: [{ type: "text", text: `Konfigurasi server bermasalah: ${e.message}` }], isError: true };
+    }
+    let q = sb.from("reviews").select("slug, outlet_name, city, address, product_type, price, overall_score, notes").order("overall_score", { ascending: false }).limit(limit);
     if (city2) q = q.ilike("city", `%${city2}%`);
     if (product_type) q = q.eq("product_type", product_type);
     if (typeof min_score === "number") q = q.gte("overall_score", min_score);
