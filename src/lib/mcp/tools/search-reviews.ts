@@ -19,7 +19,13 @@ export default defineTool({
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ city, product_type, min_score, max_price, limit }, ctx) => {
-    let q = supabaseForUser(ctx)
+    let sb;
+    try {
+      sb = supabaseForUser(ctx);
+    } catch (e) {
+      return { content: [{ type: "text", text: `Konfigurasi server bermasalah: ${(e as Error).message}` }], isError: true };
+    }
+    let q = sb
       .from("reviews")
       .select("slug, outlet_name, city, address, product_type, price, overall_score, notes")
       .order("overall_score", { ascending: false })
