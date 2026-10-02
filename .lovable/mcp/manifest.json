@@ -12,7 +12,7 @@
   "mcp": {
     "server": {
       "name": "mieayam-ranger-review",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "title": "mieayam-ranger-review"
     },
     "tools": [
@@ -389,18 +389,24 @@
       },
       {
         "name": "create_review",
-        "title": "Create a mie ayam review (admin)",
-        "description": "Publish a new mie ayam review. Admin only. All flavor/facility scores for the chosen product type are required. Returns the final score and review link.",
+        "title": "Create a review draft (admin)",
+        "description": "Save a new mie ayam review as an unpublished DRAFT. Admin only. Pass a unique request_id per review so retries never create duplicates. Show the returned summary to the user and call publish_review only after explicit approval.",
         "annotations": {
           "readOnlyHint": false,
           "destructiveHint": false,
-          "idempotentHint": false,
+          "idempotentHint": true,
           "openWorldHint": false
         },
         "inputSchema": {
           "$schema": "http://json-schema.org/draft-07/schema#",
           "type": "object",
           "properties": {
+            "request_id": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 100,
+              "description": "ID unik per review (mis. UUID). Ulangi nilai yang sama saat retry."
+            },
             "outlet_name": {
               "type": "string",
               "minLength": 2,
@@ -577,11 +583,68 @@
             }
           },
           "required": [
+            "request_id",
             "outlet_name",
             "address",
             "city",
             "price",
             "product_type"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "publish_review",
+        "title": "Publish a review draft (admin)",
+        "description": "Make a draft review public. Only call after the user explicitly approved the summary. Requires confirm=true.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "slug": {
+              "type": "string",
+              "minLength": 1
+            },
+            "confirm": {
+              "type": "boolean",
+              "const": true,
+              "description": "Harus true, tanda user sudah menyetujui."
+            }
+          },
+          "required": [
+            "slug",
+            "confirm"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "discard_draft",
+        "title": "Discard an unpublished draft (admin)",
+        "description": "Delete a review draft that was never published, plus its uploaded photos. Published reviews are never deleted by this tool.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "slug": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "slug"
           ]
         },
         "outputSchema": null
@@ -789,7 +852,7 @@
       {
         "name": "attach_review_image",
         "title": "Attach a photo to a review (admin)",
-        "description": "Upload a photo (public image URL or base64) and add it to a review's gallery. Set as_menu=true for a menu photo. Max 8 MB, jpeg/png/webp.",
+        "description": "Add a photo to a review. For Telegram/WhatsApp photos, read the locally saved file and pass it as image_base64 (Telegram file URLs contain the bot token — never pass them). image_url only for public https images. JPEG/PNG/WebP, max 8 MB.",
         "annotations": {
           "readOnlyHint": false,
           "destructiveHint": false,
@@ -804,26 +867,18 @@
               "type": "string",
               "minLength": 1
             },
+            "image_base64": {
+              "description": "Isi file gambar dalam base64 (boleh dengan prefix data:).",
+              "type": "string",
+              "maxLength": 12000000
+            },
             "image_url": {
-              "description": "URL gambar yang bisa diunduh.",
+              "description": "URL https publik. Alamat internal ditolak.",
               "type": "string",
               "format": "uri"
             },
-            "image_base64": {
-              "description": "Isi gambar base64 (tanpa prefix data:).",
-              "type": "string"
-            },
-            "mime_type": {
-              "description": "Wajib jika memakai base64.",
-              "type": "string",
-              "enum": [
-                "image/jpeg",
-                "image/png",
-                "image/webp",
-                "image/gif"
-              ]
-            },
             "as_menu": {
+              "description": "true = foto menu, bukan galeri.",
               "type": "boolean"
             }
           },
