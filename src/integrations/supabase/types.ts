@@ -49,6 +49,7 @@ export type Database = {
           ayam_bumbu: number | null
           ayam_potongan: number | null
           city: string
+          client_request_id: string | null
           compare_count: number | null
           complexity: number | null
           created_at: string
@@ -64,6 +65,7 @@ export type Database = {
           id: string
           image_url: string | null
           image_urls: string[] | null
+          is_published: boolean
           kuah_aroma: number | null
           kuah_kaldu: number | null
           kuah_kejernihan: number | null
@@ -107,6 +109,7 @@ export type Database = {
           ayam_bumbu?: number | null
           ayam_potongan?: number | null
           city: string
+          client_request_id?: string | null
           compare_count?: number | null
           complexity?: number | null
           created_at?: string
@@ -122,6 +125,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           image_urls?: string[] | null
+          is_published?: boolean
           kuah_aroma?: number | null
           kuah_kaldu?: number | null
           kuah_kejernihan?: number | null
@@ -165,6 +169,7 @@ export type Database = {
           ayam_bumbu?: number | null
           ayam_potongan?: number | null
           city?: string
+          client_request_id?: string | null
           compare_count?: number | null
           complexity?: number | null
           created_at?: string
@@ -180,6 +185,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           image_urls?: string[] | null
+          is_published?: boolean
           kuah_aroma?: number | null
           kuah_kaldu?: number | null
           kuah_kejernihan?: number | null
@@ -345,7 +351,19 @@ export type Database = {
         Returns: number
       }
       generate_slug: { Args: { name: string }; Returns: string }
+      has_voted_wishlist: {
+        Args: { _entry_id: string; _voter_secret: string }
+        Returns: boolean
+      }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      record_review_view: {
+        Args: { _fingerprint: string; _review_id: string }
+        Returns: undefined
+      }
+      toggle_wishlist_vote: {
+        Args: { _entry_id: string; _voter_secret: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "user"
