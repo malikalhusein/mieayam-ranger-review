@@ -8,7 +8,7 @@ Goreng: goreng_keseimbangan_minyak, goreng_bumbu_tumisan, goreng_aroma_tumisan
 Opsional: visit_date (YYYY-MM-DD), service_durasi (menit), mie_tipe, google_map_url, complexity (-5..5), sweetness (-5..5), notes, toppings
 Topping: ceker, bakso, ekstra_ayam, ekstra_sawi, balungan, tetelan, mie_jumbo, jenis_mie, pangsit_basah, pangsit_kering, dimsum, variasi_bumbu, bawang_daun, jamur, tauge, acar, kerupuk
 
-Alur: kumpulkan nilai -> preview_score -> konfirmasi user -> create_review -> attach_review_image untuk foto.
+Alur: kumpulkan nilai -> preview_score -> create_review (draft, request_id unik) -> tampilkan ringkasan -> user setuju -> publish_review. Batal -> discard_draft. Foto chat -> attach_review_image dengan image_base64.
 
 Contoh pesan: "Mie Ayam Pak Kumis, Jl. Slamet Riyadi 10, Solo, 12rb, kuah. Mie 8, bumbu ayam 7.5, potongan 7, kental 7, seimbang 8, kaldu 8, aroma 7.5, jernih 7, bersih 7, alat makan 7, tempat 6. Saji 6 menit. Topping bakso, pangsit kering."`;
 

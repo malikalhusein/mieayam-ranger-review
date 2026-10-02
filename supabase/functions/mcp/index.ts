@@ -75,7 +75,7 @@ var search_reviews_default = defineTool({
     } catch (e) {
       return { content: [{ type: "text", text: `Konfigurasi server bermasalah: ${e.message}` }], isError: true };
     }
-    let q = sb.from("reviews").select("slug, outlet_name, city, address, product_type, price, overall_score, notes").order("overall_score", { ascending: false }).limit(limit);
+    let q = sb.from("reviews").select("slug, outlet_name, city, address, product_type, price, overall_score, notes").eq("is_published", true).order("overall_score", { ascending: false }).limit(limit);
     if (city2) q = q.ilike("city", `%${city2}%`);
     if (product_type) q = q.eq("product_type", product_type);
     if (typeof min_score === "number") q = q.gte("overall_score", min_score);
@@ -195,7 +195,7 @@ Goreng: goreng_keseimbangan_minyak, goreng_bumbu_tumisan, goreng_aroma_tumisan
 Opsional: visit_date (YYYY-MM-DD), service_durasi (menit), mie_tipe, google_map_url, complexity (-5..5), sweetness (-5..5), notes, toppings
 Topping: ceker, bakso, ekstra_ayam, ekstra_sawi, balungan, tetelan, mie_jumbo, jenis_mie, pangsit_basah, pangsit_kering, dimsum, variasi_bumbu, bawang_daun, jamur, tauge, acar, kerupuk
 
-Alur: kumpulkan nilai -> preview_score -> konfirmasi user -> create_review -> attach_review_image untuk foto.
+Alur: kumpulkan nilai -> preview_score -> create_review (draft, request_id unik) -> tampilkan ringkasan -> user setuju -> publish_review. Batal -> discard_draft. Foto chat -> attach_review_image dengan image_base64.
 
 Contoh pesan: "Mie Ayam Pak Kumis, Jl. Slamet Riyadi 10, Solo, 12rb, kuah. Mie 8, bumbu ayam 7.5, potongan 7, kental 7, seimbang 8, kaldu 8, aroma 7.5, jernih 7, bersih 7, alat makan 7, tempat 6. Saji 6 menit. Topping bakso, pangsit kering."`;
 var get_review_template_default = defineTool6({
@@ -342,6 +342,12 @@ var SITE_URL = "https://mieayamranger.web.id";
 var reviewLink = (slug) => slug ? `${SITE_URL}/reviews/${slug}` : null;
 var notAuth = { content: [{ type: "text", text: "Not authenticated" }], isError: true };
 var errText = (text) => ({ content: [{ type: "text", text }], isError: true });
+async function requireAdmin(sb, userId) {
+  if (!userId) return "Tidak terautentikasi.";
+  const { data, error } = await sb.rpc("is_admin", { _user_id: userId });
+  if (error) return `Gagal cek izin admin: ${error.message}`;
+  return data === true ? null : "Izin ditolak: akun ini bukan admin Mie Ayam Ranger.";
+}
 
 // src/lib/mcp/tools/preview-score.ts
 var { outlet_name, address, city, ...scoreShape } = reviewFieldShape;
@@ -368,31 +374,47 @@ var preview_score_default = defineTool7({
 
 // src/lib/mcp/tools/create-review.ts
 import { defineTool as defineTool8 } from "npm:@lovable.dev/mcp-js@0.23.0";
+import { z as z7 } from "npm:zod@^4.4.3";
 var create_review_default = defineTool8({
   name: "create_review",
-  title: "Create a mie ayam review (admin)",
-  description: "Publish a new mie ayam review. Admin only. All flavor/facility scores for the chosen product type are required. Returns the final score and review link.",
-  inputSchema: reviewFieldShape,
-  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
-  handler: async (input, ctx) => {
+  title: "Create a review draft (admin)",
+  description: "Save a new mie ayam review as an unpublished DRAFT. Admin only. Pass a unique request_id per review so retries never create duplicates. Show the returned summary to the user and call publish_review only after explicit approval.",
+  inputSchema: {
+    request_id: z7.string().trim().min(8).max(100).describe("ID unik per review (mis. UUID). Ulangi nilai yang sama saat retry."),
+    ...reviewFieldShape
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  handler: async ({ request_id, ...input }, ctx) => {
     if (!ctx.isAuthenticated()) return notAuth;
+    const sb = supabaseForUser(ctx);
+    const denied = await requireAdmin(sb, ctx.getUserId());
+    if (denied) return errText(denied);
+    const { data: existing } = await sb.from("reviews").select("id, slug, outlet_name, overall_score, is_published").eq("client_request_id", request_id).maybeSingle();
+    if (existing) {
+      return {
+        content: [{ type: "text", text: `Request ini sudah pernah disimpan: "${existing.outlet_name}" (slug ${existing.slug}, ${existing.is_published ? "sudah tayang" : "draft"}, skor ${Number(existing.overall_score).toFixed(2)}). Tidak dibuat ulang.` }],
+        structuredContent: { id: existing.id, slug: existing.slug, overall_score: Number(existing.overall_score), is_published: existing.is_published, duplicate: true }
+      };
+    }
     const row = toReviewRow(input, true);
     const missing = missingScoreFields(row, input.product_type);
-    if (missing.length) return errText(`Nilai wajib belum diisi: ${missing.join(", ")}. Tanyakan ke user lalu coba lagi.`);
+    if (missing.length) return errText(`Field wajib belum diisi: ${missing.join(", ")}. Tanyakan ke user lalu coba lagi.`);
     if (!row.visit_date) row.visit_date = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
-    const { data, error } = await supabaseForUser(ctx).from("reviews").insert(row).select("id, slug, outlet_name, overall_score").single();
-    if (error) return errText(`Gagal menyimpan (pastikan akun admin): ${error.message}`);
-    const link = reviewLink(data.slug);
+    row.is_published = false;
+    row.client_request_id = request_id;
+    const { data, error } = await sb.from("reviews").insert(row).select("id, slug, outlet_name, city, price, product_type, overall_score").single();
+    if (error) return errText(`Gagal menyimpan draft: ${error.message}${error.details ? ` (${error.details})` : ""}`);
+    const summary = `DRAFT tersimpan (belum tayang): "${data.outlet_name}", ${data.city}, Rp${data.price}, ${data.product_type}. Skor: ${Number(data.overall_score).toFixed(2)}/10. Slug: ${data.slug}. Minta persetujuan user, lalu panggil publish_review dengan slug ini; atau discard_draft untuk membatalkan.`;
     return {
-      content: [{ type: "text", text: `Review "${data.outlet_name}" tersimpan. Skor: ${Number(data.overall_score).toFixed(2)}/10. Slug: ${data.slug}. ${link ?? ""}` }],
-      structuredContent: { id: data.id, slug: data.slug, overall_score: Number(data.overall_score), url: link }
+      content: [{ type: "text", text: summary }],
+      structuredContent: { id: data.id, slug: data.slug, overall_score: Number(data.overall_score), is_published: false, preview_url: reviewLink(data.slug) }
     };
   }
 });
 
 // src/lib/mcp/tools/update-review.ts
 import { defineTool as defineTool9 } from "npm:@lovable.dev/mcp-js@0.23.0";
-import { z as z7 } from "npm:zod@^4.4.3";
+import { z as z8 } from "npm:zod@^4.4.3";
 var partial = Object.fromEntries(
   Object.entries(reviewFieldShape).map(([k, v]) => [k, v.optional()])
 );
@@ -400,7 +422,7 @@ var update_review_default = defineTool9({
   name: "update_review",
   title: "Update a review (admin)",
   description: "Update selected fields of an existing review by slug. Only provided fields change. If toppings is given it replaces the whole topping list.",
-  inputSchema: { slug: z7.string().min(1).describe("Slug review."), ...partial },
+  inputSchema: { slug: z8.string().min(1).describe("Slug review."), ...partial },
   annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   handler: async ({ slug, ...fields }, ctx) => {
     if (!ctx.isAuthenticated()) return notAuth;
@@ -418,48 +440,175 @@ var update_review_default = defineTool9({
 
 // src/lib/mcp/tools/attach-review-image.ts
 import { defineTool as defineTool10 } from "npm:@lovable.dev/mcp-js@0.23.0";
-import { z as z8 } from "npm:zod@^4.4.3";
+import { z as z9 } from "npm:zod@^4.4.3";
 var MAX = 8 * 1024 * 1024;
-var EXT = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" };
+var TIMEOUT_MS = 15e3;
+function sniff(b) {
+  if (b[0] === 255 && b[1] === 216 && b[2] === 255) return { mime: "image/jpeg", ext: "jpg" };
+  if (b[0] === 137 && b[1] === 80 && b[2] === 78 && b[3] === 71) return { mime: "image/png", ext: "png" };
+  if (b[0] === 82 && b[1] === 73 && b[2] === 70 && b[3] === 70 && b[8] === 87 && b[9] === 69 && b[10] === 66 && b[11] === 80) return { mime: "image/webp", ext: "webp" };
+  return null;
+}
+function isPrivateHost(host) {
+  const h = host.toLowerCase().replace(/^\[|\]$/g, "");
+  if (h === "localhost" || h.endsWith(".localhost") || h.endsWith(".local") || h.endsWith(".internal")) return true;
+  if (h.includes(":")) return h === "::1" || h.startsWith("fc") || h.startsWith("fd") || h.startsWith("fe80") || h.startsWith("::ffff:");
+  const m = h.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+  if (!m) return false;
+  const [a, b] = [Number(m[1]), Number(m[2])];
+  return a === 10 || a === 127 || a === 0 || a === 169 && b === 254 || a === 172 && b >= 16 && b <= 31 || a === 192 && b === 168 || a === 100 && b >= 64 && b <= 127 || a >= 224;
+}
+async function resolvesPrivate(host) {
+  const deno = globalThis.Deno;
+  if (!deno?.resolveDns || /^[\d.]+$/.test(host) || host.includes(":")) return false;
+  for (const t of ["A", "AAAA"]) {
+    try {
+      if ((await deno.resolveDns(host, t)).some(isPrivateHost)) return true;
+    } catch {
+    }
+  }
+  return false;
+}
+async function download(url) {
+  let u;
+  try {
+    u = new URL(url);
+  } catch {
+    return "image_url tidak valid.";
+  }
+  if (u.protocol !== "https:") return "image_url harus https.";
+  if (isPrivateHost(u.hostname) || await resolvesPrivate(u.hostname)) return "image_url menunjuk ke alamat internal; ditolak.";
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+  try {
+    const res = await fetch(u, { signal: ctrl.signal, redirect: "error" });
+    if (!res.ok || !res.body) return `Gagal unduh gambar: HTTP ${res.status}`;
+    const len = Number(res.headers.get("content-length") ?? 0);
+    if (len > MAX) return "Gambar lebih dari 8 MB.";
+    const reader = res.body.getReader();
+    const chunks = [];
+    let total = 0;
+    for (; ; ) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > MAX) {
+        await reader.cancel();
+        return "Gambar lebih dari 8 MB.";
+      }
+      chunks.push(value);
+    }
+    const out = new Uint8Array(total);
+    let o = 0;
+    for (const c of chunks) {
+      out.set(c, o);
+      o += c.byteLength;
+    }
+    return out;
+  } catch (e) {
+    return e.name === "AbortError" ? "Unduhan gambar melebihi 15 detik." : `Gagal unduh gambar: ${e.message}`;
+  } finally {
+    clearTimeout(timer);
+  }
+}
 var attach_review_image_default = defineTool10({
   name: "attach_review_image",
   title: "Attach a photo to a review (admin)",
-  description: "Upload a photo (public image URL or base64) and add it to a review's gallery. Set as_menu=true for a menu photo. Max 8 MB, jpeg/png/webp.",
+  description: "Add a photo to a review. For Telegram/WhatsApp photos, read the locally saved file and pass it as image_base64 (Telegram file URLs contain the bot token \u2014 never pass them). image_url only for public https images. JPEG/PNG/WebP, max 8 MB.",
   inputSchema: {
-    slug: z8.string().min(1),
-    image_url: z8.string().url().optional().describe("URL gambar yang bisa diunduh."),
-    image_base64: z8.string().optional().describe("Isi gambar base64 (tanpa prefix data:)."),
-    mime_type: z8.enum(["image/jpeg", "image/png", "image/webp", "image/gif"]).optional().describe("Wajib jika memakai base64."),
-    as_menu: z8.boolean().optional()
+    slug: z9.string().min(1),
+    image_base64: z9.string().max(12e6).optional().describe("Isi file gambar dalam base64 (boleh dengan prefix data:)."),
+    image_url: z9.string().url().optional().describe("URL https publik. Alamat internal ditolak."),
+    as_menu: z9.boolean().optional().describe("true = foto menu, bukan galeri.")
   },
   annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
-  handler: async ({ slug, image_url, image_base64, mime_type, as_menu }, ctx) => {
+  handler: async ({ slug, image_url, image_base64, as_menu }, ctx) => {
     if (!ctx.isAuthenticated()) return notAuth;
-    let bytes;
-    let mime;
-    if (image_url) {
-      const res = await fetch(image_url);
-      if (!res.ok) return errText(`Gagal unduh gambar: ${res.status}`);
-      mime = (res.headers.get("content-type") ?? "").split(";")[0];
-      bytes = new Uint8Array(await res.arrayBuffer());
-    } else if (image_base64 && mime_type) {
-      mime = mime_type;
-      bytes = Uint8Array.from(atob(image_base64.replace(/^data:[^,]+,/, "")), (c) => c.charCodeAt(0));
-    } else return errText("Berikan image_url, atau image_base64 + mime_type.");
-    if (!EXT[mime]) return errText(`Tipe file tidak didukung: ${mime || "unknown"}`);
-    if (bytes.byteLength > MAX) return errText("Gambar lebih dari 8 MB.");
     const sb = supabaseForUser(ctx);
+    const denied = await requireAdmin(sb, ctx.getUserId());
+    if (denied) return errText(denied);
+    let bytes;
+    if (image_base64) {
+      try {
+        bytes = Uint8Array.from(atob(image_base64.replace(/^data:[^,]+,/, "").replace(/\s/g, "")), (c) => c.charCodeAt(0));
+      } catch {
+        return errText("image_base64 tidak valid.");
+      }
+      if (bytes.byteLength > MAX) return errText("Gambar lebih dari 8 MB.");
+    } else if (image_url) {
+      const r = await download(image_url);
+      if (typeof r === "string") return errText(r);
+      bytes = r;
+    } else return errText("Berikan image_base64 atau image_url.");
+    const kind = sniff(bytes);
+    if (!kind) return errText("File bukan gambar JPEG/PNG/WebP yang valid.");
     const { data: review, error: rErr } = await sb.from("reviews").select("id, image_url, image_urls").eq("slug", slug).maybeSingle();
     if (rErr) return errText(rErr.message);
     if (!review) return errText(`Review '${slug}' tidak ditemukan.`);
-    const path = `${review.id}/${Date.now()}.${EXT[mime]}`;
-    const { error: upErr } = await sb.storage.from("review-images").upload(path, bytes, { contentType: mime });
-    if (upErr) return errText(`Upload gagal (akun admin?): ${upErr.message}`);
+    const path = `${review.id}/${Date.now()}.${kind.ext}`;
+    const { error: upErr } = await sb.storage.from("review-images").upload(path, bytes, { contentType: kind.mime });
+    if (upErr) return errText(`Upload gagal: ${upErr.message}`);
     const publicUrl = sb.storage.from("review-images").getPublicUrl(path).data.publicUrl;
     const patch = as_menu ? { menu_image_url: publicUrl } : { image_urls: [...review.image_urls ?? [], publicUrl], image_url: review.image_url ?? publicUrl };
     const { error: uErr } = await sb.from("reviews").update(patch).eq("id", review.id);
-    if (uErr) return errText(uErr.message);
+    if (uErr) {
+      await sb.storage.from("review-images").remove([path]);
+      return errText(`Gagal menyimpan ke review (file dibersihkan): ${uErr.message}`);
+    }
     return { content: [{ type: "text", text: `Foto ditambahkan: ${publicUrl}` }], structuredContent: { url: publicUrl } };
+  }
+});
+
+// src/lib/mcp/tools/publish-review.ts
+import { defineTool as defineTool11 } from "npm:@lovable.dev/mcp-js@0.23.0";
+import { z as z10 } from "npm:zod@^4.4.3";
+var publish_review_default = defineTool11({
+  name: "publish_review",
+  title: "Publish a review draft (admin)",
+  description: "Make a draft review public. Only call after the user explicitly approved the summary. Requires confirm=true.",
+  inputSchema: {
+    slug: z10.string().min(1),
+    confirm: z10.literal(true).describe("Harus true, tanda user sudah menyetujui.")
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  handler: async ({ slug }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuth;
+    const sb = supabaseForUser(ctx);
+    const denied = await requireAdmin(sb, ctx.getUserId());
+    if (denied) return errText(denied);
+    const { data, error } = await sb.from("reviews").update({ is_published: true }).eq("slug", slug).select("slug, outlet_name, overall_score").maybeSingle();
+    if (error) return errText(error.message);
+    if (!data) return errText(`Review '${slug}' tidak ditemukan.`);
+    const url = reviewLink(data.slug);
+    return {
+      content: [{ type: "text", text: `"${data.outlet_name}" sudah tayang. Skor ${Number(data.overall_score).toFixed(2)}/10. ${url}` }],
+      structuredContent: { slug: data.slug, url, overall_score: Number(data.overall_score) }
+    };
+  }
+});
+
+// src/lib/mcp/tools/discard-draft.ts
+import { defineTool as defineTool12 } from "npm:@lovable.dev/mcp-js@0.23.0";
+import { z as z11 } from "npm:zod@^4.4.3";
+var discard_draft_default = defineTool12({
+  name: "discard_draft",
+  title: "Discard an unpublished draft (admin)",
+  description: "Delete a review draft that was never published, plus its uploaded photos. Published reviews are never deleted by this tool.",
+  inputSchema: { slug: z11.string().min(1) },
+  annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ slug }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuth;
+    const sb = supabaseForUser(ctx);
+    const denied = await requireAdmin(sb, ctx.getUserId());
+    if (denied) return errText(denied);
+    const { data: review } = await sb.from("reviews").select("id, is_published").eq("slug", slug).maybeSingle();
+    if (!review) return errText(`Review '${slug}' tidak ditemukan.`);
+    if (review.is_published) return errText("Ditolak: review ini sudah tayang. discard_draft hanya untuk draft.");
+    const { data: files } = await sb.storage.from("review-images").list(review.id);
+    if (files?.length) await sb.storage.from("review-images").remove(files.map((f) => `${review.id}/${f.name}`));
+    const { error } = await sb.from("reviews").delete().eq("id", review.id).eq("is_published", false);
+    if (error) return errText(error.message);
+    return { content: [{ type: "text", text: `Draft '${slug}' dibatalkan dan dihapus.` }] };
   }
 });
 
@@ -468,8 +617,8 @@ var projectRef = "kqsqocrtaybbkpigvwjy";
 var mcp_default = defineMcp({
   name: "mieayam-ranger-review",
   title: "mieayam-ranger-review",
-  version: "0.2.0",
-  instructions: "Tools for Mie Ayam Ranger \u2014 Indonesian mie ayam outlet reviews. Explore with `search_reviews` and `get_review`. To publish a review from chat: call `get_review_template`, collect missing scores from the user, call `preview_score`, confirm with the user, then `create_review`; add photos with `attach_review_image`; fix mistakes with `update_review`. Writing reviews requires an admin account. Wishlist: `list_wishlist`, `submit_wishlist`, `moderate_wishlist` (admin).",
+  version: "0.3.0",
+  instructions: "Tools for Mie Ayam Ranger \u2014 Indonesian mie ayam outlet reviews. Explore with `search_reviews` and `get_review`. To publish a review from chat: call `get_review_template`, collect missing scores from the user, call `preview_score`, confirm with the user, then `create_review` (saves an unpublished draft; reuse the same request_id on retry), show the summary and ask for explicit approval, then `publish_review` (or `discard_draft` to cancel); add photos with `attach_review_image` (pass chat photos as base64); fix mistakes with `update_review`. Writing reviews requires an admin account. Wishlist: `list_wishlist`, `submit_wishlist`, `moderate_wishlist` (admin).",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated"
@@ -483,6 +632,8 @@ var mcp_default = defineMcp({
     get_review_template_default,
     preview_score_default,
     create_review_default,
+    publish_review_default,
+    discard_draft_default,
     update_review_default,
     attach_review_image_default
   ]

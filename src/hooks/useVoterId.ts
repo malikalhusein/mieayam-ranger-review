@@ -2,19 +2,18 @@ import { useState, useEffect } from "react";
 
 const VOTER_ID_KEY = "mieayam-voter-id";
 
-// Generate a unique voter ID for anonymous voting
-const generateVoterId = () => {
-  const timestamp = Date.now().toString(36);
-  const randomPart = Math.random().toString(36).substring(2, 15);
-  return `${timestamp}-${randomPart}`;
-};
+// Private random secret for anonymous voting. Only its hash is stored server-side.
+const generateVoterId = () =>
+  typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`;
 
 export const useVoterId = () => {
   const [voterId, setVoterId] = useState<string>("");
 
   useEffect(() => {
     let id = localStorage.getItem(VOTER_ID_KEY);
-    if (!id) {
+    if (!id || id.length < 16) {
       id = generateVoterId();
       localStorage.setItem(VOTER_ID_KEY, id);
     }

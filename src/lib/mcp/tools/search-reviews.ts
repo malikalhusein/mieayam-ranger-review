@@ -28,6 +28,7 @@ export default defineTool({
     let q = sb
       .from("reviews")
       .select("slug, outlet_name, city, address, product_type, price, overall_score, notes")
+      .eq("is_published", true)
       .order("overall_score", { ascending: false })
       .limit(limit);
     if (city) q = q.ilike("city", `%${city}%`);
