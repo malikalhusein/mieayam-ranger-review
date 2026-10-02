@@ -92,3 +92,11 @@ export const reviewLink = (slug: string | null) => (slug ? `${SITE_URL}/reviews/
 
 export const notAuth = { content: [{ type: "text" as const, text: "Not authenticated" }], isError: true };
 export const errText = (text: string) => ({ content: [{ type: "text" as const, text }], isError: true });
+
+/** Explicit admin check so callers get a clear permission error (RLS still enforces it). */
+export async function requireAdmin(sb: { rpc: (fn: "is_admin", args: { _user_id: string }) => PromiseLike<{ data: unknown; error: { message: string } | null }> }, userId: string | undefined) {
+  if (!userId) return "Tidak terautentikasi.";
+  const { data, error } = await sb.rpc("is_admin", { _user_id: userId });
+  if (error) return `Gagal cek izin admin: ${error.message}`;
+  return data === true ? null : "Izin ditolak: akun ini bukan admin Mie Ayam Ranger.";
+}
