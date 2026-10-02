@@ -23,65 +23,24 @@ export const WishlistVoteButton = ({
   // Check if user has already voted
   useEffect(() => {
     if (!voterId) return;
-
-    const checkVote = async () => {
-      const { data } = await supabase
-        .from("wishlist_votes")
-        .select("id")
-        .eq("wishlist_entry_id", entryId)
-        .eq("voter_identifier", voterId)
-        .maybeSingle();
-
-      setHasVoted(!!data);
-    };
-
-    checkVote();
+    supabase
+      .rpc("has_voted_wishlist", { _entry_id: entryId, _voter_secret: voterId })
+      .then(({ data }) => setHasVoted(!!data));
   }, [entryId, voterId]);
 
   const handleVote = async () => {
     if (!voterId || isLoading) return;
-
     setIsLoading(true);
-    
     try {
-      if (hasVoted) {
-        // Remove vote
-        await supabase
-          .from("wishlist_votes")
-          .delete()
-          .eq("wishlist_entry_id", entryId)
-          .eq("voter_identifier", voterId);
-
-        // Update vote count on entry
-        const newCount = Math.max(0, voteCount - 1);
-        await supabase
-          .from("wishlist_entries")
-          .update({ vote_count: newCount })
-          .eq("id", entryId);
-
-        setVoteCount(newCount);
-        setHasVoted(false);
-        onVoteChange?.(newCount);
-      } else {
-        // Add vote
-        await supabase
-          .from("wishlist_votes")
-          .insert({
-            wishlist_entry_id: entryId,
-            voter_identifier: voterId
-          });
-
-        // Update vote count on entry
-        const newCount = voteCount + 1;
-        await supabase
-          .from("wishlist_entries")
-          .update({ vote_count: newCount })
-          .eq("id", entryId);
-
-        setVoteCount(newCount);
-        setHasVoted(true);
-        onVoteChange?.(newCount);
-      }
+      const { data, error } = await supabase.rpc("toggle_wishlist_vote", {
+        _entry_id: entryId,
+        _voter_secret: voterId,
+      });
+      if (error) throw error;
+      const result = data as { voted: boolean; vote_count: number };
+      setVoteCount(result.vote_count);
+      setHasVoted(result.voted);
+      onVoteChange?.(result.vote_count);
     } catch (error) {
       console.error("Vote error:", error);
     } finally {

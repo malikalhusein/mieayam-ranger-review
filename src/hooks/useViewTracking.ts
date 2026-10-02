@@ -25,28 +25,10 @@ export const useViewTracking = (reviewId: string | undefined) => {
       try {
         const fingerprint = getViewerFingerprint();
         
-        // Insert view record (duplicates are fine, we just count total)
-        await supabase
-          .from("review_views")
-          .insert({
-            review_id: reviewId,
-            viewer_fingerprint: fingerprint
-          });
-
-        // Update the cached view_count on the review
-        // This is a simple increment - in production you might use a database function
-        const { data: currentReview } = await supabase
-          .from("reviews")
-          .select("view_count")
-          .eq("id", reviewId)
-          .single();
-
-        if (currentReview) {
-          await supabase
-            .from("reviews")
-            .update({ view_count: (currentReview.view_count || 0) + 1 })
-            .eq("id", reviewId);
-        }
+        await supabase.rpc("record_review_view", {
+          _review_id: reviewId,
+          _fingerprint: fingerprint,
+        });
 
         tracked.current = true;
       } catch (error) {
